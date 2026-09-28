@@ -186,7 +186,7 @@ Hard rules, all mandatory:
 
 Output the meta description first, then the inner HTML, using exactly these markers and nothing else:
 <<<META>>>
-a 150 to 160 character meta description that contains the target keyword, plain text, no em dash
+a meta description BETWEEN 145 AND 158 CHARACTERS (this length is mandatory, never shorter than 145) that contains the target keyword, plain text, no em dash. If your first draft is under 145 characters, add a concrete specific detail until it fits.
 <<<END META>>>
 <<<ARTICLE>>>
 ...inner html...
@@ -243,6 +243,18 @@ def qa(topic, inner_html):
         return json.loads(raw), resp.usage
     except Exception:
         return {"verdict": "FAIL", "issues": ["QA output unparseable"], "has_dash": has_dash(inner_html)}, resp.usage
+
+def regen_meta(topic, inner_html):
+    """Rewrite just the meta description to a compliant 145-158 chars. Used only when the first one is off-range."""
+    user = (f"Write ONE meta description for this article. Plain text only, output nothing else.\n"
+            f"Title: {topic['title']}\n"
+            f"Target keyword (must be included): {topic['target_keyword']}\n"
+            f"Mandatory length: between 145 and 158 characters. No em dash, no en dash. Specific and compelling.\n\n"
+            f"Article opening:\n{inner_html[:700]}")
+    resp = client.messages.create(model=MODEL, max_tokens=200,
+                                  messages=[{"role": "user", "content": user}])
+    txt = "".join(b.text for b in resp.content if b.type == "text").strip().strip('"').strip()
+    return strip_dashes(txt), resp.usage
 
 def repair(topic, inner_html, issues):
     user = (f"Revise this article body to fix these issues, keep everything else. "

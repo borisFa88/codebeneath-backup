@@ -34,6 +34,12 @@ def process_one(topic, plan):
     print(f'\n=== {topic["title"]}  ({slug}) ===')
     inner, meta, u = E.generate(topic, plan); total += E.cost(u)
     topic["meta_description"] = E.strip_dashes(meta).strip()[:180]
+    if not (140 <= len(topic["meta_description"]) <= 165):        # SEO length guard: fix once
+        m2, u = E.regen_meta(topic, inner); total += E.cost(u)
+        m2 = E.strip_dashes(m2).strip()
+        if 130 <= len(m2) <= 170:
+            topic["meta_description"] = m2[:165]
+        print(f'   meta length fixed -> {len(topic["meta_description"])} chars')
     inner = E.strip_dashes(inner)                      # deterministic dash guard
     verdict, u = E.qa(topic, inner); total += E.cost(u)
     print(f'   QA: {verdict.get("verdict")} | issues: {verdict.get("issues")}')
