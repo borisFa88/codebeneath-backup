@@ -397,6 +397,8 @@ def publish(topic, inner_html, plan):
     out = folder / f'{topic["slug"]}.html'
     out.write_text(page, encoding="utf-8")
     _add_to_sitemap(_url_for(topic))
+    add_to_articles_index(topic, plan)   # list on /articles.html (never orphan it)
+    add_to_hub(topic, plan)              # list on the cluster hub
     return out
 
 def _add_to_sitemap(url):
@@ -408,6 +410,86 @@ def _add_to_sitemap(url):
     entry = f"  <url>\n    <loc>{url}</loc>\n    <lastmod>{today}</lastmod>\n  </url>\n"
     x = x.replace("</urlset>", entry + "</urlset>")
     sm.write_text(x, encoding="utf-8")
+
+# ---------------------------------------------------------------- internal linking
+# So a new article is never orphaned: list it on /articles.html AND on its cluster hub.
+ARTICLES_SECTION = {"http": "http", "languages": "languages", "sockets": "networking",
+                    "spring": "spring", "security": "security", "tools": "tools"}
+
+def _esc(s):
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+def _hub_file(topic, plan):
+    hub = plan["clusters"].get(topic["cluster"], {}).get("hub", "")   # e.g. /category/http/
+    seg = hub.strip("/").split("/")
+    if len(seg) >= 2 and seg[0] == "category":
+        return ROOT / "category" / seg[1] / "index.html"
+    return None
+
+def add_to_articles_index(topic, plan):
+    """Insert the article into the matching <section> of /articles.html. Idempotent."""
+    f = ROOT / "articles.html"
+    if not f.exists():
+        return False
+    html = f.read_text(encoding="utf-8")
+    url = _rel_url_static(topic, plan)
+    if f'href="{url}"' in html:
+        return False
+    sid = ARTICLES_SECTION.get(topic["cluster"])
+    if not sid:
+        return False
+    i = html.find(f'<section id="{sid}">')
+    if i == -1:
+        return False
+    j = html.find("</ul>", i)            # end of that section's list
+    if j == -1:
+        return False
+    li = f'<li><h3><a href="{url}">{_esc(topic["title"])}</a></h3><p>{_esc(topic.get("meta_description",""))}</p></li>'
+    html = html[:j] + li + html[j:]
+    html = _append_itemlist(html, DOMAIN + url, topic["title"])
+    f.write_text(html, encoding="utf-8")
+    return True
+
+def _append_itemlist(html, full_url, title):
+    k = html.find('"itemListElement": [')
+    if k == -1:
+        return html
+    end = html.find("]}}", k)
+    if end == -1:
+        return html
+    pos = html.count('"@type": "ListItem"', k, end) + 1
+    item = ', {"@type": "ListItem", "position": %d, "url": %s, "name": %s}' % (
+        pos, json.dumps(full_url, ensure_ascii=False), json.dumps(title, ensure_ascii=False))
+    return html[:end] + item + html[end:]
+
+def add_to_hub(topic, plan):
+    """Insert the article into its category hub index.html. Idempotent."""
+    f = _hub_file(topic, plan)
+    if not f or not f.exists():
+        return False
+    html = f.read_text(encoding="utf-8")
+    url = _rel_url_static(topic, plan)
+    if f'href="{url}"' in html:
+        return False
+    j = html.find("</ul>")
+    if j == -1:
+        return False
+    li = f'<li><a href="{url}">{_esc(topic["title"])}</a></li>'
+    html = html[:j] + li + html[j:]
+    html = _append_haspart(html, DOMAIN + url, topic["title"])
+    f.write_text(html, encoding="utf-8")
+    return True
+
+def _append_haspart(html, full_url, title):
+    k = html.find('"hasPart":[')
+    if k == -1:
+        return html
+    end = html.find("]}", k)
+    if end == -1:
+        return html
+    item = ',{"@type":"WebPage","name":%s,"url":%s}' % (
+        json.dumps(title, ensure_ascii=False), json.dumps(full_url, ensure_ascii=False))
+    return html[:end] + item + html[end:]
 
 def quarantine(topic, inner_html, verdict):
     QUARANTINE.mkdir(parents=True, exist_ok=True)
