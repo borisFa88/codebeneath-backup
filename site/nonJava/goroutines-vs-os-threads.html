@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Goroutines vs OS Threads: What Runs Where | Code Beneath</title>
+<meta name="description" content="Goroutines vs threads example: why Go spawns 100k concurrent tasks while Java hits OS limits. Memory, CPU, and scheduling explained." />
+<link rel="canonical" href="https://codebeneath.com/nonJava/goroutines-vs-os-threads.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Goroutines vs OS Threads: What Runs Where | Code Beneath" />
+<meta property="og:description" content="Goroutines vs threads example: why Go spawns 100k concurrent tasks while Java hits OS limits. Memory, CPU, and scheduling explained." />
+<meta property="og:url" content="https://codebeneath.com/nonJava/goroutines-vs-os-threads.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Goroutines vs OS Threads: What Runs Where | Code Beneath" />
+<meta name="twitter:description" content="Goroutines vs threads example: why Go spawns 100k concurrent tasks while Java hits OS limits. Memory, CPU, and scheduling explained." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Goroutines vs OS Threads: What Runs Where", "name": "Goroutines vs OS Threads: What Runs Where", "description": "Goroutines vs threads example: why Go spawns 100k concurrent tasks while Java hits OS limits. Memory, CPU, and scheduling explained.", "url": "https://codebeneath.com/nonJava/goroutines-vs-os-threads.html", "inLanguage": "en-US", "dateModified": "2026-09-28", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/nonJava/goroutines-vs-os-threads.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Goroutines vs OS Threads: What Runs Where", "item": "https://codebeneath.com/nonJava/goroutines-vs-os-threads.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/languages/">Programming Languages</a></nav>
+<h1 class="site-block-post-title">Goroutines vs OS Threads: What Runs Where</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-09-28">September 28, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you write concurrent code, the runtime either maps your tasks directly to operating system threads or manages them internally. This difference between goroutines vs threads example is foundational: a Java program that tries to spawn 10,000 threads will crash or hang, but an equivalent Go program will run smoothly. Understanding what actually runs where, and why, lets you write scalable systems instead of bumping into hard resource walls.
+</p>
+
+<h2>The Problem: OS Threads Are Expensive</h2>
+
+<p class="site-block-paragraph">
+Operating system threads are kernel objects. When you create one, the kernel allocates a stack (usually 1-8 MB), a thread-local storage block, context-switch data structures, and registers it in a global thread table. There are only so many before the kernel refuses to create more, and each one consumes real memory even when idle. On a typical Linux machine, you might spawn 10,000 threads before running out of memory or hitting a system limit.
+</p>
+
+<p class="site-block-paragraph">
+Both Java and C++ (via std::thread) are bound by this constraint because they run one language-level thread per OS thread. If you create a Java Thread object, it becomes a kernel thread. If you spawn 100,000 Java threads, the JVM attempts to reserve 100,000 kernel threads, and your machine melts.
+</p>
+
+<p class="site-block-paragraph">
+Go takes a different approach. Goroutines are lightweight user-space tasks managed entirely by the Go runtime. You can spawn millions of them on a single machine. The runtime multiplexes them onto a small pool of OS threads using a scheduler.
+</p>
+
+<h2>How Goroutines Work: M, P, N</h2>
+
+<p class="site-block-paragraph">
+The Go runtime scheduler uses three layers:
+</p>
+
+<ul>
+  <li><strong>M (Machine):</strong> An OS thread managed by the Go runtime. Usually one per CPU core, plus a few for blocking I/O.</li>
+  <li><strong>P (Processor):</strong> A logical processor, tied to a CPU core. Contains a queue of runnable goroutines.</li>
+  <li><strong>G (Goroutine):</strong> A user-space task with a small stack (starting at 2 KB, growing as needed).</li>
+</ul>
+
+<p class="site-block-paragraph">
+When you call <code>go func()</code>, the runtime adds a new goroutine to a work queue. The scheduler picks an idle OS thread (M) and a processor (P), then runs goroutines from that P's queue until they block. When a goroutine performs I/O or synchronous system calls, the M can yield and run another G, or the scheduler creates a new M to prevent other goroutines from starving. This is preemptive scheduling: the runtime can pause a goroutine and switch to another without waiting for it to call a function or yield explicitly.
+</p>
+
+<h2>Runnable Comparison: Go vs Java</h2>
+
+<p class="site-block-paragraph">
+Let's measure. Here is a Go program that spawns 100,000 goroutines, runs them, and prints memory used.
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"runtime"
+	"sync"
+	"time"
+)
+
+func main() {
+	var m runtime.MemStats
+
+	fmt.Println("=== Go Goroutines ===")
+
+	runtime.ReadMemStats(&amp;m)
+	fmt.Printf("Memory before: %v MB\n", m.Alloc/1024/1024)
+
+	var wg sync.WaitGroup
+	start := time.Now()
+
+	for i := 0; i &lt; 100000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			time.Sleep(100 * time.Millisecond)
+		}()
+	}
+
+	wg.Wait()
+	elapsed := time.Since(start)
+
+	runtime.ReadMemStats(&amp;m)
+	fmt.Printf("Memory after: %v MB\n", m.Alloc/1024/1024)
+	fmt.Printf("Time: %v\n", elapsed)
+	fmt.Printf("Total goroutines: %v\n", runtime.NumGoroutine())
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Running this on a modern Linux machine with 4 CPU cores:
+</p>
+
+<pre><code>=== Go Goroutines ===
+Memory before: 0 MB
+Memory after: 21 MB
+Time: 101ms
+Total goroutines: 1
+</code></pre>
+
+<p class="site-block-paragraph">
+100,000 goroutines, 21 MB total, all done in about 100 ms. The scheduler multiplexed them onto a handful of OS threads.
+</p>
+
+<p class="site-block-paragraph">
+Now, the same attempt in Java:
+</p>
+
+<pre><code class="language-java">import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+
+public class ThreadBurst {
+    public static void main(String[] args) throws InterruptedException {
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+
+        System.out.println("=== Java Threads ===");
+        System.out.println("Memory before: " + 
+            (memoryBean.getHeapMemoryUsage().getUsed() / 1024 / 1024) + " MB");
+
+        Thread[] threads = new Thread[100000];
+        long start = System.currentTimeMillis();
+
+        try {
+            for (int i = 0; i &lt; 100000; i++) {
+                final int id = i;
+                threads[i] = new Thread(() -&gt; {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+                threads[i].start();
+            }
+
+            for (Thread t : threads) {
+                if (t != null) t.join();
+            }
+        } catch (OutOfMemoryError e) {
+            System.out.println("OutOfMemoryError: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getClass().getName() + ": " + e.getMessage());
+        }
+
+        long elapsed = System.currentTimeMillis() - start;
+        System.out.println("Memory after: " + 
+            (memoryBean.getHeapMemoryUsage().getUsed() / 1024 / 1024) + " MB");
+        System.out.println("Time: " + elapsed + " ms");
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compiling and running with default JVM settings:
+</p>
+
+<pre><code class="language-bash">javac ThreadBurst.java
+java ThreadBurst
+</code></pre>
+
+<p class="site-block-paragraph">
+Output (typical):
+</p>
+
+<pre><code>=== Java Threads ===
+Memory before: 45 MB
+Error: java.lang.OutOfMemoryError: unable to create new native thread
+</code></pre>
+
+<p class="site-block-paragraph">
+The JVM tries to allocate a 1 MB stack per thread (default on many systems) and hits the limit. You can tweak this with <code>-Xss</code> to use smaller stacks, but you still bottleneck on file descriptor limits, kernel thread tables, and memory. Most JVMs max out around 10,000 to 32,000 threads depending on OS and configuration.
+</p>
+
+<h2>Why Go Goroutines Are Lighter</h2>
+
+<p class="site-block-paragraph">
+Goroutines start with a 2 KB stack and grow dynamically. They do not call into the kernel to be created. The runtime allocates them on the heap, so spawning one costs a small allocation and pointer bookkeeping. Context switching between goroutines happens in user space, not in the kernel, so it is orders of magnitude faster than OS thread switching.
+</p>
+
+<p class="site-block-paragraph">
+Java Thread objects map directly to kernel threads. The JVM calls pthread_create (on Linux) or equivalent, which is a system call. This is expensive and limited by kernel tuning.
+</p>
+
+<p class="site-block-paragraph">
+A comparison table:
+</p>
+
+<table>
+  <tr>
+    <th>Aspect</th>
+    <th>Go Goroutine</th>
+    <th>Java Thread</th>
+    <th>C++ std::thread</th>
+  </tr>
+  <tr>
+    <td>Managed by</td>
+    <td>Go runtime (user space)</td>
+    <td>JVM + OS kernel</td>
+    <td>OS kernel only</td>
+  </tr>
+  <tr>
+    <td>Stack size</td>
+    <td>2 KB initial, grows</td>
+    <td>1-8 MB fixed</td>
+    <td>1-8 MB fixed</td>
+  </tr>
+  <tr>
+    <td>Creation cost</td>
+    <td>Heap allocation</td>
+    <td>System call</td>
+    <td>System call</td>
+  </tr>
+  <tr>
+    <td>Context switch</td>
+    <td>User space, fast</td>
+    <td>Kernel, slow</td>
+    <td>Kernel, slow</td>
+  </tr>
+  <tr>
+    <td>Max on typical machine</td>
+    <td>Millions</td>
+    <td>10K-32K</td>
+    <td>10K-32K</td>
+  </tr>
+  <tr>
+    <td>Blocking system call</td>
+    <td>Scheduler creates new M</td>
+    <td>Thread blocked, no parallelism</td>
+    <td>Thread blocked, no parallelism</td>
+  </tr>
+</table>
+
+<h2>When Blocking Matters</h2>
+
+<p class="site-block-paragraph">
+Here is the deeper win for Go. When you spawn 1,000 goroutines that all call <code>time.Sleep()</code> or wait on network I/O, the Go scheduler detects this. If a goroutine blocks on a system call that the runtime does not intercept, the runtime detects that the M (OS thread) is stuck and spins up a new M to run other goroutines. If the goroutine blocks on a channel or other Go construct, the scheduler just parks it and runs the next goroutine from the queue on the same M. Either way, other work continues.
+</p>
+
+<p class="site-block-paragraph">
+In Java, if a thread blocks, that OS thread is stuck. If you have 10,000 threads waiting on network calls, your CPU is underutilized because each OS thread is holding a kernel resource. You must explicitly manage this with thread pools and async patterns (Future, CompletableFuture, virtual threads in Java 21+). See our article on <a href="/nonJava/go-lang.html">Go language fundamentals</a> for more on why this design scales.
+</p>
+
+<h2>Java Virtual Threads: A Recent Exception</h2>
+
+<p class="site-block-paragraph">
+Java 21 introduced virtual threads (Project Loom), which work similarly to goroutines: they are light user-space tasks managed by the JVM scheduler, not OS threads. A virtual thread can block without blocking an OS thread. This brings Java much closer to Go's scalability model. However, virtual threads are still newer and require Java 21+. Most production systems still use platform threads (the traditional Thread class tied to OS threads).
+</p>
+
+<h2>Scheduling and Fairness</h2>
+
+<p class="site-block-paragraph">
+The Go scheduler is fair. It uses a work-stealing queue: each P has a local queue of runnable goroutines, and the scheduler periodically checks a global queue to prevent starvation. If all goroutines are CPU-bound (no blocking), the scheduler distributes them evenly across P's, and each P's M runs goroutines in round-robin fashion.
+</p>
+
+<p class="site-block-paragraph">
+However, the Go scheduler is not preemptive in the traditional sense for CPU-bound loops. If a goroutine never blocks and never calls a function that yields, it can starve others. Go 1.14 introduced async preemption to fix this: the runtime injects preemption points. In practice, this rarely causes issues because most goroutines either block or call library functions frequently.
+</p>
+
+<p class="site-block-paragraph">
+Java's thread scheduler is preemptive at the OS level. The kernel time-slices threads, so fairness is guaranteed by the OS. This is simpler but more expensive because every slice requires a context switch into the kernel.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Mistake 1: Assuming goroutines run in parallel.</strong> Goroutines are concurrent, not necessarily parallel. If you have one CPU core and 1,000 goroutines, only one runs at a time. They are scheduled fairly, but only one executes instructions per moment. Parallelism requires multiple cores. Run <code>runtime.NumCPU()</code> to check available parallelism.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 2: Not closing channels or not signaling completion.</strong> If a goroutine waits on a channel that is never sent to, it leaks. Use <code>sync.WaitGroup</code> or context cancellation to ensure all goroutines exit cleanly.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 3: Sharing mutable state without synchronization.</strong> Goroutines are lightweight, but Go is not magic. If two goroutines write to the same variable, you must protect it with a mutex or use channels to pass ownership. Race detectors exist for this: run tests with <code>go test -race</code>.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 4: Creating unbounded goroutine pools.</strong> It is easy to spawn a goroutine for each request in a web server. If requests come faster than goroutines complete, you leak memory and slow down. Use a worker pool or semaphore pattern to limit concurrency.
+</p>
+
+<h2>Measuring Real Impact</h2>
+
+<p class="site-block-paragraph">
+Here is a more realistic example: a simple HTTP server that spawns a goroutine per request, with a 50 ms I/O delay.
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"runtime"
+	"time"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(50 * time.Millisecond)
+	io.WriteString(w, "OK\n")
+}
+
+func main() {
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			var m runtime.MemStats
+			runtime.ReadMemStats(&amp;m)
+			fmt.Printf("Goroutines: %d, Heap: %d MB\n",
+				runtime.NumGoroutine(),
+				m.Alloc/1024/1024)
+		}
+	}()
+
+	http.HandleFunc("/", handler)
+	fmt.Println("Server on :8080")
+	http.ListenAndServe(":8080", nil)
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Start this server and hammer it with concurrent requests:
+</p>
+
+<pre><code class="language-bash">go run server.go &amp;
+ab -n 10000 -c 1000 http://localhost:8080/
+</code></pre>
+
+<p class="site-block-paragraph">
+The server spawns a goroutine per request, so under heavy load you might see 1,000 concurrent goroutines and heap usage around 50-100 MB. A Java servlet container doing the same thing with one thread per request would struggle or run out of memory.
+</p>
+
+<p class="site-block-paragraph">
+For more depth on Go's design philosophy, see our piece on <a href="/programmerStories/go-land-never-replace-java.html">why Go was created and how it differs from Java</a>.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I tune Java to spawn more threads?</h3>
+<p class="site-block-paragraph">
+Partially. You can reduce thread stack size with <code>-Xss256k</code> or similar, and increase file descriptors and process limits at the OS level. But you are fighting OS design. A typical tuned JVM might reach 50,000 threads instead of 10,000. Go routinely handles millions. Virtual threads in Java 21+ are a proper solution to this.
+</p>
+
+<h3>Do goroutines replace thread pools?</h3>
+<p class="site-block-paragraph">
+Not entirely. Goroutines let you spawn many lightweight tasks, but you still need to bound concurrency in some cases. An unbounded goroutine spawner under high load will exhaust memory. Use a semaphore or worker pool pattern to limit how many goroutines perform expensive work simultaneously.
+</p>
+
+<h3>How does Go handle blocking system calls?</h3>
+<p class="site-block-paragraph">
+The Go runtime wraps most blocking calls (like file I/O and network I/O) so the scheduler can park a goroutine without blocking the OS thread. For calls it cannot wrap (like certain C libraries), it detects the block and creates a new OS thread so other goroutines are not starved.
+</p>
+
+<h3>Is context switching between goroutines free?</h3>
+<p class="site-block-paragraph">
+No, but it is cheap. Switching happens in user space with no kernel call, no cache flush, and no register save. A goroutine switch is orders of magnitude faster than a kernel thread context switch. However, switching many goroutines on a single core still has overhead. For CPU-bound work, parallelism (multiple cores) matters more than concurrency (many goroutines on one core).
+</p>
+
+<h3>Why does Go use multiple OS threads if goroutines are so cheap?</h3>
+<p class="site-block-paragraph">
+True parallelism requires multiple cores, which requires multiple OS threads. A single OS thread can only run on one CPU core. The Go runtime creates one P (logical processor) per CPU core and one M per P, so you get parallelism. Extra M's are created for blocking I/O to prevent starvation.
+</p>
+
+<h3>Can C++ programs spawn goroutine-like tasks?</h3>
+<p class="site-block-paragraph">
+std::thread is tied to OS threads, so no. Some C++ libraries (like Boost.Fibers or Seastar) provide user-space task scheduling, but this is not in the standard library. For large-scale concurrency in C++, you typically use async I/O patterns or external libraries. See our piece on <a href="/nonJava/go-lang.html">low-level concurrency patterns</a> for comparison.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/go-lang.html">Go lang</a></li><li><a href="/programmerStories/go-land-never-replace-java.html">Go land never replace java</a></li></ul><p><a href="/category/languages/">More in Programming Languages</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

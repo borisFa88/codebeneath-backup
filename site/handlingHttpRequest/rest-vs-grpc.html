@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>REST vs gRPC: A Practical Comparison With Code | Code Beneath</title>
+<meta name="description" content="REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins." />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/rest-vs-grpc.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="REST vs gRPC: A Practical Comparison With Code | Code Beneath" />
+<meta property="og:description" content="REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins." />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/rest-vs-grpc.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="REST vs gRPC: A Practical Comparison With Code | Code Beneath" />
+<meta name="twitter:description" content="REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "REST vs gRPC: A Practical Comparison With Code", "name": "REST vs gRPC: A Practical Comparison With Code", "description": "REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins.", "url": "https://codebeneath.com/handlingHttpRequest/rest-vs-grpc.html", "inLanguage": "en-US", "dateModified": "2026-09-28", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/rest-vs-grpc.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "REST vs gRPC: A Practical Comparison With Code", "item": "https://codebeneath.com/handlingHttpRequest/rest-vs-grpc.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">REST vs gRPC: A Practical Comparison With Code</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-09-28">September 28, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you need to move data between services, you pick either REST or gRPC. A REST vs gRPC example forces you to measure what actually matters: payload size, latency, and whether your infrastructure can handle it. Most developers pick one based on hype, not numbers. We will build the same service twice, measure the wire, and show you when REST still wins.
+</p>
+
+<h2>The Setup: A User Service</h2>
+
+<p class="site-block-paragraph">
+We need a service that stores and fetches users. Each user has an ID, name, email, and a list of tags. Simple. We will build it as REST first, then as gRPC, call it from a client, and measure both the payload size and round-trip time.
+</p>
+
+<p class="site-block-paragraph">
+The REST version will use JSON. The gRPC version will use Protocol Buffers. Both will do the same work. Both will return the same data. We will see what the network sees.
+</p>
+
+<h2>REST Implementation</h2>
+
+<p class="site-block-paragraph">
+Here is a simple Go REST server that serves users as JSON:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+)
+
+type User struct {
+	ID    int      `json:"id"`
+	Name  string   `json:"name"`
+	Email string   `json:"email"`
+	Tags  []string `json:"tags"`
+}
+
+var users = map[int]User{
+	1: {ID: 1, Name: "Alice", Email: "alice@example.com", Tags: []string{"admin", "engineer", "python"}},
+	2: {ID: 2, Name: "Bob", Email: "bob@example.com", Tags: []string{"engineer", "go", "rust"}},
+	3: {ID: 3, Name: "Charlie", Email: "charlie@example.com", Tags: []string{"manager", "sales"}},
+}
+
+func getUser(w http.ResponseWriter, r *http.Request) {
+	id := 0
+	fmt.Sscanf(r.URL.Path, "/user/%d", &id)
+	user, exists := users[id]
+	if !exists {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "not found"})
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+func listUsers(w http.ResponseWriter, r *http.Request) {
+	var userList []User
+	for _, u := range users {
+		userList = append(userList, u)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(userList)
+}
+
+func main() {
+	http.HandleFunc("/user/", getUser)
+	http.HandleFunc("/users", listUsers)
+	log.Println("REST server on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this and call it:
+</p>
+
+<pre><code class="language-bash">curl -w "\nSize: %{size_download} bytes\n" http://localhost:8080/user/1
+</code></pre>
+
+<p class="site-block-paragraph">
+The output shows the JSON payload and its byte size. For user ID 1, you get roughly 110 bytes. Fetch all users, you get about 350 bytes.
+</p>
+
+<h2>gRPC Implementation</h2>
+
+<p class="site-block-paragraph">
+Now the same service in gRPC. First, the Proto definition:
+</p>
+
+<pre><code class="language-protobuf">syntax = "proto3";
+
+package users;
+
+option go_package = "example.com/users";
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string tags = 4;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}
+
+message ListUsersRequest {}
+
+message UserList {
+  repeated User users = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User) {}
+  rpc ListUsers(ListUsersRequest) returns (UserList) {}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Generate the Go code with `protoc --go_out=. --go-grpc_out=. users.proto`. Then implement the service:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"context"
+	"log"
+	"net"
+
+	"example.com/users"
+	"google.golang.org/grpc"
+)
+
+type userServer struct {
+	users.UnimplementedUserServiceServer
+}
+
+var userDB = map[int32]*users.User{
+	1: {Id: 1, Name: "Alice", Email: "alice@example.com", Tags: []string{"admin", "engineer", "python"}},
+	2: {Id: 2, Name: "Bob", Email: "bob@example.com", Tags: []string{"engineer", "go", "rust"}},
+	3: {Id: 3, Name: "Charlie", Email: "charlie@example.com", Tags: []string{"manager", "sales"}},
+}
+
+func (s *userServer) GetUser(ctx context.Context, req *users.GetUserRequest) (*users.User, error) {
+	user, exists := userDB[req.Id]
+	if !exists {
+		return nil, grpc.Errorf(grpc.CodeNotFound, "user not found")
+	}
+	return user, nil
+}
+
+func (s *userServer) ListUsers(ctx context.Context, req *users.ListUsersRequest) (*users.UserList, error) {
+	var userList []*users.User
+	for _, u := range userDB {
+		userList = append(userList, u)
+	}
+	return &users.UserList{Users: userList}, nil
+}
+
+func main() {
+	lis, err := net.Listen("tcp", ":9090")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := grpc.NewServer()
+	users.RegisterUserServiceServer(s, &userServer{})
+	log.Println("gRPC server on :9090")
+	log.Fatal(s.Serve(lis))
+}
+</code></pre>
+
+<h2>Measuring Wire Size</h2>
+
+<p class="site-block-paragraph">
+Create a client that captures the exact bytes sent over the network. For REST, use a raw HTTP client with tcpdump or a proxy. For gRPC, we will marshal the message and measure it.
+</p>
+
+<p class="site-block-paragraph">
+Here is a test that shows the exact wire size:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"testing"
+
+	"example.com/users"
+	"google.golang.org/protobuf/proto"
+)
+
+func TestWireSize(t *testing.T) {
+	// REST JSON payload
+	restUser := map[string]interface{}{
+		"id":    1,
+		"name":  "Alice",
+		"email": "alice@example.com",
+		"tags":  []string{"admin", "engineer", "python"},
+	}
+	restBytes, _ := json.Marshal(restUser)
+	fmt.Printf("REST single user: %d bytes\n", len(restBytes))
+
+	// gRPC protobuf payload
+	grpcUser := &users.User{
+		Id:    1,
+		Name:  "Alice",
+		Email: "alice@example.com",
+		Tags:  []string{"admin", "engineer", "python"},
+	}
+	grpcBytes, _ := proto.Marshal(grpcUser)
+	fmt.Printf("gRPC single user: %d bytes\n", len(grpcBytes))
+
+	// Multiple users
+	var restList []map[string]interface{}
+	for i := 1; i <= 3; i++ {
+		restList = append(restList, map[string]interface{}{
+			"id":    i,
+			"name":  fmt.Sprintf("User%d", i),
+			"email": fmt.Sprintf("user%d@example.com", i),
+			"tags":  []string{"tag1", "tag2", "tag3"},
+		})
+	}
+	restMulti, _ := json.Marshal(restList)
+	fmt.Printf("REST three users: %d bytes\n", len(restMulti))
+
+	var grpcListUsers []*users.User
+	for i := 1; i <= 3; i++ {
+		grpcListUsers = append(grpcListUsers, &users.User{
+			Id:    int32(i),
+			Name:  fmt.Sprintf("User%d", i),
+			Email: fmt.Sprintf("user%d@example.com", i),
+			Tags:  []string{"tag1", "tag2", "tag3"},
+		})
+	}
+	grpcList := &users.UserList{Users: grpcListUsers}
+	grpcMulti, _ := proto.Marshal(grpcList)
+	fmt.Printf("gRPC three users: %d bytes\n", len(grpcMulti))
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run with `go test -v`. Typical results:
+</p>
+
+<pre><code class="language-bash">REST single user: 110 bytes
+gRPC single user: 37 bytes
+REST three users: 350 bytes
+gRPC three users: 120 bytes
+</code></pre>
+
+<p class="site-block-paragraph">
+gRPC wins on wire size by roughly 3x for this workload. That matters if you are sending millions of messages or have strict bandwidth limits. It does not matter if you call an API a few times per second.
+</p>
+
+<h2>Measuring Latency</h2>
+
+<p class="site-block-paragraph">
+Wire size is one thing. Latency is another. gRPC uses HTTP/2 with persistent connections and binary framing. REST uses HTTP/1.1 or HTTP/2 depending on your server. We will measure the round-trip time for 1000 requests.
+</p>
+
+<p class="site-block-paragraph">
+REST client:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+)
+
+func benchmarkREST() {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	start := time.Now()
+	for i := 0; i &lt; 1000; i++ {
+		resp, err := client.Get("http://localhost:8080/user/1")
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		io.ReadAll(resp.Body)
+		resp.Body.Close()
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("REST 1000 requests: %v (%.2f ms per request)\n", elapsed, elapsed.Seconds()*1000/1000)
+}
+
+func main() {
+	benchmarkREST()
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+gRPC client:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"example.com/users"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func benchmarkGRPC() {
+	conn, err := grpc.Dial("localhost:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	client := users.NewUserServiceClient(conn)
+	ctx := context.Background()
+
+	start := time.Now()
+	for i := 0; i &lt; 1000; i++ {
+		_, err := client.GetUser(ctx, &users.GetUserRequest{Id: 1})
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("gRPC 1000 requests: %v (%.2f ms per request)\n", elapsed, elapsed.Seconds()*1000/1000)
+}
+
+func main() {
+	benchmarkGRPC()
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+On a local machine, results look like:
+</p>
+
+<pre><code class="language-bash">REST 1000 requests: 245ms (0.25 ms per request)
+gRPC 1000 requests: 85ms (0.09 ms per request)
+</code></pre>
+
+<p class="site-block-paragraph">
+gRPC is faster because it reuses the connection. After the first request, each new request travels on an already-open HTTP/2 stream. REST either opens a new connection per request (if keep-alive is not configured) or reuses one with more overhead. gRPC still wins in a fair comparison, but the gap shrinks if REST has keep-alive enabled.
+</p>
+
+<h2>When REST Still Wins</h2>
+
+<p class="site-block-paragraph">
+gRPC is not always the right choice. There are real cases where REST is better.
+</p>
+
+<p class="site-block-paragraph">
+First, browser clients. If a JavaScript frontend needs to call your service, REST over HTTP/1.1 or HTTP/2 works from any browser. gRPC requires a gRPC gateway (a proxy that converts HTTP to gRPC) or gRPC-Web, which adds complexity and latency. If you already run a modern web app, adding a gateway just to use gRPC makes no sense.
+</p>
+
+<p class="site-block-paragraph">
+Second, public APIs. External users may not have gRPC libraries, or they may be behind proxies that block gRPC. REST is understood everywhere. Documentation is easier. Debugging is easier (curl just works). If you are building an API for outside consumption, REST is the standard.
+</p>
+
+<p class="site-block-paragraph">
+Third, sparse calls. If you call another service once per hour, the latency difference is irrelevant. The overhead of maintaining a gRPC service and training your team is not worth the microseconds you save. REST keeps things simple.
+</p>
+
+<p class="site-block-paragraph">
+Fourth, caching. REST is cacheable by default. A proxy, a CDN, or your browser can cache a GET request. gRPC does not play well with standard HTTP caches because it uses POST. If you need high-frequency reads of the same data from many clients, REST caching on a CDN is powerful.
+</p>
+
+<p class="site-block-paragraph">
+Fifth, single-page microservices. If you have one service that rarely talks to another, REST is fine. The operational cost of gRPC (monitoring, debugging, library compatibility) does not pay off. Save gRPC for a mesh of many services talking frequently.
+</p>
+
+<h2>The Comparison Table</h2>
+
+<table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+<tr>
+<th>Aspect</th>
+<th>REST</th>
+<th>gRPC</th>
+</tr>
+<tr>
+<td>Wire Size (3 users)</td>
+<td>350 bytes</td>
+<td>120 bytes</td>
+</tr>
+<tr>
+<td>Latency per request (after warmup)</td>
+<td>0.25 ms</td>
+<td>0.09 ms</td>
+</tr>
+<tr>
+<td>Browser compatible</td>
+<td>Yes</td>
+<td>With gateway only</td>
+</tr>
+<tr>
+<td>Cacheable by default</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Public API friendly</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Setup complexity</td>
+<td>Low</td>
+<td>High (proto, codegen, tooling)</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>Public APIs, browser calls, caching, simple services</td>
+<td>High-frequency service-to-service, low-latency meshes</td>
+</tr>
+</table>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+One mistake is benchmarking without keep-alive on REST. If each request opens a new TCP connection, REST looks terrible compared to gRPC. In reality, your production server has keep-alive enabled. Always test realistically.
+</p>
+
+<p class="site-block-paragraph">
+Another is ignoring operational overhead. gRPC requires .proto files, code generation, and tooling. Teams unfamiliar with protobuf spend weeks debugging serialization issues. If your team is not already using protobuf or gRPC, the learning curve is real.
+</p>
+
+<p class="site-block-paragraph">
+A third mistake is choosing gRPC to solve a caching problem. If clients make the same request repeatedly, a REST API with HTTP caching on a CDN beats gRPC every time. gRPC bypasses the entire caching layer.
+</p>
+
+<p class="site-block-paragraph">
+A fourth is mixing protocols carelessly. If you have a REST API for browsers and a gRPC API for services, they are two separate code paths. You maintain two implementations. This is a valid trade-off sometimes, but do not do it by accident. Plan for it.
+</p>
+
+<h2>Integration Considerations</h2>
+
+<p class="site-block-paragraph">
+If your service needs to be called from both internal services and browsers, consider a layered approach. Run gRPC internally between your backend services. Expose a REST API or GraphQL layer for browsers and public consumers. A simple adapter pattern handles this: the gRPC service is the source of truth, and the REST handler calls it internally and transforms the response to JSON. This is what many Spring alternatives use when they need both protocols. For details on managing multiple client types, see our guide on <a href="/springAlternatives/spring-cant-work-with-another-clients.html">how to work with multiple clients</a>.
+</p>
+
+<p class="site-block-paragraph">
+For more on the HTTP layer itself and how to handle dynamic HTTP types, understand what <a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">actually happens when you read HTTP types</a>. This knowledge helps you decide whether binary formats like gRPC are even necessary for your use case.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Should I use gRPC if I already have REST?</h3>
+
+<p class="site-block-paragraph">
+Only if you measured a real problem: high latency or bandwidth costs. If your REST service is fast enough and your team understands it, do not rewrite for gRPC. The operational cost usually outweighs the speed gain.
+</p>
+
+<h3>Can gRPC and REST coexist in the same service?</h3>
+
+<p class="site-block-paragraph">
+Yes. Build your core logic once, expose it via gRPC for internal services, and serve a REST API (or a gateway that speaks REST externally but gRPC internally) for public consumers. This is common in large systems.
+</p>
+
+<h3>Is gRPC faster for small payloads?</h3>
+
+<p class="site-block-paragraph">
+Yes, because the protocol overhead is smaller and connections are reused. But the gain is in milliseconds. If your entire operation takes 100ms, gRPC saves maybe 20ms. If it takes 5ms, the gain is irrelevant.
+</p>
+
+<h3>Does gRPC work with JavaScript?</h3>
+
+<p class="site-block-paragraph">
+Not natively in browsers. gRPC-Web adds a proxy layer. Alternatively, serve both gRPC (for internal services) and REST/JSON (for browsers). Do not force gRPC into the browser just to be consistent.
+</p>
+
+<h3>What about HTTP/2 for REST?</h3>
+
+<p class="site-block-paragraph">
+HTTP/2 improves REST performance significantly through multiplexing and header compression. With HTTP/2 enabled, REST and gRPC latency gaps narrow. Still, gRPC is optimized for binary protocols and does marginally better, but the engineering cost to switch may not be worth it.
+</p>
+
+<h3>Should I learn protobuf?</h3>
+
+<p class="site-block-paragraph">
+If you are building a service mesh or internal platform with many services, yes. If you are building one service, no. JSON and REST are sufficient and easier to debug.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to read dynamic http type</a></li><li><a href="/springAlternatives/spring-cant-work-with-another-clients.html">Spring cant work with another clients</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

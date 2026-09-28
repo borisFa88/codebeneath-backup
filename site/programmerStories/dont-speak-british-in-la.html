@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<title>Consistent Coding Style and Naming | Code Beneath</title>
+<meta name="description" content="A programming opinion on consistent naming, file encodings and coding conventions, illustrated with Java file input and output examples." />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Consistent Coding Style and Naming | Code Beneath" />
+<meta property="og:description" content="A programming opinion on consistent naming, file encodings and coding conventions, illustrated with Java file input and output examples." />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/dont-speak-british-in-la.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Consistent Coding Style and Naming | Code Beneath" />
+<meta name="twitter:description" content="A programming opinion on consistent naming, file encodings and coding conventions, illustrated with Java file input and output examples." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "name": "Consistent Coding Style: The No Mixed Principle", "headline": "Consistent Coding Style: The No Mixed Principle", "description": "A programming opinion on consistent naming, file encodings and coding conventions, illustrated with Java file input and output examples.", "url": "https://codebeneath.com/programmerStories/dont-speak-british-in-la.html", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/dont-speak-british-in-la.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+
+<link rel='stylesheet' id='site-block-navigation-css' href='../assets/css/navigation.css' media='all' />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel='stylesheet' id='prism-tomorrow-css' href='../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css' media='all' />
+<link rel='stylesheet' id='atom-one-dark-css' href='../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css' media='all' />
+
+
+
+<link rel="canonical" href="https://codebeneath.com/programmerStories/dont-speak-british-in-la.html" />
+<link rel="shortlink" href="https://codebeneath.com/programmerStories/dont-speak-british-in-la.html" />
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+ 
+
+
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/c.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/rust.min.js"></script>
+
+<script> hljs.highlightAll(); 
+</script>
+
+<!-- end Simple Custom CSS and JS -->
+
+
+
+<link rel="stylesheet" href="../assets/css/site.css"><link rel="stylesheet" href="/assets/css/article-discovery.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+
+<body class="site-singular post-template-default single single-post postid-244 single-format-standard site-embed-responsive site-theme-twentytwentyfive">
+
+<a class="skip-link screen-reader-text" id="site-skip-link" href="https://codebeneath.com/programmerStories/dont-speak-british-in-la.html#site--skip-link--target">Consistent Coding Style: The No Mixed Principle</a><div class="site-site-blocks"><header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-container-core-group-is-layout-0e1e8455 site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" target="_self" rel="home">codebeneath.com</a></p></div>
+
+
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation" 
+		><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open" 
+			
+			
+			><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+				<div class="site-block-navigation__responsive-container"  id="modal-1" 
+			
+			
+			
+			
+			
+				tabindex="-1"
+			>
+					<div class="site-block-navigation__responsive-close" tabindex="-1">
+						<div class="site-block-navigation__responsive-dialog" 
+			
+			
+			
+			>
+							<button aria-label="Close menu" class="site-block-navigation__responsive-container-close" 
+			
+			><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+							<div class="site-block-navigation__responsive-container-content" 
+			
+			 id="modal-1-content">
+								<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation"><li tabindex="-1" style="font-style:normal;font-weight:600" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#http"><span class="site-block-navigation-item__label">HTTP Requests</span></a><button aria-label="Handling http request submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul style="font-style:normal;font-weight:600" class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Authentication in Web Applications</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#languages"><span class="site-block-navigation-item__label">Programming Languages</span></a><button aria-label="Non Java submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><button aria-label="Not only HTTP submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><button aria-label="Programmer Stories submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/"><span class="site-block-navigation-item__label">Don’t speak British in LA</span></a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#tools"><span class="site-block-navigation-item__label">Development Tools</span></a><button aria-label="Recommended Tools submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><button aria-label="Spring Alternatives submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">AI and Programming</span></a><button aria-label="new Era submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content" href="../newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/programmerStories/dont-speak-british-in-la.html"><span class="site-block-navigation-item__label">Coding Conventions</span></a></li></ul>
+								
+							</div>
+						</div>
+					</div>
+				</div></nav></div>
+</div>
+</header>
+
+
+<main id="site--skip-link--target" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<div class="site-block-group alignfull has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"><nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/articles.html#stories">Programming Stories and AI</a></nav>
+<h1 class="site-block-post-title">Consistent Coding Style: The No Mixed Principle</h1>
+
+
+
+
+<div class="site-block-group has-link-color has-accent-4-color has-text-color has-small-font-size is-layout-flex site-container-core-group-is-layout-fd1a9a6d site-block-group-is-layout-flex" style="margin-bottom:var(--site--preset--spacing--60)">
+<p class="site-block-paragraph">Written by </p>
+
+
+<div class="site-block-post-author-name"><a href="/about.html" rel="author">Boris Fain</a></div>
+
+
+<p class="site-block-paragraph">in</p>
+
+
+<div style="font-weight:300" class="taxonomy-category site-block-post-terms"><a href="/articles.html#stories" rel="tag">Programming Stories</a></div></div>
+
+
+<div class="entry-content alignfull site-block-post-content has-global-padding is-layout-constrained site-block-post-content-is-layout-constrained">
+<figure class="site-block-embed is-type-video is-provider-youtube site-block-embed-youtube site-embed-aspect-9-16 site-has-aspect-ratio"><div class="site-block-embed__wrapper">
+<iframe title="British Guy in The South (USA) #Shorts" width="422" height="750" src="https://www.youtube.com/embed/EX4n07WVhp4?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div></figure>
+
+
+
+<p class="site-block-paragraph">If your code looks like a salad of styles, you don’t need a framework — you need therapy.<br>Yeah, I said it. pp<br>And before you get offended — read till the end, because you might actually thank me later.<br>Every day I see developers mixing everything:<br>🇬🇧 “colour” + 🇺🇸 “color”<br>UTF-8 + UTF-16<br>Tabs + spaces<br>Logic from Java, syntax from Python, indentation from Mars.<br><br>And then they wonder why the project breaks like glass under pressure.<br>It’s not bad luck. It’s mental laziness disguised as flexibility.<br><br>A few years ago, I came up with something that fixed this mess forever.<br>I call it the “No Mixed Principle” — or the U&amp;S Pattern.<br><br>It started with something funny:<br>My son corrected me for writing “color” instead of “colour.”<br>He speaks American English.<br>I used British.<br>And that day I realized — mixing versions isn’t creativity… it’s confusion wearing a smile.<br><br>Now, let’s talk code.<br>I once saw this masterpiece in a “production” repo (yes, production<br><br>🤦‍♂️):<br>𝐟𝐮𝐧𝐜𝐭𝐢𝐨𝐧 𝐨𝐩𝐞𝐧𝐅𝐢𝐥𝐞(𝐒𝐭𝐫𝐢𝐧𝐠 𝐟𝐢𝐥𝐞𝐏𝐚𝐭𝐡) {<br>𝐅𝐢𝐥𝐞𝐈𝐧𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦 𝐢𝐧𝐩𝐮𝐭 = 𝐧𝐞𝐰 𝐅𝐢𝐥𝐞𝐈𝐧𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦(𝐟𝐢𝐥𝐞𝐏𝐚𝐭𝐡);<br>𝐢𝐧𝐩𝐮𝐭.𝐰𝐫𝐢𝐭𝐞(𝐲𝐨𝐮 𝐭𝐞𝐱𝐭);<br>}<br><br>𝐟𝐮𝐧𝐜𝐭𝐢𝐨𝐧 𝐜𝐥𝐨𝐬𝐞𝐅𝐢𝐥𝐞(𝐒𝐭𝐫𝐢𝐧𝐠 𝐟𝐢𝐥𝐞𝐏𝐚𝐭𝐡) {<br>𝐅𝐢𝐥𝐞𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦 𝐢𝐧𝐩𝐮𝐭 = 𝐧𝐞𝐰 𝐅𝐢𝐥𝐞𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦(𝐟𝐢𝐥𝐞𝐏𝐚𝐭𝐡);<br>𝐢𝐧𝐩𝐮𝐭.𝐰𝐫𝐢𝐭𝐞(𝐲𝐨𝐮 𝐭𝐞𝐱𝐭);<br>}<br><br>This person thought programming was easy.<br>And that “there’s nothing to learn.”<br><br>Then, the bugs came.<br>And they still didn’t understand why.<br><br>Here’s the version I fixed — with the No Mixed Principle in play:<br><br>𝐭𝐫𝐲 (𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦 𝐨𝐬 = 𝐧𝐞𝐰 𝐅𝐢𝐥𝐞𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦(&#8220;𝐮𝐭𝐟𝐅𝐢𝐥𝐞.𝐭𝐱𝐭&#8221;, 𝐚𝐩𝐩𝐞𝐧𝐝);<br>𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦𝐖𝐫𝐢𝐭𝐞𝐫 𝐰𝐫𝐢𝐭𝐞𝐫 = 𝐧𝐞𝐰 𝐎𝐮𝐭𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦𝐖𝐫𝐢𝐭𝐞𝐫(𝐨𝐬, 𝐒𝐭𝐚𝐧𝐝𝐚𝐫𝐝𝐂𝐡𝐚𝐫𝐬𝐞𝐭𝐬.𝐔𝐓𝐅_16𝐋𝐄)) {<br><br>𝐰𝐫𝐢𝐭𝐞𝐫.𝐰𝐫𝐢𝐭𝐞(𝐝𝐚𝐭𝐚 + 𝐟𝐨𝐫𝐦𝐚𝐭𝐭𝐞𝐝);<br>𝐰𝐫𝐢𝐭𝐞𝐫.𝐟𝐥𝐮𝐬𝐡();<br>} 𝐜𝐚𝐭𝐜𝐡 (𝐈𝐎𝐄𝐱𝐜𝐞𝐩𝐭𝐢𝐨𝐧 𝐞) {<br>𝐞.𝐩𝐫𝐢𝐧𝐭𝐒𝐭𝐚𝐜𝐤𝐓𝐫𝐚𝐜𝐞();<br>}<br><br>𝐭𝐫𝐲 (𝐁𝐮𝐟𝐟𝐞𝐫𝐞𝐝𝐑𝐞𝐚𝐝𝐞𝐫 𝐛𝐫 = 𝐧𝐞𝐰 𝐁𝐮𝐟𝐟𝐞𝐫𝐞𝐝𝐑𝐞𝐚𝐝𝐞𝐫(<br>𝐧𝐞𝐰 𝐈𝐧𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦𝐑𝐞𝐚𝐝𝐞𝐫(𝐧𝐞𝐰 𝐅𝐢𝐥𝐞𝐈𝐧𝐩𝐮𝐭𝐒𝐭𝐫𝐞𝐚𝐦(&#8220;𝐮𝐭𝐟𝐅𝐢𝐥𝐞.𝐭𝐱𝐭&#8221;), 𝐒𝐭𝐚𝐧𝐝𝐚𝐫𝐝𝐂𝐡𝐚𝐫𝐬𝐞𝐭𝐬.𝐔𝐓𝐅_16𝐁𝐄))) {<br><br>𝐒𝐭𝐫𝐢𝐧𝐠 𝐥𝐢𝐧𝐞;<br>𝐰𝐡𝐢𝐥𝐞 ((𝐥𝐢𝐧𝐞 = 𝐛𝐫.𝐫𝐞𝐚𝐝𝐋𝐢𝐧𝐞()) != 𝐧𝐮𝐥𝐥) {<br>𝐒𝐲𝐬𝐭𝐞𝐦.𝐨𝐮𝐭.𝐩𝐫𝐢𝐧𝐭𝐥𝐧(𝐥𝐢𝐧𝐞);<br>}<br><br>} 𝐜𝐚𝐭𝐜𝐡 (𝐈𝐎𝐄𝐱𝐜𝐞𝐩𝐭𝐢𝐨𝐧 𝐞) {<br>𝐞.𝐩𝐫𝐢𝐧𝐭𝐒𝐭𝐚𝐜𝐤𝐓𝐫𝐚𝐜𝐞();<br>}<br><br>They wrote in UTF-16LE and read in UTF-16BE.<br>Classic “I know what I’m doing” energy — until everything breaks.<br><br>It’s like driving up a mountain in 5th gear and thinking you’re smart…<br>Then wondering why your brakes melted halfway down.<br><br>The truth:<br>Most developers don’t need a new language.<br>They need discipline.<br>Pick one logic, one format, one pattern — and master it.<br><br>That’s what separates coders from craftsmen.</p>
+</div>
+
+
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"></div>
+
+
+
+<div class="site-block-group alignwide is-layout-flow site-block-group-is-layout-flow" style="margin-top:var(--site--preset--spacing--60);margin-bottom:var(--site--preset--spacing--60)">
+<nav class="site-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-878fe601 site-block-group-is-layout-flex" aria-label="Post navigation" style="border-top-color:var(--site--preset--color--accent-6);border-top-width:1px;padding-top:var(--site--preset--spacing--40);padding-bottom:var(--site--preset--spacing--40)"><div class="post-navigation-link-previous site-block-post-navigation-link"><span class="site-block-post-navigation-link__arrow-previous is-arrow-arrow" aria-hidden="true">←</span><a href="../springAlternatives/spring-is-not-the-holly-framework.html" rel="prev">Spring Framework vs Spring Boot: understand the layers</a></div>
+
+<div class="post-navigation-link-next site-block-post-navigation-link"><a href="../handlingHttpRequest/how-to-read-dynamic-http-type.html" rel="next">How to Read an Unknown HTTP Request Body Type</a><span class="site-block-post-navigation-link__arrow-next is-arrow-arrow" aria-hidden="true">→</span></div></nav>
+</div>
+
+
+
+</div>
+
+
+
+<div class="site-block-group alignwide has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)">
+<h2 class="site-block-heading alignwide has-small-font-size" style="font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">More posts</h2>
+
+
+
+<div class="site-block-query alignwide is-layout-flow site-block-query-is-layout-flow"><ul class="alignfull site-block-post-template is-layout-flow site-container-core-post-template-is-layout-b4d04ffe site-block-post-template-is-layout-flow"><li class="site-block-post post-727 post type-post status-publish format-standard has-post-thumbnail hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html" target="_self" >FTP File Transfers With Kotlin and Python</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html"><time datetime="2026-03-01T10:29:08+00:00">March 1, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-672 post type-post status-publish format-standard hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/tcp-udp-socket.html" target="_self" >TCP vs UDP in Go: runnable echo server examples</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/tcp-udp-socket.html"><time datetime="2026-02-22T14:21:05+00:00">February 22, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-626 post type-post status-publish format-standard hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/go-lang.html" target="_self" >RAII in Go: Resource Cleanup With defer</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/go-lang.html"><time datetime="2026-01-25T13:39:08+00:00">January 25, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-608 post type-post status-publish format-standard has-post-thumbnail hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/native-language.html" target="_self" >Native C and C++ for Modern Developers</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/native-language.html"><time datetime="2026-01-19T09:29:16+00:00">January 19, 2026</time></a></div></div>
+
+</li></ul></div>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li><a href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul><p><a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+
+
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath · Programming beneath the frameworks.</p></footer></div>
+
+<script src="../assets/js/static-navigation.js" defer></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    
+<script id="prisma-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script id="prisma-markup-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script id="prisma-markup-templating-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script id="prisma-c-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script id="prisma-java-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script id="prisma-go-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+<script id="prisma-bash-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script id="prisma-php-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script id="prisma-kotlin-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script id="prisma-cpp-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script id="prisma-sql-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script id="prisma-toolbar-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script id="prisma-clipboard-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script id="highlight-js" src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3808ba699ef9384',t:'MTc4ODg5NzY5MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4473b0762ae246e4b5685486a06998c0","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

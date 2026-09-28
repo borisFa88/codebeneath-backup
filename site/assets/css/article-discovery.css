@@ -1,0 +1,9 @@
+/* Reading and topic navigation, scoped to SEO additions. */
+.cb-discovery,.cb-footer,.cb-breadcrumbs,.cb-related{box-sizing:border-box;width:calc(100% - 2rem);max-width:960px;margin:2rem auto;font-family:inherit;line-height:1.65;overflow-wrap:anywhere}
+.cb-discovery h2,.cb-related h2{font-size:1.5rem;line-height:1.3;margin-top:2rem}
+.cb-discovery h3{font-size:1.15rem;line-height:1.4;margin-bottom:.25rem}
+.cb-discovery ul,.cb-related ul{padding-left:1.4rem}.cb-discovery li{margin:1rem 0}.cb-discovery p{margin:.25rem 0 1rem}
+.cb-discovery a,.cb-related a,.cb-breadcrumbs a,.cb-footer a{text-decoration:underline;text-underline-offset:.15em}
+.cb-breadcrumbs,.cb-footer{font-size:1rem}.cb-footer{border-top:1px solid #777;padding:1.5rem 0}.cb-footer a{display:inline-block;margin:0 1rem .5rem 0}
+.cb-topic-nav{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem}.cb-related{border-top:1px solid #777;padding-top:1rem}
+.cb-byline{font-size:1rem}.cb-discovery :target{scroll-margin-top:2rem}

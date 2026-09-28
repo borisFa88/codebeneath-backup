@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<base href="../">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<title>Handle Multiple Content Types in Spring Boot | Code Beneath</title>
+<meta name="description" content="Handle JSON, binary and multipart requests in Spring Boot with content-specific controllers, curl examples and safe client IP handling behind Cloudflare." />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Handle Multiple Content Types in Spring Boot | Code Beneath" />
+<meta property="og:description" content="Handle JSON, binary and multipart requests in Spring Boot with content-specific controllers, curl examples and safe client IP handling behind Cloudflare." />
+<meta property="og:url" content="https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Handle Multiple Content Types in Spring Boot | Code Beneath" />
+<meta name="twitter:description" content="Handle JSON, binary and multipart requests in Spring Boot with content-specific controllers, curl examples and safe client IP handling behind Cloudflare." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "name": "How to Handle Multiple Content Types in Spring Boot", "headline": "How to Handle Multiple Content Types in Spring Boot", "description": "Handle JSON, binary and multipart requests in Spring Boot with content-specific controllers, curl examples and safe client IP handling behind Cloudflare.", "url": "https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+
+<link rel='stylesheet' id='site-block-navigation-css' href='../assets/css/navigation.css' media='all' />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel='stylesheet' id='prism-tomorrow-css' href='../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css' media='all' />
+<link rel='stylesheet' id='atom-one-dark-css' href='../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css' media='all' />
+
+
+
+<link rel="canonical" href="https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html" />
+<link rel="shortlink" href="https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html" />
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+ 
+
+
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/c.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/rust.min.js"></script>
+
+<script> hljs.highlightAll(); 
+</script>
+
+<!-- end Simple Custom CSS and JS -->
+
+
+
+<link rel="stylesheet" href="../assets/css/site.css"><style>.topic-article{max-width:900px;margin:3rem auto;padding:0 24px;line-height:1.75}.topic-article h1{font-size:clamp(2rem,5vw,3rem);line-height:1.15}.topic-article h2{margin-top:2rem;font-size:1.65rem}.topic-article pre{padding:20px;overflow:auto;font-size:15px;line-height:1.5}.topic-article table{border-collapse:collapse;width:100%;font-size:.9em}.topic-article th,.topic-article td{border:1px solid #bbb;padding:10px;text-align:left}</style><link rel="stylesheet" href="/assets/css/article-discovery.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+
+<body class="site-singular post-template-default single single-post postid-250 single-format-standard site-embed-responsive site-theme-twentytwentyfive">
+
+<a class="skip-link screen-reader-text" href="https://codebeneath.com/springAlternatives/spring-cant-work-with-another-clients.html#site--skip-link--target">How to Handle Multiple Content Types in Spring Boot</a><div class="site-site-blocks">
+
+
+<main id="site--skip-link--target" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<div class="site-block-group alignfull has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"><nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/articles.html#spring">Spring Framework and Spring Boot</a></nav>
+<h1 class="site-block-post-title">How to Handle Multiple Content Types in Spring Boot</h1>
+
+
+
+
+<div class="site-block-group has-link-color has-accent-4-color has-text-color has-small-font-size is-layout-flex site-container-core-group-is-layout-fd1a9a6d site-block-group-is-layout-flex" style="margin-bottom:var(--site--preset--spacing--60)">
+<p class="site-block-paragraph">Written by </p>
+
+
+<div class="site-block-post-author-name"><a href="/about.html" rel="author">Boris Fain</a></div>
+
+
+<p class="site-block-paragraph">in</p>
+
+
+<div style="font-weight:300" class="taxonomy-category site-block-post-terms"><a href="/category/spring-alternatives/" rel="tag">Spring Framework</a></div></div>
+
+
+<div class="entry-content alignfull site-block-post-content has-global-padding is-layout-constrained site-block-post-content-is-layout-constrained">
+<p class="site-block-paragraph">A Spring Boot endpoint sometimes needs to accept more than one request format. A client might send JSON metadata, a binary payload, or a multipart file upload to the same path. Spring can select the correct controller method from the request's <code>Content-Type</code> header, so the application does not need one large method that parses every format manually.</p>
+
+<h2 class="site-block-heading">Use one handler for each content type</h2>
+<p class="site-block-paragraph">Give each method the same path and a different <code>consumes</code> value. Spring performs content negotiation before calling the controller and returns <code>415 Unsupported Media Type</code> when no handler accepts the request format.</p>
+
+<link href="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<pre><code class="language-java">package com.example.web;
+
+import java.io.IOException;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+@RestController
+@RequestMapping("/api")
+public class ContentController {
+
+    @PostMapping(
+            path = "/process",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity&lt;String&gt; processJson(@RequestBody MyDto body) {
+        return ResponseEntity.ok("JSON processed for " + body.name());
+    }
+
+    @PostMapping(
+            path = "/process",
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity&lt;String&gt; processBinary(@RequestBody byte[] body) {
+        return ResponseEntity.ok("Binary payload: " + body.length + " bytes");
+    }
+
+    @PostMapping(
+            path = "/process",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity&lt;String&gt; processMultipart(
+            @RequestPart("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(
+                "Uploaded " + file.getOriginalFilename() + ": " + file.getSize() + " bytes");
+    }
+
+    public record MyDto(String name, int age) {}
+}
+</code></pre>
+<h2 class="site-block-heading">Test each request with curl</h2>
+<h3 class="site-block-heading">Send JSON</h3>
+<pre><code class="language-bash">curl -i -X POST http://localhost:8080/api/process \
+  -H "Content-Type: application/json" \
+  --data '{"name":"Boris","age":30}'
+</code></pre>
+<p class="site-block-paragraph">Expected response body: <code>JSON processed for Boris</code>.</p>
+
+<h3 class="site-block-heading">Send a binary file</h3>
+<pre><code class="language-bash">curl -i -X POST http://localhost:8080/api/process \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @sample.bin
+</code></pre>
+<p class="site-block-paragraph">Spring passes the exact request body to the <code>byte[]</code> parameter.</p>
+
+<h3 class="site-block-heading">Upload a multipart file</h3>
+<pre><code class="language-bash">curl -i -X POST http://localhost:8080/api/process \
+  -F "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aec8c7c2cb93eeddcfc3dec2cb80dad6da">[email&#160;protected]</a>"
+</code></pre>
+<p class="site-block-paragraph"><code>curl -F</code> creates the multipart boundary and the correct content type automatically.</p>
+
+<h2 class="site-block-heading">Do not use the Host header as the client identity</h2>
+<p class="site-block-paragraph">The HTTP <code>Host</code> header identifies the destination website. It does not identify the visitor, and a client can often choose its value. Never use it for authentication, authorization, rate-limit identity, or IP allowlists.</p>
+<p class="site-block-paragraph"><code>request.getRemoteAddr()</code> returns the immediate network peer. When Cloudflare proxies a request, that peer is normally a Cloudflare address rather than the visitor's address. <code>request.getRemoteHost()</code> may perform a reverse DNS lookup and does not solve this problem.</p>
+
+<h2 class="site-block-heading">Read the visitor IP safely behind Cloudflare</h2>
+<p class="site-block-paragraph">Cloudflare sends the original visitor address in <code>CF-Connecting-IP</code>. Trust this header only when the origin firewall accepts web traffic exclusively from Cloudflare IP ranges. Otherwise, an attacker can connect directly and supply a fake header.</p>
+<pre><code class="language-java">private String clientIp(HttpServletRequest request) {
+    String cloudflareIp = request.getHeader("CF-Connecting-IP");
+    if (cloudflareIp != null &amp;&amp; !cloudflareIp.isBlank()) {
+        return cloudflareIp.trim();
+    }
+    return request.getRemoteAddr();
+}
+</code></pre>
+<p class="site-block-paragraph">For production systems, configure the trusted-proxy layer centrally and validate addresses before storing or using them. Related reading: <a href="../handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Authentication in Web Applications</a>, <a href="../notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a>, and <a href="../notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a>.</p>
+</div>
+
+
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"></div>
+
+
+
+<div class="site-block-group alignwide is-layout-flow site-block-group-is-layout-flow" style="margin-top:var(--site--preset--spacing--60);margin-bottom:var(--site--preset--spacing--60)">
+<nav class="site-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-878fe601 site-block-group-is-layout-flex" aria-label="Post navigation" style="border-top-color:var(--site--preset--color--accent-6);border-top-width:1px;padding-top:var(--site--preset--spacing--40);padding-bottom:var(--site--preset--spacing--40)"><div class="post-navigation-link-previous site-block-post-navigation-link"><span class="site-block-post-navigation-link__arrow-previous is-arrow-arrow" aria-hidden="true">←</span><a href="../programmerStories/funny-stories-in-my-programming-carrier.html" rel="prev">Funny Stories From a Programming Career</a></div>
+
+<div class="post-navigation-link-next site-block-post-navigation-link"><a href="../nonJava/python-is-not-real-programming-language.html" rel="next">Python vs Java and C++: A Developer Opinion</a><span class="site-block-post-navigation-link__arrow-next is-arrow-arrow" aria-hidden="true">→</span></div></nav>
+</div>
+
+
+
+</div>
+
+
+
+<div class="site-block-group alignwide has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)">
+<h2 class="site-block-heading alignwide has-small-font-size" style="font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">More posts</h2>
+
+
+
+<div class="site-block-query alignwide is-layout-flow site-block-query-is-layout-flow"><ul class="alignfull site-block-post-template is-layout-flow site-container-core-post-template-is-layout-b4d04ffe site-block-post-template-is-layout-flow"><li class="site-block-post post-727 post type-post status-publish format-standard has-post-thumbnail hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html" target="_self" >FTP File Transfers With Kotlin and Python</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html"><time datetime="2026-03-01T10:29:08+00:00">March 1, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-672 post type-post status-publish format-standard hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/tcp-udp-socket.html" target="_self" >TCP vs UDP in Go: runnable echo server examples</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/tcp-udp-socket.html"><time datetime="2026-02-22T14:21:05+00:00">February 22, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-626 post type-post status-publish format-standard hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/go-lang.html" target="_self" >RAII in Go: Resource Cleanup With defer</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/go-lang.html"><time datetime="2026-01-25T13:39:08+00:00">January 25, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-608 post type-post status-publish format-standard has-post-thumbnail hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/native-language.html" target="_self" >Native C and C++ for Modern Developers</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/native-language.html"><time datetime="2026-01-19T09:29:16+00:00">January 19, 2026</time></a></div></div>
+
+</li></ul></div>
+</div>
+<section class="topic-article"><h2>Content-Type versus Accept: 415 and 406</h2><p>Content-Type describes the request body; Accept describes response formats the client accepts. A consumes mismatch can produce 415. A produces mismatch with Accept can produce 406. Malformed JSON is a separate issue and commonly produces 400.</p><p>These handlers return plain text: use Accept: text/plain. For multipart uploads, let curl generate the boundary. The controller belongs in a Spring MVC application whose component scanning covers com.example.web. Its record example requires Java 17 or later. Create the sample files before running upload commands.</p><p>See <a href="https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html">Spring request mapping</a>.</p><h2>Related guides</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li><a href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li><a href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li><a href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></section><section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li></ul><p><a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+
+
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath · Programming beneath the frameworks.</p></footer></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../assets/js/static-navigation.js" defer></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    
+<script id="prisma-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script id="prisma-markup-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script id="prisma-markup-templating-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script id="prisma-c-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script id="prisma-java-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script id="prisma-go-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+<script id="prisma-bash-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script id="prisma-php-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script id="prisma-kotlin-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script id="prisma-cpp-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script id="prisma-sql-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script id="prisma-toolbar-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script id="prisma-clipboard-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script id="highlight-js" src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4473b0762ae246e4b5685486a06998c0","r":1,"spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3808baabcac163c',t:'MTc4ODg5NzY5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a386ca2d08051683',t:'MTc4ODk2MzE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<title>C++ Hello World Example | Code Beneath</title>
+<meta name="description" content="A minimal C++ example showing the program entry point, iostream and console output." />
+<meta name="robots" content="noindex,follow" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="C++ Hello World Example | Code Beneath" />
+<meta property="og:description" content="A minimal C++ example showing the program entry point, iostream and console output." />
+<meta property="og:url" content="https://codebeneath.com/cppcode.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="C++ Hello World Example | Code Beneath" />
+<meta name="twitter:description" content="A minimal C++ example showing the program entry point, iostream and console output." />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"C++ Hello World Example","headline":"C++ Hello World Example","description":"A minimal C++ example showing the program entry point, iostream and console output.","url":"https://codebeneath.com/cppcode.html","inLanguage":"en-US","mainEntityOfPage":{"@type":"WebPage","@id":"https://codebeneath.com/cppcode.html"},"author":{"@type":"Organization","name":"Code Beneath","url":"https://codebeneath.com/about.html"},"publisher":{"@type":"Organization","name":"Code Beneath","url":"https://codebeneath.com/"}}</script>
+
+<link rel='stylesheet' id='site-block-navigation-css' href='assets/css/navigation.css' media='all' />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel='stylesheet' id='prism-tomorrow-css' href='assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css' media='all' />
+<link rel='stylesheet' id='atom-one-dark-css' href='assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css' media='all' />
+
+
+
+<link rel="canonical" href="https://codebeneath.com/cppcode.html" />
+<link rel="shortlink" href="https://codebeneath.com/cppcode.html" />
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+ 
+
+
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/c.min.js"></script>
+<script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/rust.min.js"></script>
+
+<script> hljs.highlightAll(); 
+</script>
+
+<!-- end Simple Custom CSS and JS -->
+
+
+
+<link rel="stylesheet" href="assets/css/site.css"><link rel="stylesheet" href="/assets/css/article-discovery.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+
+<body class="site-singular post-template-default single single-post postid-537 single-format-standard site-embed-responsive site-theme-twentytwentyfive">
+
+<a class="skip-link screen-reader-text" id="site-skip-link" href="https://codebeneath.com/cppcode.html#site--skip-link--target">Skip to content</a><div class="site-site-blocks"><header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-container-core-group-is-layout-0e1e8455 site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" target="_self" rel="home">codebeneath.com</a></p></div>
+
+
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation" 
+		><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open" 
+			
+			
+			><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+				<div class="site-block-navigation__responsive-container"  id="modal-1" 
+			
+			
+			
+			
+			
+				tabindex="-1"
+			>
+					<div class="site-block-navigation__responsive-close" tabindex="-1">
+						<div class="site-block-navigation__responsive-dialog" 
+			
+			
+			
+			>
+							<button aria-label="Close menu" class="site-block-navigation__responsive-container-close" 
+			
+			><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+							<div class="site-block-navigation__responsive-container-content" 
+			
+			 id="modal-1-content">
+								<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation"><li tabindex="-1" style="font-style:normal;font-weight:600" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#http"><span class="site-block-navigation-item__label">HTTP Requests</span></a><button aria-label="Handling http request submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul style="font-style:normal;font-weight:600" class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Authentication in Web Applications</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#languages"><span class="site-block-navigation-item__label">Programming Languages</span></a><button aria-label="Non Java submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><button aria-label="Not only HTTP submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><button aria-label="Programmer Stories submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#tools"><span class="site-block-navigation-item__label">Development Tools</span></a><button aria-label="Recommended Tools submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><button aria-label="Spring Alternatives submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">AI and Programming</span></a><button aria-label="new Era submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content" href="newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/programmerStories/dont-speak-british-in-la.html"><span class="site-block-navigation-item__label">Coding Conventions</span></a></li></ul>
+								
+							</div>
+						</div>
+					</div>
+				</div></nav></div>
+</div>
+</header>
+
+
+<main id="site--skip-link--target" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<div class="site-block-group alignfull has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"><h1 class="site-block-post-title">C++ Hello World Example</h1>
+
+
+
+
+<div class="site-block-group has-link-color has-accent-4-color has-text-color has-small-font-size is-layout-flex site-container-core-group-is-layout-fd1a9a6d site-block-group-is-layout-flex" style="margin-bottom:var(--site--preset--spacing--60)">
+<p class="site-block-paragraph">Written by </p>
+
+
+<div class="site-block-post-author-name"><a href="#" target="_self" class="site-block-post-author-name__link">admin</a></div>
+
+
+<p class="site-block-paragraph">in</p>
+
+
+<div style="font-weight:300" class="taxonomy-category site-block-post-terms"><a href="#" rel="tag">test</a></div></div>
+
+
+<div class="entry-content alignfull site-block-post-content has-global-padding is-layout-constrained site-block-post-content-is-layout-constrained">
+<!DOCTYPE html>
+<html>
+<head>
+   <link rel="stylesheet" href="assets/vendor/cdnjs/ajax/libs/highlight.js/11.7.0/styles/default.min.css"> <!-- Highlight.js library --> <script src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script> <!-- Enable highlighting --> <script>hljs.highlightAll();</script>
+</head>
+<body>
+
+<h2>C++ Example</h2>
+
+<pre><code class="language-cpp">
+#include &ltiostream>
+using namespace std;
+
+int main() {
+    cout << "Hello from C++" << endl;
+    return 0;
+}
+</code></pre>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3808b9caaf42253',t:'MTc4ODg5NzY4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4473b0762ae246e4b5685486a06998c0","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
+</div>
+
+
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"></div>
+
+
+
+<div class="site-block-group alignwide is-layout-flow site-block-group-is-layout-flow" style="margin-top:var(--site--preset--spacing--60);margin-bottom:var(--site--preset--spacing--60)">
+<nav class="site-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-878fe601 site-block-group-is-layout-flex" aria-label="Post navigation" style="border-top-color:var(--site--preset--color--accent-6);border-top-width:1px;padding-top:var(--site--preset--spacing--40);padding-bottom:var(--site--preset--spacing--40)"><div class="post-navigation-link-previous site-block-post-navigation-link"><span class="site-block-post-navigation-link__arrow-previous is-arrow-arrow" aria-hidden="true">←</span><a href="handlingHttpRequest/token-based-security-in-web-applications.html" rel="prev">Token-Based Authentication in Web Applications</a></div>
+
+<div class="post-navigation-link-next site-block-post-navigation-link"><a href="nonJava/native-language.html" rel="next">Native C and C++ for Modern Developers</a><span class="site-block-post-navigation-link__arrow-next is-arrow-arrow" aria-hidden="true">→</span></div></nav>
+</div>
+
+
+
+</div>
+
+
+
+<div class="site-block-group alignwide has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)">
+<h2 class="site-block-heading alignwide has-small-font-size" style="font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">More posts</h2>
+
+
+
+<div class="site-block-query alignwide is-layout-flow site-block-query-is-layout-flow"><ul class="alignfull site-block-post-template is-layout-flow site-container-core-post-template-is-layout-b4d04ffe site-block-post-template-is-layout-flow"><li class="site-block-post post-727 post type-post status-publish format-standard has-post-thumbnail hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="notOnlyHttp/ftp-file-transfer-protocol.html" target="_self" >FTP File Transfers With Kotlin and Python</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="notOnlyHttp/ftp-file-transfer-protocol.html"><time datetime="2026-03-01T10:29:08+00:00">March 1, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-672 post type-post status-publish format-standard hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="notOnlyHttp/tcp-udp-socket.html" target="_self" >TCP vs UDP in Go: runnable echo server examples</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="notOnlyHttp/tcp-udp-socket.html"><time datetime="2026-02-22T14:21:05+00:00">February 22, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-626 post type-post status-publish format-standard hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="nonJava/go-lang.html" target="_self" >RAII in Go: Resource Cleanup With defer</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="nonJava/go-lang.html"><time datetime="2026-01-25T13:39:08+00:00">January 25, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-608 post type-post status-publish format-standard has-post-thumbnail hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="nonJava/native-language.html" target="_self" >Native C and C++ for Modern Developers</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="nonJava/native-language.html"><time datetime="2026-01-19T09:29:16+00:00">January 19, 2026</time></a></div></div>
+
+</li></ul></div>
+</div>
+</main>
+
+
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath · Programming beneath the frameworks.</p></footer></div>
+
+<script src="assets/js/static-navigation.js" defer></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    
+<script id="prisma-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script id="prisma-markup-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script id="prisma-markup-templating-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script id="prisma-c-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script id="prisma-java-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script id="prisma-go-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+<script id="prisma-bash-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script id="prisma-php-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script id="prisma-kotlin-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script id="prisma-cpp-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script id="prisma-sql-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script id="prisma-toolbar-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script id="prisma-clipboard-js" src="assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script id="highlight-js" src="assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+
+</body>
+</html>

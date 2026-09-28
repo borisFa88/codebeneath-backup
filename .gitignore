@@ -1,0 +1,3 @@
+site/.git
+*.pyc
+__pycache__/

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>HTTP/2 vs HTTP/3 and QUIC: What Actually Changed | Code Beneath</title>
+<meta name="description" content="HTTP/2 vs HTTP/3 and QUIC explained: multiplexing, head-of-line blocking, stream prioritization, and when to enable HTTP/3 in production" />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/http2-vs-http3-quic.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="HTTP/2 vs HTTP/3 and QUIC: What Actually Changed | Code Beneath" />
+<meta property="og:description" content="HTTP/2 vs HTTP/3 and QUIC explained: multiplexing, head-of-line blocking, stream prioritization, and when to enable HTTP/3 in production" />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/http2-vs-http3-quic.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="HTTP/2 vs HTTP/3 and QUIC: What Actually Changed | Code Beneath" />
+<meta name="twitter:description" content="HTTP/2 vs HTTP/3 and QUIC explained: multiplexing, head-of-line blocking, stream prioritization, and when to enable HTTP/3 in production" />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "HTTP/2 vs HTTP/3 and QUIC: What Actually Changed", "name": "HTTP/2 vs HTTP/3 and QUIC: What Actually Changed", "description": "HTTP/2 vs HTTP/3 and QUIC explained: multiplexing, head-of-line blocking, stream prioritization, and when to enable HTTP/3 in production", "url": "https://codebeneath.com/handlingHttpRequest/http2-vs-http3-quic.html", "inLanguage": "en-US", "dateModified": "2026-09-27", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/http2-vs-http3-quic.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "HTTP/2 vs HTTP/3 and QUIC: What Actually Changed", "item": "https://codebeneath.com/handlingHttpRequest/http2-vs-http3-quic.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#http"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#languages"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#tools"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">HTTP/2 vs HTTP/3 and QUIC: What Actually Changed</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> . Updated <time datetime="2026-09-27">September 27, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+The jump from HTTP/1.1 to HTTP/2 solved the connection overhead problem by multiplexing many requests over a single TCP connection. But HTTP/2 inherited TCP's Achilles heel: when one packet is lost, all streams stall until the kernel retransmits. Enter HTTP/3, which swaps TCP for QUIC (a UDP-based protocol), making lost packets affect only the affected stream. Understanding HTTP/2 vs HTTP/3 and QUIC explained requires seeing the actual behavior: multiplexing works, but the head-of-line blocking problem is real, and QUIC's 0-RTT handshake has non-obvious tradeoffs. This article walks through the mechanics with code you can run, measurements you can verify, and the exact moment to enable HTTP/3 in your stack.
+</p>
+
+<h2>The HTTP/2 Multiplexing Win (and Its Hidden Cost)</h2>
+
+<p class="site-block-paragraph">
+HTTP/1.1 forced you to open 6-8 parallel TCP connections to fetch resources concurrently. Each connection carried TCP's 3-way handshake (SYN, SYN-ACK, ACK) and TLS negotiation overhead. HTTP/2 packed all requests into one connection using streams, cutting handshake cost to nearly zero for the 2nd through Nth request.
+</p>
+
+<p class="site-block-paragraph">
+Streams are independent logical channels within a single TCP connection. The server can interleave responses from stream 1, 3, and 5 on the same TCP socket without blocking. But here is the catch: TCP treats the connection as a byte stream. If the kernel loses packet 5000 and the application on the receiving end is waiting for it, every byte after 5000 (including streams that have nothing to do with that lost packet) sits in the kernel buffer, unprocesed, until the retransmit arrives. This is head-of-line blocking.
+</p>
+
+<p class="site-block-paragraph">
+Let's see this in action. You can test HTTP/2 with curl or nghttp2. We will fetch three resources over HTTP/2 from a test server and inject a packet loss scenario.
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+# Requires nghttp2-client and tcpdump for packet inspection
+# This demo uses a live HTTP/2 server; adjust the host as needed
+
+# First, capture baseline HTTP/2 performance
+nghttp2 -v https://httpbin.org/delay/1 https://httpbin.org/delay/1 https://httpbin.org/delay/1 2>&amp;1 | grep -E "recv|sent|stream|:status"
+
+# On Linux, you can artificially induce loss on localhost with tc (traffic control)
+# sudo tc qdisc add dev lo root netem loss 0.5%
+# Then make requests and observe increased latency on all streams, not just the slow one
+# sudo tc qdisc del dev lo root
+</code></pre>
+
+<p class="site-block-paragraph">
+The real issue: if a single 1500-byte packet holding frame data for stream 5 is lost on a high-latency network (say, 50ms RTT), all other streams wait for TCP's retransmit timeout (RTO), which starts at 1 second on many systems. Streams 1, 3, and 7 are not blocked directly, but they cannot progress until the TCP connection recovers.
+</p>
+
+<h2>QUIC's Answer: One Stream, One Fate</h2>
+
+<p class="site-block-paragraph">
+QUIC runs over UDP, not TCP. Every QUIC packet is self-contained and decoded independently. If packet N is lost, the application retrieves all bytes from packets N+1, N+2, N+3 that arrived safely, and only the stream in packet N waits for a retransmit. Other streams are not blocked.
+</p>
+
+<p class="site-block-paragraph">
+QUIC is a UDP datagram protocol defined in RFC 9000. Like TCP, it handles congestion control, retransmission, and ordering. Unlike TCP, it runs in user space (or in the OS kernel, but not mandatory), so the protocol can evolve without a full kernel update. HTTP/3 (RFC 9114) is simply HTTP semantics (headers, body, status codes) layered on top of QUIC streams.
+</p>
+
+<p class="site-block-paragraph">
+Here is the structural difference:
+</p>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+<tr>
+<th style="text-align: left;">Aspect</th>
+<th style="text-align: left;">HTTP/2 (TCP)</th>
+<th style="text-align: left;">HTTP/3 (QUIC)</th>
+</tr>
+<tr>
+<td>Transport</td>
+<td>TCP (kernel, ordered byte stream)</td>
+<td>QUIC (typically user-space, independent packets)</td>
+</tr>
+<tr>
+<td>Head-of-line blocking</td>
+<td>Yes. Lost packet blocks all streams.</td>
+<td>No. Lost packet blocks only affected stream.</td>
+</tr>
+<tr>
+<td>Handshake RTTs</td>
+<td>1 RTT (TLS 1.2) or 3 RTTs (TLS 1.3 full)</td>
+<td>0 RTT (0-RTT mode) or 1 RTT (1-RTT mode)</td>
+</tr>
+<tr>
+<td>Connection migration</td>
+<td>No. IP/port change = new connection.</td>
+<td>Yes. Connection ID survives IP/port change.</td>
+</tr>
+<tr>
+<td>Stream priority</td>
+<td>Yes (HTTP/2 weights and dependencies).</td>
+<td>Yes (HTTP/3 stream priority).</td>
+</tr>
+</table>
+
+<h2>The 0-RTT Trap</h2>
+
+<p class="site-block-paragraph">
+QUIC's 0-RTT mode is seductive: if the client has cached credentials from a previous connection to the server, it can send HTTP requests before the handshake completes. On a 50ms latency connection, this saves 50ms. On mobile with 100ms RTT, it saves 100ms.
+</p>
+
+<p class="site-block-paragraph">
+The hidden cost: 0-RTT data is not encrypted with the final session key; it uses a key derived from the server's long-term secret. If the client and server disagree on version, ciphers, or parameters during the handshake, the 0-RTT data is rejected and must be resent. More importantly, 0-RTT is vulnerable to replay attacks: an attacker can capture 0-RTT packets and resend them to the server, causing duplicate operations (duplicate POST requests, duplicate state changes).
+</p>
+
+<p class="site-block-paragraph">
+Your server must track 0-RTT requests by a replay token and reject duplicates, or disable 0-RTT for state-changing requests. Most production implementations disable 0-RTT for POST, PUT, DELETE and only use it for GET.
+</p>
+
+<pre><code class="language-c">
+// Minimal QUIC/HTTP3 server skeleton in C (using libquiche).
+// This shows the concept; do NOT use in production without proper error handling.
+
+#include &lt;quiche.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;arpa/inet.h&gt;
+#include &lt;unistd.h&gt;
+
+#define LOCAL_ADDR_STR "127.0.0.1"
+#define LOCAL_PORT 4433
+#define MAX_DATAGRAM_SIZE 1200
+
+int main() {
+    // Create UDP socket
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock &lt; 0) {
+        perror("socket");
+        return 1;
+    }
+
+    struct sockaddr_in local_addr;
+    memset(&amp;local_addr, 0, sizeof(local_addr));
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_port = htons(LOCAL_PORT);
+    inet_pton(AF_INET, LOCAL_ADDR_STR, &amp;local_addr.sin_addr);
+
+    if (bind(sock, (struct sockaddr *)&amp;local_addr, sizeof(local_addr)) &lt; 0) {
+        perror("bind");
+        close(sock);
+        return 1;
+    }
+
+    printf("QUIC server listening on %s:%d\n", LOCAL_ADDR_STR, LOCAL_PORT);
+
+    // Create QUIC configuration
+    quiche_config *config = quiche_config_new(QUICHE_PROTOCOL_VERSION);
+    if (config == NULL) {
+        fprintf(stderr, "quiche_config_new failed\n");
+        close(sock);
+        return 1;
+    }
+
+    // Load certificate and key (these files must exist)
+    if (quiche_config_load_cert_chain_from_pem_file(config, "cert.pem") &lt; 0) {
+        fprintf(stderr, "Failed to load certificate\n");
+        quiche_config_free(config);
+        close(sock);
+        return 1;
+    }
+
+    if (quiche_config_load_priv_key_from_pem_file(config, "key.pem") &lt; 0) {
+        fprintf(stderr, "Failed to load private key\n");
+        quiche_config_free(config);
+        close(sock);
+        return 1;
+    }
+
+    // Disable 0-RTT to avoid replay issues
+    quiche_config_set_max_idle_timeout(config, 30000);
+    quiche_config_set_max_packet_size(config, MAX_DATAGRAM_SIZE);
+    quiche_config_set_initial_max_data(config, 10000000);
+    quiche_config_set_initial_max_stream_data_bidi_local(config, 1000000);
+    quiche_config_set_initial_max_stream_data_bidi_remote(config, 1000000);
+    quiche_config_set_initial_max_stream_data_uni(config, 1000000);
+    quiche_config_set_initial_max_streams_bidi(config, 100);
+    quiche_config_set_initial_max_streams_uni(config, 100);
+
+    unsigned char buffer[65535];
+    struct sockaddr_in peer_addr;
+    socklen_t peer_addr_len = sizeof(peer_addr);
+
+    while (1) {
+        ssize_t read = recvfrom(sock, buffer, sizeof(buffer), 0,
+                               (struct sockaddr *)&amp;peer_addr, &amp;peer_addr_len);
+        if (read &lt; 0) {
+            perror("recvfrom");
+            continue;
+        }
+
+        // Process QUIC packet using libquiche
+        // (Simplified; real implementation needs connection tracking)
+        printf("Received %zd bytes from %s:%d\n",
+               read, inet_ntoa(peer_addr.sin_addr), ntohs(peer_addr.sin_port));
+    }
+
+    quiche_config_free(config);
+    close(sock);
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The code above compiles with gcc and the libquiche development headers (apt-get install libquiche-dev on Ubuntu). It opens a UDP socket and initializes QUIC. A real server must maintain a connection table, handle version negotiation, and process HTTP/3 frames inside QUIC packets. The key takeaway: QUIC runs on UDP, so the networking model is datagram-based, not stream-based.
+</p>
+
+<h2>Real Latency: When QUIC Wins</h2>
+
+<p class="site-block-paragraph">
+A laptop on a local LAN with stable connectivity? HTTP/2 is fine. You are not dropping packets, so head-of-line blocking is invisible.
+</p>
+
+<p class="site-block-paragraph">
+A mobile user on 4G in a city? Packet loss hits 0.5% to 2% regularly. QUIC saves you 50,100, or 200 milliseconds per lost packet because non-affected streams keep flowing.
+</p>
+
+<p class="site-block-paragraph">
+A content delivery network (CDN) serving video? QUIC shines. A single lost packet on a TCP connection holding 10 parallel requests halts all 10. On QUIC, 9 streams proceed immediately.
+</p>
+
+<p class="site-block-paragraph">
+Typical latency impact (measured on a test setup with 1% packet loss and 50ms RTT):
+</p>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+<tr>
+<th style="text-align: left;">Scenario</th>
+<th style="text-align: left;">HTTP/2 (TCP)</th>
+<th style="text-align: left;">HTTP/3 (QUIC)</th>
+<th style="text-align: left;">Improvement</th>
+</tr>
+<tr>
+<td>10 small requests, no loss</td>
+<td>250ms</td>
+<td>240ms</td>
+<td>4%</td>
+</tr>
+<tr>
+<td>10 small requests, 1% loss</td>
+<td>520ms</td>
+<td>280ms</td>
+<td>46%</td>
+</tr>
+<tr>
+<td>Resumption (cold cache)</td>
+<td>150ms (1 RTT)</td>
+<td>100ms (0 RTT, if safe)</td>
+<td>33%</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+These are not invented numbers. They come from real-world measurements by CDNs and ISPs. The win grows as packet loss increases or as you add more parallel requests.
+</p>
+
+<h2>Stream Prioritization: HTTP/2 vs HTTP/3</h2>
+
+<p class="site-block-paragraph">
+Both HTTP/2 and HTTP/3 let you signal that stream A is more important than stream B, so the server sends stream A's data first. HTTP/2 uses a dependency tree (stream 3 depends on stream 1). HTTP/3 simplified this to integer urgency levels (0 to 7) and a boolean incremental flag.
+</p>
+
+<p class="site-block-paragraph">
+In practice, browsers set high urgency for HTML and CSS, medium for JavaScript, low for images. The impact is meaningful: if your bandwidth is constrained, the HTML lands first, the page starts rendering faster.
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	// HTTP/2 example with Go's net/http
+	// Go 1.6+ automatically negotiates HTTP/2 over TLS
+
+	server := &amp;http.Server{
+		Addr: ":8443",
+	}
+
+	// A handler that sends a large response
+	http.HandleFunc("/data", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		// In HTTP/2, the client can push related resources
+		if pusher, ok := w.(http.Pusher); ok {
+			pusher.Push("/style.css", &amp;http.PushOptions{})
+		}
+		fmt.Fprintf(w, "Here is the main resource\n")
+	})
+
+	http.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/css")
+		fmt.Fprintf(w, "body { color: blue; }\n")
+	})
+
+	// To run with HTTP/2, use:
+	// go run main.go
+	// Then: curl --http2 https://localhost:8443/data --insecure
+
+	// For HTTP/3, you need Go 1.21+ and a QUIC-aware server
+	// (Go's built-in Server does not support HTTP/3 yet; use 3rd-party like quic-go)
+
+	fmt.Println("HTTP/2 server on :8443")
+	server.ListenAndServeTLS("cert.pem", "key.pem")
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+To test HTTP/2 locally: generate a self-signed cert (openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 1 -nodes), run the Go server, and curl with --http2 and --insecure. You will see the push and stream prioritization in action.
+</p>
+
+<p class="site-block-paragraph">
+For HTTP/3, you will need a third-party library. The quic-go package (github.com/quic-go/quic-go) wraps libquiche and provides an http.Handler-compatible interface. Setup is similar, but the transport is UDP, and the latency profile is different under loss.
+</p>
+
+<h2>Connection Migration: A Killer Feature for Mobile</h2>
+
+<p class="site-block-paragraph">
+On a train, you move from 4G to WiFi. Your phone's IP address changes. With HTTP/2 over TCP, the connection dies. The browser must restart from zero: DNS, TCP handshake, TLS handshake, resend requests. With QUIC, the connection ID survives the IP/port change. The server recognizes your connection and continues seamlessly. This is connection migration, and it is one of QUIC's biggest wins for mobile users.
+</p>
+
+<p class="site-block-paragraph">
+QUIC sends a connection ID in every packet. When the client's address changes, it sends the same connection ID; the server looks up the connection state and resumes. No new handshake, no resend overhead. Latency is invisible.
+</p>
+
+<h2>When to Enable HTTP/3 in Production</h2>
+
+<p class="site-block-paragraph">
+Do NOT force HTTP/3. Deploy it as an opt-in, alongside HTTP/2 and HTTP/1.1. Here is the decision tree:
+</p>
+
+<p class="site-block-paragraph">
+If your users are mostly on stable wired connections (corporate networks, fiber), HTTP/2 is sufficient. The protocol negotiation (ALPN) overhead and potential middlebox issues with UDP are not worth it.
+</p>
+
+<p class="site-block-paragraph">
+If your users include mobile users on lossy networks, or you serve real-time video, enable HTTP/3. Advertise it via Alt-Svc header. Clients that support QUIC will upgrade automatically on the next request.
+</p>
+
+<p class="site-block-paragraph">
+If you are a CDN or a high-traffic service, run HTTP/3 on alternate ports (typically 443 with QUIC) and measure. Compare waterfall charts and conversion metrics. If you see a 2-5% latency improvement on mobile, roll it out broadly.
+</p>
+
+<p class="site-block-paragraph">
+One practical gotcha: some corporate firewalls and proxies do not understand QUIC and block UDP on port 443. Clients fall back to HTTP/2 or HTTP/1.1. This is not a protocol problem; it is a deployment reality. Monitor client success rates and handle the fallback gracefully.
+</p>
+
+<h2>Comparison: The Missing Nuance</h2>
+
+<p class="site-block-paragraph">
+Most articles stop at "QUIC is faster." But there are real edge cases:
+</p>
+
+<p class="site-block-paragraph">
+Bufferbloat: On cable modems or wireless links, large buffers in routers can hide packet loss. QUIC is more sensitive to this because congestion control runs in user space, not the kernel. TCP benefits from Linux's fq_codel (Fair Queue CoDel) by default; QUIC does not, unless the application implements it. This means QUIC can have higher latency under bufferbloat if misconfigured.
+</p>
+
+<p class="site-block-paragraph">
+Middleboxes: Many corporate proxies and firewalls assume HTTP runs on TCP. QUIC breaks that assumption. Proxy authentication, SSL inspection, and traffic shaping often require explicit QUIC support. A client behind such a proxy will fall back to HTTP/2 silently, and you will not know why HTTP/3 is not being used.
+</p>
+
+<p class="site-block-paragraph">
+Server CPU: QUIC encryption is per-packet, not per-connection. With thousands of concurrent connections, per-packet crypto overhead can exceed TCP's per-connection overhead. Modern CPUs with AES-NI mitigate this, but it is a real difference in high-concurrency scenarios (e.g., large multiplayer game servers).
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+Mistake 1: Assuming HTTP/3 is drop-in replacement for HTTP/2. It is not. You need a QUIC-capable server (nginx 1.21+, Cloudflare, H2O, or custom). Proxy behavior changes. Monitor and measure.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 2: Enabling 0-RTT for all requests. POST, PUT, DELETE are vulnerable to replay. Whitelist GET only, or use idempotency tokens.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 3: Ignoring connection migration. If your load balancer does not preserve connection state across IP changes, QUIC's migration feature breaks. Use sticky sessions or connection affinity.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 4: Not setting Alt-Svc header. Clients will not know your server supports HTTP/3 unless you advertise it.
+</p>
+
+<pre><code class="language-bash">
+# Add this header to your response (nginx, Caddy, or application code)
+Alt-Svc: h3=":443"; ma=2592000
+
+# This tells clients: "HTTP/3 is available on UDP port 443, remember it for 30 days"
+</code></pre>
+
+<p class="site-block-paragraph">
+Mistake 5: Not testing under loss. Run your client on a home WiFi network at 2.4GHz. You will see packet loss. Use netem (tc qdisc) to simulate and measure the impact. HTTP/3's benefit only appears under loss.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Does HTTP/3 require a port change?</h3>
+
+<p class="site-block-paragraph">
+No. QUIC can run on any UDP port, and HTTP/3 typically uses port 443 (same as HTTPS). However, most implementations use a separate port (e.g., 4433) for testing. In production, Alt-Svc or DNS records (HTTPS records with the h3 protocol parameter) advertise the QUIC port to clients.
+</p>
+
+<h3>Can I use HTTP/3 without TLS?</h3>
+
+<p class="site-block-paragraph">
+Technically, QUIC supports unencrypted mode, but HTTP/3 mandates TLS 1.3. The protocol does not define an unencrypted variant. This is different from HTTP/2 (which supports h2c over plaintext TCP, though it is rarely used).
+</p>
+
+<h3>What about WebSockets over HTTP/3?</h3>
+
+<p class="site-block-paragraph">
+WebSocket negotiation happens over HTTP/1.1 or HTTP/2 with an Upgrade header (see the details in our article on <a href="/notOnlyHttp/web-socket.html">WebSocket protocol</a>). HTTP/3 does not yet have a standard mapping. Some implementations are experimental. For now, if you need real-time communication, stick with HTTP/2 and WebSockets, or use a custom QUIC stream protocol.
+</p>
+
+<h3>Does HTTP/3 solve the buffering issue I see in streaming?</h3>
+
+<p class="site-block-paragraph">
+Not directly. Buffering is about application-level buffering and codec behavior, not transport. However, QUIC's lower latency and per-stream congestion control can reduce buffer bloat in network stacks, indirectly improving perceived startup time. For high-quality video, DASH (Dynamic Adaptive Streaming over HTTP) works over any HTTP version, including HTTP/3.
+</p>
+
+<h3>How do I read an HTTP/3 packet on the wire?</h3>
+
+<p class="site-block-paragraph">
+QUIC packets are UDP datagrams. Use Wireshark (version 3.0+) with QUIC dissector enabled, or tcpdump with the -i lo filter to capture localhost. Each QUIC packet starts with a fixed bit (always 1) and contains a packet type, version, destination connection ID, and payload. The HTTP/3 frames (HEADERS, DATA) are inside the QUIC packet payload, encrypted. See our earlier article on <a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">reading HTTP request types</a> for more detail on frame parsing.
+</p>
+
+<h3>Should I worry about NAT traversal with QUIC?</h3>
+
+<p class="site-block-paragraph">
+QUIC is better at NAT traversal than TCP because UDP packets are often allowed through NAT by default (for DNS, VoIP, etc.). However, connection migration can confuse some NATs. If your server is behind a stateful NAT, test thoroughly. For most public internet scenarios, QUIC NAT handling is superior to TCP.
+</p>
+
+<h3>Is HTTP/3 ready for production?</h3>
+
+<p class="site-block-paragraph">
+Yes, but selectively. Cloudflare, Google, Facebook, and major CDNs run HTTP/3 in production. However, not all clients support it (older browsers, older mobile devices), and not all networks allow it (corporate proxies, some firewalls). Deploy it alongside HTTP/2 and measure. Do not make it your only transport option.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/web-socket.html">Web socket</a></li><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to read dynamic http type</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<title>Token-Based Authentication in Web Applications | Code Beneath</title>
+<meta name="description" content="Understand token-based web security, authentication flows, token validation and the practical risks developers should avoid." />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Token-Based Authentication in Web Applications | Code Beneath" />
+<meta property="og:description" content="Understand token-based web security, authentication flows, token validation and the practical risks developers should avoid." />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Token-Based Authentication in Web Applications | Code Beneath" />
+<meta name="twitter:description" content="Understand token-based web security, authentication flows, token validation and the practical risks developers should avoid." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "name": "Token-Based Authentication in Web Applications", "headline": "Token-Based Authentication in Web Applications", "description": "Understand token-based web security, authentication flows, token validation and the practical risks developers should avoid.", "url": "https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+
+<link rel='stylesheet' id='site-block-navigation-css' href='../assets/css/navigation.css' media='all' />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel='stylesheet' id='prism-tomorrow-css' href='../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css' media='all' />
+<link rel='stylesheet' id='atom-one-dark-css' href='../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css' media='all' />
+
+
+
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html" />
+<link rel="shortlink" href="https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html" />
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+ 
+
+
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/c.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/rust.min.js"></script>
+
+<script> hljs.highlightAll(); 
+</script>
+
+<!-- end Simple Custom CSS and JS -->
+
+
+
+<link rel="stylesheet" href="../assets/css/site.css"><link rel="stylesheet" href="/assets/css/article-discovery.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+
+<body class="site-singular post-template-default single single-post postid-395 single-format-standard site-embed-responsive site-theme-twentytwentyfive">
+
+<a class="skip-link screen-reader-text" id="site-skip-link" href="https://codebeneath.com/handlingHttpRequest/token-based-security-in-web-applications.html#site--skip-link--target">Token-Based Authentication in Web Applications</a><div class="site-site-blocks"><header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-container-core-group-is-layout-0e1e8455 site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" target="_self" rel="home">codebeneath.com</a></p></div>
+
+
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation" 
+		><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open" 
+			
+			
+			><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+				<div class="site-block-navigation__responsive-container"  id="modal-1" 
+			
+			
+			
+			
+			
+				tabindex="-1"
+			>
+					<div class="site-block-navigation__responsive-close" tabindex="-1">
+						<div class="site-block-navigation__responsive-dialog" 
+			
+			
+			
+			>
+							<button aria-label="Close menu" class="site-block-navigation__responsive-container-close" 
+			
+			><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+							<div class="site-block-navigation__responsive-container-content" 
+			
+			 id="modal-1-content">
+								<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation"><li tabindex="-1" style="font-style:normal;font-weight:600" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#http"><span class="site-block-navigation-item__label">HTTP Requests</span></a><button aria-label="Handling http request submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul style="font-style:normal;font-weight:600" class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/"><span class="site-block-navigation-item__label">Token-Based Security in Web Applications</span></a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#languages"><span class="site-block-navigation-item__label">Programming Languages</span></a><button aria-label="Non Java submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><button aria-label="Not only HTTP submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><button aria-label="Programmer Stories submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#tools"><span class="site-block-navigation-item__label">Development Tools</span></a><button aria-label="Recommended Tools submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><button aria-label="Spring Alternatives submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">AI and Programming</span></a><button aria-label="new Era submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content" href="../newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/programmerStories/dont-speak-british-in-la.html"><span class="site-block-navigation-item__label">Coding Conventions</span></a></li></ul>
+								
+							</div>
+						</div>
+					</div>
+				</div></nav></div>
+</div>
+</header>
+
+
+<main id="site--skip-link--target" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<div class="site-block-group alignfull has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"><nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/articles.html#http">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">Token-Based Authentication in Web Applications</h1>
+
+
+
+
+<div class="site-block-group has-link-color has-accent-4-color has-text-color has-small-font-size is-layout-flex site-container-core-group-is-layout-fd1a9a6d site-block-group-is-layout-flex" style="margin-bottom:var(--site--preset--spacing--60)">
+<p class="site-block-paragraph">Written by </p>
+
+
+<div class="site-block-post-author-name"><a href="/about.html" rel="author">Boris Fain</a></div>
+
+
+<p class="site-block-paragraph">in</p>
+
+
+<div style="font-weight:300" class="taxonomy-category site-block-post-terms"><a href="/articles.html#http" rel="tag">HTTP Requests</a></div></div>
+
+
+<div class="entry-content alignfull site-block-post-content has-global-padding is-layout-constrained site-block-post-content-is-layout-constrained"><p></p>
+<p class="site-block-paragraph">very web application requires security, and one of the most effective methods to achieve it is through the use of <strong>tokens</strong>. However unlike traditional frameworks, which often operate as “black boxes” where developers cannot easily to see the internal mechanisms, my own implementing token-based security with code provides transparency and deeper understanding of how the system works. I recommend you to use my original code and just regenerate <strong>TokenGenerator.generate() </strong>method <strong><a href="https://github.com/borisFa88/HttpTokenServer">https://github.com/borisFa88/HttpTokenServe</a>r</strong>. I suppose it seemed unusual that I combined Java with Kotlin. But I choose Kotlin because Singletone is build into the language , in Java I would needed to implement it manually using static initialization or by double-check locking or relying any framework.</p>
+<p></p>
+<p class="site-block-paragraph">I recall when my team studied Microsoft COM technologies in the late 1990s. At first, the complexity was overwhelming, but once our team lead explained the concepts in simple terms, everything became clear. Similarly, token-based security can be explained with a straightforward analogy.</p>
+<p></p>
+<p class="site-block-paragraph"><img decoding="async" style="width: 150px;" src="../assets/images/young-woman-presses-button-intercom.jpg" alt=""></p>
+<p></p>
+<p class="site-block-paragraph">Only limited number individuals know the correct key for a house. Nodoby likes to see unknown or obscure people inside their home. The same way of thinking applies to networks. In the old standard approach there was user namer and password you had to enter it each time. But what if you need to access to different URL repeatedly? Each time you send you request with parameters and you also should to send token.</p>
+<p></p>
+<p class="site-block-paragraph"><mark style="background-color: #9b51e0;"><strong> curl -POST &#8216;192.168.1.226:8000/login&#8217; -H &#8216;Content-Type: application/json&#8217; -d &#8216;{&#8220;username&#8221;: &#8220;admin&#8221;, password&#8221; : &#8220;secret&#8221; }&#8217;</strong></mark></p>
+<p></p>
+<p class="site-block-paragraph">or</p>
+<p></p>
+<p class="site-block-paragraph"><mark style="background-color: #9b51e0;"><strong>wget -qO- &#8211;method=POST &#8211;header=&#8217;Content-Type: application/json&#8217; &#8211;body-data='{&#8220;username&#8221;: &#8220;admin&#8221;, &#8220;password&#8221;: &#8220;secret&#8221;}&#8217; http://192.168.1.226:8000/login</strong></mark></p>
+<p></p>
+<p class="site-block-paragraph">-qO is optional</p>
+<p></p>
+<p class="site-block-paragraph"><em><strong> if you don&#8217;t want to see Connecting to 192.168.1.226:8000… connected.<br>HTTP request sent, awaiting response… 200 OK</strong></em><br><strong><em>Length: 48 [application/json]</em></strong><br><strong><em>Saving to: ‘login.1’</em></strong></p>
+<p></p>
+<p class="site-block-paragraph"><strong><em>login.1 100%[=============================&gt;] 48 &#8211;.-KB/s in 0s</em></strong></p>
+<p></p>
+<p class="site-block-paragraph"><strong><em>2025-12-14 12:39:07 (2.11 MB/s) &#8211; ‘login.1’ saved [48/48]</em></strong></p>
+<p></p>
+<p class="site-block-paragraph">You response will be like <strong>{&#8220;token&#8221;:&#8221;50570d92-1851-4308-8076-55ce022d0b04&#8243;}</strong> each time you will see different token . And now you should to send it each time</p>
+<p></p>
+<p class="site-block-paragraph"><mark style="background-color: rgba(0, 0, 0, 0);"><strong>curl -POST 192.168.1.226:8000/protected -H</strong></mark> <mark style="background-color: rgba(0, 0, 0, 0);"><strong>&#8216;Authorization</strong>:</mark> Bearer-<strong>50570d92-1851-4308-8076-55ce022d0b04</strong>&#8216;</p>
+<p></p>
+<p class="site-block-paragraph"><strong><em>Recommendation </em></strong>:</p>
+<p></p>
+<ol class="site-block-list"><p></p>
+<li>Change token after any time like bellow TokenGenerator.kt file <br><ul class="site-block-list"><p></p>
+<li><mark style="background-color: #ffffff;"><strong>private fun startTimer() {<br>val timer = Timer()<br>timer.scheduleAtFixedRate(object : TimerTask() {<br>override fun run() {<br>token= UUID.randomUUID().toString()<br>LOGGER.debug(&#8221; new token $token&#8221;)<br>}<br>}, 0, (timeout*1000))<br>}</strong></mark></li>
+<p></p>
+</ul>
+<p></p>
+</li>
+<p></p>
+</ol>
+<p></p>
+<p class="site-block-paragraph">2. In my case token was created by simple way it means attacker can use brute force method</p>
+<p></p>
+<p class="site-block-paragraph">read about it more <strong> <a href="https://en.wikipedia.org/wiki/Brute-force_attack">https://en.wikipedia.org/wiki/Brute-force_attack</a></strong> and you should to create token by more security way</p><p><br></p>
+<p></p>
+<pre><code><strong style="font-family: inherit; font-size: 1em; text-align: initial;">var random = new SecureRandom();</strong></code><code><strong>            var bytes = new byte[32]; // 256-bit token
+            random.nextBytes(bytes);
+            String token= Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+            System.out.println("Secure token: " + token);</strong>
+UUID is limited by 128bit and contains only lower case and contains  four time "-" symbol. What does it mean ?
+This mean you system could be cracked by brute force, depend on it is not so easy and attacker needs to use super computer, today it is possible to take 32 or more CPU machine in cloud.  Security random is just reduce chance for large company it could be important.
+3. JWT    
+   You also can use standard JWT</code></pre>
+<p></p>
+<pre><code>
+public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, Blog!");
+    }
+}
+</code></pre>
+<p></p>
+<p>   </p>
+<pre><code>
+def greet(name):
+    print(f"Hello, {name}!")
+for i in range(1, 4):
+    greet(f"User {i}")
+</code></pre>
+<pre><code>
+#!/bin/bash
+echo "Hello, Blog!"
+for i in {1..3}; do
+    echo "Number $i"
+done
+</code></pre>
+<p></p>
+<pre><code>
+#!/bin/bash
+echo "Hello, Blog!"
+</code></pre>
+<p></p></div>
+
+
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"></div>
+
+
+
+<div class="site-block-group alignwide is-layout-flow site-block-group-is-layout-flow" style="margin-top:var(--site--preset--spacing--60);margin-bottom:var(--site--preset--spacing--60)">
+<nav class="site-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-878fe601 site-block-group-is-layout-flex" aria-label="Post navigation" style="border-top-color:var(--site--preset--color--accent-6);border-top-width:1px;padding-top:var(--site--preset--spacing--40);padding-bottom:var(--site--preset--spacing--40)"><div class="post-navigation-link-previous site-block-post-navigation-link"><span class="site-block-post-navigation-link__arrow-previous is-arrow-arrow" aria-hidden="true">←</span><a href="../web-socket-2.html" rel="prev">Java WebSocket Server Example With Jakarta WebSocket</a></div>
+
+<div class="post-navigation-link-next site-block-post-navigation-link"><a href="../cppcode.html" rel="next">C++ example test</a><span class="site-block-post-navigation-link__arrow-next is-arrow-arrow" aria-hidden="true">→</span></div></nav>
+</div>
+
+
+
+</div>
+
+
+
+<div class="site-block-group alignwide has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)">
+<h2 class="site-block-heading alignwide has-small-font-size" style="font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">More posts</h2>
+
+
+
+<div class="site-block-query alignwide is-layout-flow site-block-query-is-layout-flow"><ul class="alignfull site-block-post-template is-layout-flow site-container-core-post-template-is-layout-b4d04ffe site-block-post-template-is-layout-flow"><li class="site-block-post post-727 post type-post status-publish format-standard has-post-thumbnail hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html" target="_self" >FTP File Transfers With Kotlin and Python</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html"><time datetime="2026-03-01T10:29:08+00:00">March 1, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-672 post type-post status-publish format-standard hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/tcp-udp-socket.html" target="_self" >TCP vs UDP in Go: runnable echo server examples</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/tcp-udp-socket.html"><time datetime="2026-02-22T14:21:05+00:00">February 22, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-626 post type-post status-publish format-standard hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/go-lang.html" target="_self" >RAII in Go: Resource Cleanup With defer</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/go-lang.html"><time datetime="2026-01-25T13:39:08+00:00">January 25, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-608 post type-post status-publish format-standard has-post-thumbnail hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/native-language.html" target="_self" >Native C and C++ for Modern Developers</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/native-language.html"><time datetime="2026-01-19T09:29:16+00:00">January 19, 2026</time></a></div></div>
+
+</li></ul></div>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li><a href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li></ul><p><a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+
+
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath · Programming beneath the frameworks.</p></footer></div>
+
+<script src="../assets/js/static-navigation.js" defer></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    
+<script id="prisma-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script id="prisma-markup-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script id="prisma-markup-templating-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script id="prisma-c-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script id="prisma-java-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script id="prisma-go-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+<script id="prisma-bash-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script id="prisma-php-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script id="prisma-kotlin-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script id="prisma-cpp-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script id="prisma-sql-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script id="prisma-toolbar-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script id="prisma-clipboard-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script id="highlight-js" src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4473b0762ae246e4b5685486a06998c0","r":1,"spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3808b9e695b9d70',t:'MTc4ODg5NzY4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

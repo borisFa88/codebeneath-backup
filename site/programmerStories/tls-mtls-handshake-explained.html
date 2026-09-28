@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>TLS and mTLS Handshake Explained With a Runnable Example | Code Beneath</title>
+<meta name="description" content="TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication." />
+<link rel="canonical" href="https://codebeneath.com/programmerStories/tls-mtls-handshake-explained.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="TLS and mTLS Handshake Explained With a Runnable Example | Code Beneath" />
+<meta property="og:description" content="TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication." />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/tls-mtls-handshake-explained.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="TLS and mTLS Handshake Explained With a Runnable Example | Code Beneath" />
+<meta name="twitter:description" content="TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "TLS and mTLS Handshake Explained With a Runnable Example", "name": "TLS and mTLS Handshake Explained With a Runnable Example", "description": "TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication.", "url": "https://codebeneath.com/programmerStories/tls-mtls-handshake-explained.html", "inLanguage": "en-US", "dateModified": "2026-09-28", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/tls-mtls-handshake-explained.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "TLS and mTLS Handshake Explained With a Runnable Example", "item": "https://codebeneath.com/programmerStories/tls-mtls-handshake-explained.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/security/">Security and Linux</a></nav>
+<h1 class="site-block-post-title">TLS and mTLS Handshake Explained With a Runnable Example</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-09-28">September 28, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+A TLS handshake happens every time your browser connects to an HTTPS site. A mutual TLS or mTLS handshake is the same process, except the server also verifies the client's certificate. Most developers understand the concept but struggle when building systems that require mTLS authentication, because they've never seen what actually crosses the wire. This article walks through a real mtls handshake example with packet-level detail using openssl s_client, then provides a complete, runnable Go server and client you can execute immediately.
+</p>
+
+<h2>Why mTLS Matters</h2>
+
+<p class="site-block-paragraph">
+Standard TLS (one-way TLS) proves the server's identity to the client. The client trusts the server because a Certificate Authority signed the server's certificate. But what if you're running microservices on your own network and want to ensure only your authorized services can connect to each other? That's where mTLS comes in. Each service has its own certificate, signed by your private CA. When service A connects to service B, service B demands to see A's certificate and validates it. Service A, in turn, validates service B's certificate. Both sides prove their identity. This is standard in service mesh implementations (Istio, Linkerd) and in Kubernetes clusters.
+</p>
+
+<h2>The TLS Handshake: ClientHello to Finished</h2>
+
+<p class="site-block-paragraph">
+Before we look at mTLS specifically, let's trace a standard TLS handshake. The client sends a ClientHello with supported cipher suites, TLS versions, and extensions. The server responds with ServerHello, picks a cipher suite, and sends its certificate chain. The client validates the chain against a trusted CA. Both sides compute a session key. The server says "done," the client says "done," and encrypted communication begins.
+</p>
+
+<p class="site-block-paragraph">
+In mTLS, after the server sends its certificate, the server sends a CertificateRequest message telling the client "I also want your certificate." The client sends its certificate. The server validates it. Then both parties send a Finished message, and the handshake completes. The entire conversation is still in plaintext until the Finished message, which is encrypted with the derived session key to prove both sides computed the same key and no one tampered with the handshake.
+</p>
+
+<h2>Seeing the Handshake Byte-by-Byte with openssl s_client</h2>
+
+<p class="site-block-paragraph">
+Let's first create a self-signed certificate and a minimal HTTPS server to examine. Then we'll use openssl to spy on what happens.
+</p>
+
+<pre><code class="language-bash">
+# Generate a self-signed server certificate valid for 365 days
+openssl req -x509 -newkey rsa:2048 -nodes \
+  -out server.crt -keyout server.key -days 365 \
+  -subj "/CN=localhost"
+</code></pre>
+
+<p class="site-block-paragraph">
+Now create a minimal Python HTTPS server to serve that certificate:
+</p>
+
+<pre><code class="language-python">
+import ssl
+import http.server
+import socketserver
+
+PORT = 8443
+
+class MyHTTPSHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Hello from HTTPS\n")
+
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain("server.crt", "server.key")
+
+with socketserver.TCPServer(("127.0.0.1", PORT), MyHTTPSHandler) as httpd:
+    print(f"Listening on https://127.0.0.1:{PORT}")
+    httpd.serve_forever()
+</code></pre>
+
+<p class="site-block-paragraph">
+Run the server in one terminal:
+</p>
+
+<pre><code class="language-bash">
+python3 https_server.py
+</code></pre>
+
+<p class="site-block-paragraph">
+In another terminal, use openssl s_client with verbose output to watch the handshake:
+</p>
+
+<pre><code class="language-bash">
+openssl s_client -connect 127.0.0.1:8443 -servername localhost -showcerts &lt; /dev/null
+</code></pre>
+
+<p class="site-block-paragraph">
+You'll see output similar to this (simplified):
+</p>
+
+<pre><code class="language-bash">
+CONNECTED(00000003)
+depth=0 CN = localhost
+verify error:num=18:self signed certificate
+verify return:1
+---
+Certificate chain
+ 0 s:CN = localhost
+   i:CN = localhost
+-----BEGIN CERTIFICATE-----
+MIICpDCCAYwCCQC+...
+-----END CERTIFICATE-----
+subject=CN = localhost
+
+issuer=CN = localhost
+
+---
+No client certificate CA names sent
+---
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: ...
+</code></pre>
+
+<p class="site-block-paragraph">
+Notice "No client certificate CA names sent" because the server is not requiring client authentication. That's standard TLS. Now let's build mTLS.
+</p>
+
+<h2>Building mTLS: Generate Client and Server Certificates</h2>
+
+<p class="site-block-paragraph">
+For mTLS, we need a CA, a server certificate signed by that CA, and a client certificate signed by the same CA.
+</p>
+
+<pre><code class="language-bash">
+# Step 1: Create a self-signed CA
+openssl genrsa -out ca.key 2048
+openssl req -new -x509 -days 365 -key ca.key -out ca.crt \
+  -subj "/CN=MyCA"
+
+# Step 2: Create a server certificate signed by the CA
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr \
+  -subj "/CN=localhost"
+openssl x509 -req -days 365 -in server.csr \
+  -CA ca.crt -CAkey ca.key -CAcreateserial \
+  -out server.crt
+
+# Step 3: Create a client certificate signed by the CA
+openssl genrsa -out client.key 2048
+openssl req -new -key client.key -out client.csr \
+  -subj "/CN=clientuser"
+openssl x509 -req -days 365 -in client.csr \
+  -CA ca.crt -CAkey ca.key -CAcreateserial \
+  -out client.crt
+</code></pre>
+
+<p class="site-block-paragraph">
+Now we have six files: ca.key, ca.crt (the CA), server.key, server.crt (server credentials), and client.key, client.crt (client credentials).
+</p>
+
+<h2>mTLS Server and Client in Go</h2>
+
+<p class="site-block-paragraph">
+Here's a complete, runnable Go HTTPS server that requires client certificates:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	clientCert := r.TLS.PeerCertificates[0]
+	fmt.Fprintf(w, "Hello, %s!\n", clientCert.Subject.CommonName)
+	fmt.Fprintf(w, "You connected with certificate serial: %s\n", clientCert.SerialNumber)
+}
+
+func main() {
+	// Load CA certificate to verify client certificates
+	caCertPEM, err := ioutil.ReadFile("ca.crt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCertPEM) {
+		log.Fatal("Failed to parse CA certificate")
+	}
+
+	// Load server certificate and key
+	serverCert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create TLS configuration for the server
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    caCertPool,
+	}
+
+	// Create a listener with TLS
+	listener, err := tls.Listen("tcp", "127.0.0.1:8443", tlsConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer listener.Close()
+
+	// Wrap listener to extract peer info for logging
+	http.HandleFunc("/", handler)
+
+	server := &http.Server{
+		TLSConfig: tlsConfig,
+	}
+
+	fmt.Println("mTLS server listening on https://127.0.0.1:8443")
+	fmt.Println("Press Ctrl+C to stop")
+
+	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Save this as mtls_server.go. Now the client:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
+
+func main() {
+	// Load CA certificate to verify server
+	caCertPEM, err := ioutil.ReadFile("ca.crt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCertPEM) {
+		log.Fatal("Failed to parse CA certificate")
+	}
+
+	// Load client certificate and key
+	clientCert, err := tls.LoadX509KeyPair("client.crt", "client.key")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create TLS configuration for the client
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{clientCert},
+		RootCAs:      caCertPool,
+	}
+
+	// Create HTTP client with custom TLS config
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	// Make request to server
+	resp, err := client.Get("https://127.0.0.1:8443/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(body))
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Save this as mtls_client.go. Now test it:
+</p>
+
+<pre><code class="language-bash">
+# Terminal 1: Run the server
+go run mtls_server.go
+
+# Terminal 2: Run the client
+go run mtls_client.go
+</code></pre>
+
+<p class="site-block-paragraph">
+Output from the client:
+</p>
+
+<pre><code class="language-bash">
+Hello, clientuser!
+You connected with certificate serial: ...
+</code></pre>
+
+<p class="site-block-paragraph">
+The handshake succeeded. Now let's see what openssl reports about client certificates being requested:
+</p>
+
+<pre><code class="language-bash">
+openssl s_client -connect 127.0.0.1:8443 -cert client.crt -key client.key \
+  -CAfile ca.crt &lt; /dev/null
+</code></pre>
+
+<p class="site-block-paragraph">
+Look for the line "Verify return code: 0 (ok)" and notice now it says "Client certificate requested" in the output. The handshake includes the CertificateRequest message.
+</p>
+
+<h2>What Happens If the Client Has No Certificate</h2>
+
+<p class="site-block-paragraph">
+Try connecting without a client certificate:
+</p>
+
+<pre><code class="language-bash">
+openssl s_client -connect 127.0.0.1:8443 &lt; /dev/null 2>&amp;1 | head -20
+</code></pre>
+
+<p class="site-block-paragraph">
+You'll see an error during the handshake. The server expects a certificate, and the connection drops. This is the security boundary: only clients with a valid certificate signed by your CA can connect.
+</p>
+
+<h2>Comparison: One-Way TLS vs. mTLS</h2>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width:100%; margin: 1em 0;">
+<tr>
+<th>Aspect</th>
+<th>One-Way TLS</th>
+<th>mTLS (Mutual TLS)</th>
+</tr>
+<tr>
+<td>Server proves identity</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Client proves identity</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Server validates client cert</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Use case</td>
+<td>Public websites (HTTPS)</td>
+<td>Microservices, internal APIs, service mesh</td>
+</tr>
+<tr>
+<td>ClientAuth setting</td>
+<td>tls.NoClientCert or tls.RequestClientCert</td>
+<td>tls.RequireAndVerifyClientCert</td>
+</tr>
+<tr>
+<td>Handshake message count</td>
+<td>~8 messages</td>
+<td>~10 messages (includes CertificateRequest, client cert, client cert verify)</td>
+</tr>
+</table>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Forgetting to set ClientCAs.</strong> If you set ClientAuth to RequireAndVerifyClientCert but don't load the CA certificates into ClientCAs, every client certificate validation will fail. The server has nothing to verify against.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mixing up RootCAs and ClientCAs.</strong> In a client, RootCAs is for verifying the server's certificate. In a server, ClientCAs is for verifying the client's certificate. They often contain the same CA cert, but the role is different. The Go docs can be confusing here.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Using tls.InsecureSkipVerify in production.</strong> This disables all certificate validation and opens you to man-in-the-middle attacks. Never do this outside of local testing.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Forgetting certificate rotation.</strong> Certificates expire. In a service mesh or large deployment, you need a process to rotate certificates before they expire. This is where tools like cert-manager (in Kubernetes) come in, but that's a separate topic.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Not understanding the CN vs. SANs issue.</strong> In modern TLS, the CommonName (CN) is deprecated; use Subject Alternative Names (SANs) instead. If you need your certificate to work for both localhost and 127.0.0.1, add both as SANs when generating the certificate. For this article's simple example, CN is fine.
+</p>
+
+<h2>Integration with Token-Based Security</h2>
+
+<p class="site-block-paragraph">
+mTLS and token-based authentication are complementary. mTLS secures the transport layer and proves the client's identity at the network level. On top of that, you can layer token-based mechanisms (JWT, OAuth) for application-level authorization. For a detailed treatment of how tokens work in web applications, see <a href="/handlingHttpRequest/token-based-security-in-web-applications.html">token-based security in web applications</a>.
+</p>
+
+<h2>Common Pitfalls with Certificate Management</h2>
+
+<p class="site-block-paragraph">
+In a real system, managing certificates securely is critical. Never commit private keys to version control. Treat them like passwords. See <a href="/programmerStories/linux-how-to-manage-the-password-safety.html">managing password safety on Linux</a> for best practices on securing sensitive files. The same principles apply to certificate keys.
+</p>
+
+<h2>What Happens Inside the Handshake</h2>
+
+<p class="site-block-paragraph">
+Here's the step-by-step message flow for mTLS:
+</p>
+
+<ol>
+<li><strong>ClientHello:</strong> Client sends supported cipher suites, TLS versions, and random nonce.</li>
+<li><strong>ServerHello:</strong> Server picks a cipher suite and sends its random nonce.</li>
+<li><strong>Certificate:</strong> Server sends its certificate chain.</li>
+<li><strong>CertificateRequest:</strong> Server tells the client it must also send a certificate. This message is absent in standard TLS.</li>
+<li><strong>ServerKeyExchange or direct key agreement:</strong> Server sends key agreement parameters (or skips this in TLS 1.3).</li>
+<li><strong>ServerHelloDone:</strong> Server says "your turn."</li>
+<li><strong>Certificate:</strong> Client sends its certificate.</li>
+<li><strong>ClientKeyExchange:</strong> Client sends key agreement parameters.</li>
+<li><strong>CertificateVerify:</strong> Client signs a hash of the handshake transcript with its private key, proving it owns the certificate. This is absent in standard TLS.</li>
+<li><strong>Finished:</strong> Client sends an encrypted message proving the session key is correct.</li>
+<li><strong>Finished:</strong> Server responds with its own encrypted Finished message.</li>
+</ol>
+
+<p class="site-block-paragraph">
+The CertificateRequest, client Certificate, and CertificateVerify messages are the three additions that make mTLS mutual instead of one-way.
+</p>
+
+<h2>Testing mTLS with curl</h2>
+
+<p class="site-block-paragraph">
+Once your server is running, you can also test with curl:
+</p>
+
+<pre><code class="language-bash">
+curl --cert client.crt --key client.key \
+  --cacert ca.crt \
+  https://127.0.0.1:8443/
+</code></pre>
+
+<p class="site-block-paragraph">
+This is useful for manual testing of mTLS endpoints. curl requires the --cert flag (client certificate), --key flag (client private key), and --cacert flag (CA certificate to verify the server). Without all three, the handshake will fail.
+</p>
+
+<h2>Performance Considerations</h2>
+
+<p class="site-block-paragraph">
+mTLS adds negligible overhead to each request after the initial handshake. The handshake itself takes a few milliseconds. In a service mesh where services are constantly opening new connections (or reusing them via connection pooling), the handshake cost is amortized. The real cost is CPU for certificate validation and TLS encryption/decryption, but modern CPUs with AES-NI instructions handle this efficiently. For internal microservices, mTLS is the right choice; the security benefit far outweighs the performance cost.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Why is mTLS needed if I'm already using TLS for HTTPS?</h3>
+<p class="site-block-paragraph">
+Standard HTTPS proves the server's identity to the client. mTLS also proves the client's identity to the server. In a public website, you don't need to verify the client because millions of strangers visit. In a private network of microservices, you want each service to authenticate itself. mTLS is a control boundary: only services with valid certificates can connect.
+</p>
+
+<h3>Can I use self-signed certificates with mTLS?</h3>
+<p class="site-block-paragraph">
+Yes, as shown in this article. For production, you typically run your own CA (private CA) or use a tool like cert-manager to manage certificates. Self-signed certificates are fine for development and testing.
+</p>
+
+<h3>How do I know if a connection is using mTLS?</h3>
+<p class="site-block-paragraph">
+On the server side, if r.TLS.PeerCertificates is not empty and has at least one certificate, the client authenticated with mTLS. On the client side, if you load a certificate into the TLS config and send it, you're using mTLS. You can also use openssl s_client and look for "Client certificate requested" in the output.
+</p>
+
+<h3>What is the difference between ClientAuth: tls.RequestClientCert and tls.RequireAndVerifyClientCert?</h3>
+<p class="site-block-paragraph">
+RequestClientCert means "ask the client for a certificate, but allow the handshake to succeed if the client doesn't send one." RequireAndVerifyClientCert means "demand a certificate and fail the handshake if one is not provided or is invalid." For security-critical paths (microservices), use RequireAndVerifyClientCert.
+</p>
+
+<h3>Can I verify the client certificate's CN instead of relying on the CA pool?</h3>
+<p class="site-block-paragraph">
+Not recommended. Always verify using the CA chain (ClientCAs pool). If you manually check the CN, you bypass Go's robust certificate validation logic and can introduce vulnerabilities. Trust the standard library's verification.
+</p>
+
+<h3>How do I handle certificate expiration?</h3>
+<p class="site-block-paragraph">
+Monitor certificate expiration dates and rotate them before they expire. In Kubernetes, cert-manager automates this. For manual systems, set a calendar reminder 30 days before expiration. When you rotate, generate new certificates, deploy them to your services, and restart the services to pick up the new certificates.
+</p>
+
+<h3>Is mTLS the same as mutual authentication?</h3>
+<p class="site-block-paragraph">
+mTLS is mutual authentication at the transport layer using certificates. There are other forms of mutual authentication (API keys, OAuth) at the application layer. mTLS specifically refers to mutual certificate-based TLS.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token based security in web applications</a></li><li><a href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux how to manage the password safety</a></li></ul><p><a href="/category/security/">More in Security and Linux</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

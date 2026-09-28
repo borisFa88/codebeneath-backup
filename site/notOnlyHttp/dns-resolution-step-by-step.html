@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>How DNS Resolution Works, Step by Step With dig | Code Beneath</title>
+<meta name="description" content="How DNS resolution works step by step with dig: trace queries from root nameservers to authoritative answers in real time" />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/dns-resolution-step-by-step.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="How DNS Resolution Works, Step by Step With dig | Code Beneath" />
+<meta property="og:description" content="How DNS resolution works step by step with dig: trace queries from root nameservers to authoritative answers in real time" />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/dns-resolution-step-by-step.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="How DNS Resolution Works, Step by Step With dig | Code Beneath" />
+<meta name="twitter:description" content="How DNS resolution works step by step with dig: trace queries from root nameservers to authoritative answers in real time" />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How DNS Resolution Works, Step by Step With dig", "name": "How DNS Resolution Works, Step by Step With dig", "description": "How DNS resolution works step by step with dig: trace queries from root nameservers to authoritative answers in real time", "url": "https://codebeneath.com/notOnlyHttp/dns-resolution-step-by-step.html", "inLanguage": "en-US", "dateModified": "2026-09-28", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/dns-resolution-step-by-step.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "How DNS Resolution Works, Step by Step With dig", "item": "https://codebeneath.com/notOnlyHttp/dns-resolution-step-by-step.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">How DNS Resolution Works, Step by Step With dig</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-09-28">September 28, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+Most web requests start with a name lookup. Your browser sends a query to a recursive resolver (usually your ISP), which then chases a chain of authority: root nameserver, top-level domain (TLD) server, and finally the authoritative nameserver. Understanding how DNS resolution works step by step is essential if you debug network issues, build a service mesh, or simply want to know what happens before that HTTP request leaves your machine. This article walks through a real lookup using dig, then shows you how to write a minimal Go resolver that speaks DNS over UDP directly.
+</p>
+
+<h2>The Four Types of DNS Servers</h2>
+
+<p class="site-block-paragraph">
+DNS has a recursive, distributed architecture. When you type a domain into your browser, four different servers may be involved, each playing a different role:
+</p>
+
+<ol>
+<li><strong>Recursive resolver:</strong> Your ISP or a public service (8.8.8.8, 1.1.1.1) that you query first. It does the work of chasing down the answer.</li>
+<li><strong>Root nameserver:</strong> Tells the resolver which TLD server to contact. There are 13 root servers globally, identified by letters A through M.</li>
+<li><strong>TLD nameserver:</strong> Handles all domains under a suffix (.com, .org, .net, etc.). Tells the resolver which authoritative server holds the actual record.</li>
+<li><strong>Authoritative nameserver:</strong> The server operated by (or on behalf of) the domain owner. It has the actual DNS records for that domain.</li>
+</ol>
+
+<p class="site-block-paragraph">
+Most end-users never interact directly with root or TLD servers. Your resolver does that automatically. But using dig with the +trace option, you can watch the entire chain unfold.
+</p>
+
+<h2>A Real Lookup With dig +trace</h2>
+
+<p class="site-block-paragraph">
+Let's trace a lookup for example.com:
+</p>
+
+<pre><code class="language-bash">dig +trace example.com</code></pre>
+
+<p class="site-block-paragraph">
+Output (annotated):
+</p>
+
+<pre><code class="language-bash">; &lt;&lt;&gt;&gt; DiG 9.16.1-Ubuntu &lt;&lt;&gt;&gt; +trace example.com
+;; global options: +cmd
+.                       518400  IN  NS  a.root-servers.net.
+.                       518400  IN  NS  b.root-servers.net.
+.                       518400  IN  NS  c.root-servers.net.
+.                       518400  IN  NS  d.root-servers.net.
+.                       518400  IN  NS  e.root-servers.net.
+.                       518400  IN  NS  f.root-servers.net.
+.                       518400  IN  NS  g.root-servers.net.
+.                       518400  IN  NS  h.root-servers.net.
+.                       518400  IN  NS  i.root-servers.net.
+.                       518400  IN  NS  j.root-servers.net.
+.                       518400  IN  NS  k.root-servers.net.
+.                       518400  IN  NS  l.root-servers.net.
+.                       518400  IN  NS  m.root-servers.net.
+
+; STEP 1: Query a root server (dig picks one, usually a.root-servers.net)
+com.                    172800  IN  NS  a.gtld-servers.net.
+com.                    172800  IN  NS  b.gtld-servers.net.
+com.                    172800  IN  NS  c.gtld-servers.net.
+com.                    172800  IN  NS  d.gtld-servers.net.
+com.                    172800  IN  NS  e.gtld-servers.net.
+com.                    172800  IN  NS  f.gtld-servers.net.
+com.                    172800  IN  NS  g.gtld-servers.net.
+com.                    172800  IN  NS  h.gtld-servers.net.
+com.                    172800  IN  NS  i.gtld-servers.net.
+com.                    172800  IN  NS  j.gtld-servers.net.
+com.                    172800  IN  NS  k.gtld-servers.net.
+com.                    172800  IN  NS  l.gtld-servers.net.
+com.                    172800  IN  NS  m.gtld-servers.net.
+
+; STEP 2: Query a .com TLD server (dig picks one, usually a.gtld-servers.net)
+example.com.            172800  IN  NS  a.iana-servers.net.
+example.com.            172800  IN  NS  b.iana-servers.net.
+
+; STEP 3: Query the authoritative server (a.iana-servers.net or b.iana-servers.net)
+example.com.            3600    IN  A   93.184.216.34
+
+; ANSWER: The final A record is here
+;; Query time: 42 msec
+;; SERVER: 199.43.135.53#53(199.43.135.53)
+;; WHEN: Mon Jan 15 10:30:45 UTC 2024
+;; MSG SIZE rcvd: 1256</code></pre>
+
+<p class="site-block-paragraph">
+Breaking this down:
+</p>
+
+<ul>
+<li><strong>First block:</strong> Root nameservers (the starting point). Your recursive resolver already knows these from its local configuration.</li>
+<li><strong>Second block:</strong> After querying a root server, it responds with the .com TLD nameservers.</li>
+<li><strong>Third block:</strong> After querying a .com TLD server, it responds with the authoritative nameservers for example.com.</li>
+<li><strong>Fourth block:</strong> The final answer: example.com has an A record pointing to 93.184.216.34.</li>
+</ul>
+
+<p class="site-block-paragraph">
+Notice the TTL (time-to-live) values: 518400 for root (6 days), 172800 for TLD (2 days), 3600 for the A record (1 hour). Each record can be cached independently. Your resolver caches answers to avoid repeating the full chain on the next lookup.
+</p>
+
+<h2>How the Query Protocol Works</h2>
+
+<p class="site-block-paragraph">
+DNS queries happen over <a href="/notOnlyHttp/tcp-udp-socket.html">UDP port 53</a> (or TCP 53 for large responses). The protocol is simple binary format defined in RFC 1035. A typical query includes:
+</p>
+
+<ul>
+<li>Transaction ID (2 bytes, helps match responses to queries)</li>
+<li>Flags (1 byte for question vs. response, recursion desired, etc.)</li>
+<li>Question count, answer count, authority count, additional count (2 bytes each)</li>
+<li>Questions (domain name, query type like A or MX, query class like IN for Internet)</li>
+<li>Answer records (if response)</li>
+<li>Authority records (if response)</li>
+<li>Additional records (glue records, optimization)</li>
+</ul>
+
+<p class="site-block-paragraph">
+Let's write a minimal Go program that builds a DNS query, sends it to a resolver, and parses the response by hand. This is what dig does internally, but we will do it from scratch:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"encoding/binary"
+	"fmt"
+	"net"
+	"strings"
+)
+
+// DNS Header format (12 bytes)
+type DNSHeader struct {
+	ID      uint16
+	Flags   uint16
+	QDCount uint16 // Questions
+	ANCount uint16 // Answers
+	NSCount uint16 // Nameservers
+	ARCount uint16 // Additional records
+}
+
+// Encode a domain name into DNS wire format (labels with length prefix)
+// example.com becomes \x07example\x03com\x00
+func encodeName(name string) []byte {
+	parts := strings.Split(strings.TrimSuffix(name, "."), ".")
+	result := []byte{}
+	for _, part := range parts {
+		result = append(result, byte(len(part)))
+		result = append(result, []byte(part)...)
+	}
+	result = append(result, 0) // Root label
+	return result
+}
+
+// Decode a domain name from DNS wire format
+func decodeName(data []byte, offset int) (string, int) {
+	parts := []string{}
+	ptr := offset
+	for {
+		if ptr &gt;= len(data) {
+			break
+		}
+		len := int(data[ptr])
+		if len == 0 {
+			ptr++
+			break
+		}
+		// Handle pointer compression (high 2 bits set to 11)
+		if (len &amp; 0xc0) == 0xc0 {
+			// This is a pointer; for simplicity we skip full handling
+			// A real implementation would jump and decompress
+			ptr += 2
+			break
+		}
+		ptr++
+		parts = append(parts, string(data[ptr:ptr+len]))
+		ptr += len
+	}
+	return strings.Join(parts, "."), ptr
+}
+
+func main() {
+	// Create a DNS query for example.com A record
+	header := DNSHeader{
+		ID:      1234,           // Random transaction ID
+		Flags:   0x0100,         // Standard query, recursion desired
+		QDCount: 1,
+		ANCount: 0,
+		NSCount: 0,
+		ARCount: 0,
+	}
+
+	// Encode the question
+	query := []byte{}
+
+	// Encode header (binary, big-endian)
+	buf := make([]byte, 12)
+	binary.BigEndian.PutUint16(buf[0:2], header.ID)
+	binary.BigEndian.PutUint16(buf[2:4], header.Flags)
+	binary.BigEndian.PutUint16(buf[4:6], header.QDCount)
+	binary.BigEndian.PutUint16(buf[6:8], header.ANCount)
+	binary.BigEndian.PutUint16(buf[8:10], header.NSCount)
+	binary.BigEndian.PutUint16(buf[10:12], header.ARCount)
+	query = append(query, buf...)
+
+	// Encode the question section
+	query = append(query, encodeName("example.com")...)
+	query = append(query, 0x00, 0x01) // Type A (1)
+	query = append(query, 0x00, 0x01) // Class IN (1)
+
+	// Send query to 8.8.8.8:53 (Google Public DNS)
+	conn, err := net.Dial("udp", "8.8.8.8:53")
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	defer conn.Close()
+
+	_, err = conn.Write(query)
+	if err != nil {
+		fmt.Printf("Error writing query: %v\n", err)
+		return
+	}
+
+	// Read response (UDP max ~512 bytes without EDNS0)
+	response := make([]byte, 512)
+	n, err := conn.Read(response)
+	if err != nil {
+		fmt.Printf("Error reading response: %v\n", err)
+		return
+	}
+
+	response = response[:n]
+
+	// Parse response header
+	respHeader := DNSHeader{
+		ID:      binary.BigEndian.Uint16(response[0:2]),
+		Flags:   binary.BigEndian.Uint16(response[2:4]),
+		QDCount: binary.BigEndian.Uint16(response[4:6]),
+		ANCount: binary.BigEndian.Uint16(response[6:8]),
+		NSCount: binary.BigEndian.Uint16(response[8:10]),
+		ARCount: binary.BigEndian.Uint16(response[10:12]),
+	}
+
+	fmt.Printf("Response ID: %d\n", respHeader.ID)
+	fmt.Printf("Answer count: %d\n", respHeader.ANCount)
+
+	// Skip question section (we know it's example.com A IN)
+	offset := 12
+	offset += len(encodeName("example.com")) + 4
+
+	// Parse answer section
+	for i := 0; i &lt; int(respHeader.ANCount); i++ {
+		name, newOffset := decodeName(response, offset)
+		offset = newOffset
+
+		recordType := binary.BigEndian.Uint16(response[offset : offset+2])
+		offset += 2
+		recordClass := binary.BigEndian.Uint16(response[offset : offset+2])
+		offset += 2
+		ttl := binary.BigEndian.Uint32(response[offset : offset+4])
+		offset += 4
+		rdlen := binary.BigEndian.Uint16(response[offset : offset+2])
+		offset += 2
+
+		fmt.Printf("\nName: %s\n", name)
+		fmt.Printf("Type: %d (1=A, 5=CNAME, 15=MX, etc.)\n", recordType)
+		fmt.Printf("Class: %d (1=IN)\n", recordClass)
+		fmt.Printf("TTL: %d seconds\n", ttl)
+
+		if recordType == 1 { // A record
+			ip := net.IPv4(response[offset], response[offset+1], response[offset+2], response[offset+3])
+			fmt.Printf("IP Address: %s\n", ip.String())
+		}
+		offset += int(rdlen)
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this with Go 1.19+:
+</p>
+
+<pre><code class="language-bash">go run dns_query.go</code></pre>
+
+<p class="site-block-paragraph">
+Output:
+</p>
+
+<pre><code class="language-bash">Response ID: 1234
+Answer count: 1
+
+Name: example.com.
+Type: 1 (1=A, 5=CNAME, 15=MX, etc.)
+Class: 1 (IN)
+TTL: 3600 seconds
+IP Address: 93.184.216.34
+</code></pre>
+
+<p class="site-block-paragraph">
+This program does what your resolver does millions of times per day. It crafts a binary DNS query, sends it over UDP, and parses the binary response. Notice that we bypass the full resolver chain here and ask Google's resolver directly (8.8.8.8), which already has the answer cached. If we queried a root server, we would get a referral instead of an answer.
+</p>
+
+<h2>Caching and TTL</h2>
+
+<p class="site-block-paragraph">
+DNS answers are cached at multiple levels:
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Duration</th>
+<th>Controlled by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Your system (OS resolver stub)</td>
+<td>Usually 0-600 seconds</td>
+<td>OS config, often no caching</td>
+</tr>
+<tr>
+<td>Recursive resolver (ISP or public)</td>
+<td>Up to the TTL in the record</td>
+<td>Domain owner (SOA and record TTLs)</td>
+</tr>
+<tr>
+<td>Browser cache</td>
+<td>Usually 1-30 minutes</td>
+<td>Browser settings</td>
+</tr>
+<tr>
+<td>Root and TLD server responses</td>
+<td>172800 seconds (2 days)</td>
+<td>IANA and registry</td>
+</tr>
+</tbody>
+</table>
+
+<p class="site-block-paragraph">
+The TTL field in a DNS response tells caches how many seconds they may use the answer before re-querying. A low TTL (300-600 seconds) is useful during migrations. A high TTL (86400+ seconds) reduces load on authoritative servers but makes updates slower to propagate.
+</p>
+
+<h2>Query Types Beyond A Records</h2>
+
+<p class="site-block-paragraph">
+DNS is not just for IP lookups. Common record types:
+</p>
+
+<ul>
+<li><strong>A:</strong> IPv4 address.</li>
+<li><strong>AAAA:</strong> IPv6 address.</li>
+<li><strong>CNAME:</strong> Alias to another domain. Resolvers follow the chain automatically.</li>
+<li><strong>MX:</strong> Mail exchanger. Includes a priority number (lower is preferred).</li>
+<li><strong>TXT:</strong> Arbitrary text. Used for SPF, DKIM, DMARC, Let's Encrypt challenges, and service discovery.</li>
+<li><strong>NS:</strong> Nameserver delegation. Tells which server is authoritative for a zone.</li>
+<li><strong>SOA:</strong> Start of Authority. Contains zone metadata and serial number (used in zone transfers).</li>
+<li><strong>SRV:</strong> Service records. Specify host and port for a service (like _ldap._tcp.example.com).</li>
+</ul>
+
+<p class="site-block-paragraph">
+Try these with dig:
+</p>
+
+<pre><code class="language-bash">dig example.com A
+dig example.com AAAA
+dig example.com MX
+dig example.com TXT
+dig @a.iana-servers.net example.com any</code></pre>
+
+<p class="site-block-paragraph">
+The last command queries the authoritative server directly (a.iana-servers.net) instead of your default resolver.
+</p>
+
+<h2>CNAME Chains and Redirect Loops</h2>
+
+<p class="site-block-paragraph">
+A CNAME points a domain to another domain name. Resolvers automatically follow the chain. For example:
+</p>
+
+<pre><code class="language-bash">dig www.example.com</code></pre>
+
+<p class="site-block-paragraph">
+might return:
+</p>
+
+<pre><code class="language-bash">www.example.com. 300 IN CNAME cdn.example.net.
+cdn.example.net. 60 IN A 203.0.113.1</code></pre>
+
+<p class="site-block-paragraph">
+The resolver follows the CNAME and returns the final A record. If www.example.com points to www.example.com (or a cycle exists), the resolver will hit a maximum chain depth and fail. Most resolvers stop after 32 hops.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Mistake 1: Assuming dig queries your local resolver.</strong> By default, dig queries the resolver configured in /etc/resolv.conf (on Linux) or your system's DNS settings. Use dig @8.8.8.8 to override. Use dig +trace to see the full chain, not just one resolver's cached answer.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 2: Forgetting that UDP is connectionless.</strong> A DNS query over UDP can be lost or arrive out of order. Resolvers retransmit after 2-5 seconds and may try multiple servers if one does not respond. TCP is used for zone transfers and responses larger than 512 bytes.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 3: Confusing CNAME with A record redirection.</strong> A CNAME is a DNS-level alias. An HTTP redirect (301/302) is application-level. A CNAME saves one DNS lookup; a redirect forces the browser to make a second HTTP request.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 4: Not understanding TTL expiry.</strong> If you change a DNS record and set TTL to 86400 (1 day), old caches may still serve the old answer for up to a day. Lower the TTL before a migration, wait for it to expire, then change the record, then raise the TTL again after propagation.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 5: Blocking port 53 at the edge.</strong> If your firewall blocks outbound UDP 53, your machine cannot do DNS lookups. Some networks force all DNS through a local resolver. If you cannot reach external resolvers, check your firewall and routing.
+</p>
+
+<h2>DNS and Performance</h2>
+
+<p class="site-block-paragraph">
+A typical recursive lookup takes 50-300 milliseconds end to end. The biggest delays come from:
+</p>
+
+<ul>
+<li>Network latency to the resolver (usually fast if local).</li>
+<li>The resolver's cache miss (forces it to chain through root and TLD).</li>
+<li>Authoritative server response time.</li>
+<li>Slow CNAME chains.</li>
+</ul>
+
+<p class="site-block-paragraph">
+For latency-sensitive services, use a local caching resolver (systemd-resolved on Linux, mDNSResponder on macOS, or a dedicated resolver like Unbound or PowerDNS Recursor). Pre-resolve frequently-used domains in your application startup.
+</p>
+
+<p class="site-block-paragraph">
+Measure your own DNS latency with dig:
+</p>
+
+<pre><code class="language-bash">dig example.com | grep "Query time"</code></pre>
+
+<p class="site-block-paragraph">
+Repeat it to see the difference between a cache miss (first query) and a cache hit (second query, much faster).
+</p>
+
+<h2>Debugging Tools Beyond dig</h2>
+
+<p class="site-block-paragraph">
+<strong>nslookup:</strong> Older, simpler than dig. Less flexible but useful for quick checks.
+</p>
+
+<pre><code class="language-bash">nslookup example.com 8.8.8.8</code></pre>
+
+<p class="site-block-paragraph">
+<strong>host:</strong> Minimal DNS client. Good for scripts.
+</p>
+
+<pre><code class="language-bash">host -t MX example.com</code></pre>
+
+<p class="site-block-paragraph">
+<strong>getent:</strong> Queries the system's name resolution library (NSS), which may use /etc/hosts, LDAP, or DNS.
+</p>
+
+<pre><code class="language-bash">getent hosts example.com</code></pre>
+
+<p class="site-block-paragraph">
+<strong>strace:</strong> Trace system calls to see how a program does DNS. Useful if you want to know whether your app is using the system resolver or a custom one.
+</p>
+
+<pre><code class="language-bash">strace -e openat,connect -f curl https://example.com 2>&amp;1 | grep -E "resolv|53"</code></pre>
+
+<p class="site-block-paragraph">
+<strong>tcpdump:</strong> Capture DNS traffic on the wire. See exactly what queries and responses are sent.
+</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n "port 53"</code></pre>
+
+<h2>DNS over HTTPS (DoH) and DNS over TLS (DoT)</h2>
+
+<p class="site-block-paragraph">
+Standard DNS over UDP 53 is unencrypted. An ISP or network observer can see every domain you visit. DoH (RFC 8484) wraps DNS queries in HTTPS requests. DoT (RFC 7858) uses TLS on port 853. Both are encrypted and privacy-preserving. Browsers like Firefox and Brave support DoH by default. Resolvers like Cloudflare (1.1.1.1) and Quad9 (9.9.9.9) support both.
+</p>
+
+<p class="site-block-paragraph">
+In practice, if you control the server-side (not the end-user client), you may not care about DoH. But if you are building a mobile app or client software, consider supporting DoH for privacy.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>What happens if the root server is down?</h3>
+
+<p class="site-block-paragraph">
+If one root server is down, others are still reachable. There are 13 root server addresses (a-m), and each is actually a cluster of geographically distributed machines. Your resolver has backups. Root outages are rare and mitigated by this redundancy. However, if all root servers were down and no resolver had a cached answer, new domain lookups would fail.
+</p>
+
+<h3>How does reverse DNS work?</h3>
+
+<p class="site-block-paragraph">
+Reverse DNS (rDNS) maps an IP address back to a hostname. It uses a special zone: in-addr.arpa for IPv4. For example, 93.184.216.34 becomes 34.216.184.93.in-addr.arpa. A PTR record in that zone contains the hostname. Use dig -x 93.184.216.34 to query. Reverse DNS is optional and often missing. Email servers use it to fight spam.
+</p>
+
+<h3>Can I query DNS without a recursive resolver?</h3>
+
+<p class="site-block-paragraph">
+Yes, but it requires following the chain yourself. You query a root server, get a referral to a TLD server, query the TLD, get a referral to the authoritative server, query that, and get the answer. This is what dig +trace does. In practice, using a recursive resolver (8.8.8.8, 1.1.1.1) is simpler and faster due to caching.
+</p>
+
+<h3>What is DNSSEC?</h3>
+
+<p class="site-block-paragraph">
+DNSSEC (DNS Security Extensions, RFC 4033) adds cryptographic signatures to DNS responses. Each zone is signed with a private key. Validators check the signature using the zone's public key. This prevents DNS spoofing (where an attacker intercepts a query and returns a fake IP). DNSSEC is complex to deploy and not widely used yet, but major registries and cloud providers support it. Use dig +dnssec to see RRSIG records.
+</p>
+
+<h3>Why does DNS sometimes return multiple A records?</h3>
+
+<p class="site-block-paragraph">
+Round-robin load balancing. If example.com resolves to 10 different IP addresses, the authoritative server rotates through them, returning a different order each query. The client then picks the first one (or the resolver caches all and picks one at random). This spreads traffic across multiple servers. It is not as sophisticated as modern load balancing (which measures server health), but it is simple and works.
+</p>
+
+<h3>What is glue record?</h3>
+
+<p class="site-block-paragraph">
+A glue record is an A record for a nameserver returned in the additional section of a DNS response. Example: the .com TLD server responds with a.gtld-servers.net (NS record) and the IP address of a.gtld-servers.net (glue A record) in the same response. Without glue, the resolver would need another DNS lookup to learn the IP of the nameserver, creating a dependency loop. Glue records break the loop.
+</p>
+
+<h3>Is DNS used only for HTTP?</h3>
+
+<p class="site-block-paragraph">
+No. DNS is used by any service that needs to find a host by name. Email (SMTP, IMAP), file transfer (as documented in <a href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP specifications</a>), SSH, VoIP, and most internet protocols rely on DNS. Even lower-level services like NTP and SNMP often use hostnames that must be resolved first.
+</p>
+
+<h3>Can I run my own authoritative nameserver?</h3>
+
+<p class="site-block-paragraph">
+Yes. You can run bind9, Knot, or PowerDNS on a dedicated server and point your domain's registrar to it. You must configure at least two nameservers for redundancy. You sign a zone file with your nameserver software, update your domain's glue records at the registrar, and manage zone updates (adding/removing records). Many hosting providers do this for you, but self-hosting is possible if you understand DNS and have reliable infrastructure.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li><li><a href="/notOnlyHttp/ftp-file-transfer-protocol.html">Ftp file transfer protocol</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

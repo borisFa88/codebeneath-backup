@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<title>Go vs Java: Where Each Language Fits | Code Beneath</title>
+<meta name="description" content="Compare Go and Java for enterprise systems, small services, performance, concurrency and long-term application design." />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Go vs Java: Where Each Language Fits | Code Beneath" />
+<meta property="og:description" content="Compare Go and Java for enterprise systems, small services, performance, concurrency and long-term application design." />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/go-land-never-replace-java.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Go vs Java: Where Each Language Fits | Code Beneath" />
+<meta name="twitter:description" content="Compare Go and Java for enterprise systems, small services, performance, concurrency and long-term application design." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "name": "Go vs Java: Where Each Language Fits", "headline": "Go vs Java: Where Each Language Fits", "description": "Compare Go and Java for enterprise systems, small services, performance, concurrency and long-term application design.", "url": "https://codebeneath.com/programmerStories/go-land-never-replace-java.html", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/go-land-never-replace-java.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+
+<link rel='stylesheet' id='site-block-navigation-css' href='../assets/css/navigation.css' media='all' />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel='stylesheet' id='prism-tomorrow-css' href='../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css' media='all' />
+<link rel='stylesheet' id='atom-one-dark-css' href='../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css' media='all' />
+
+
+
+<link rel="canonical" href="https://codebeneath.com/programmerStories/go-land-never-replace-java.html" />
+<link rel="shortlink" href="https://codebeneath.com/programmerStories/go-land-never-replace-java.html" />
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+
+<!-- end Simple Custom CSS and JS -->
+<!-- start Simple Custom CSS and JS -->
+ 
+
+
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/c.min.js"></script>
+<script src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.11.1/languages/rust.min.js"></script>
+
+<script> hljs.highlightAll(); 
+</script>
+
+<!-- end Simple Custom CSS and JS -->
+
+
+
+<link rel="stylesheet" href="../assets/css/site.css"><link rel="stylesheet" href="/assets/css/article-discovery.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script></head>
+
+<body class="site-singular post-template-default single single-post postid-339 single-format-standard site-embed-responsive site-theme-twentytwentyfive">
+
+<a class="skip-link screen-reader-text" id="site-skip-link" href="https://codebeneath.com/programmerStories/go-land-never-replace-java.html#site--skip-link--target">Go vs Java: Where Each Language Fits</a><div class="site-site-blocks"><header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-container-core-group-is-layout-0e1e8455 site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" target="_self" rel="home">codebeneath.com</a></p></div>
+
+
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation" 
+		><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open" 
+			
+			
+			><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+				<div class="site-block-navigation__responsive-container"  id="modal-1" 
+			
+			
+			
+			
+			
+				tabindex="-1"
+			>
+					<div class="site-block-navigation__responsive-close" tabindex="-1">
+						<div class="site-block-navigation__responsive-dialog" 
+			
+			
+			
+			>
+							<button aria-label="Close menu" class="site-block-navigation__responsive-container-close" 
+			
+			><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+							<div class="site-block-navigation__responsive-container-content" 
+			
+			 id="modal-1-content">
+								<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation"><li tabindex="-1" style="font-style:normal;font-weight:600" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#http"><span class="site-block-navigation-item__label">HTTP Requests</span></a><button aria-label="Handling http request submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul style="font-style:normal;font-weight:600" class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Authentication in Web Applications</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#languages"><span class="site-block-navigation-item__label">Programming Languages</span></a><button aria-label="Non Java submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><button aria-label="Not only HTTP submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><button aria-label="Programmer Stories submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/"><span class="site-block-navigation-item__label">Golang never replace Java</span></a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#tools"><span class="site-block-navigation-item__label">Development Tools</span></a><button aria-label="Recommended Tools submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><button aria-label="Spring Alternatives submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle" ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="../springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li><li tabindex="-1" class="site-block-navigation-item has-child open-on-hover-click site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">AI and Programming</span></a><button aria-label="new Era submenu" class="site-block-navigation__submenu-icon site-block-navigation-submenu__toggle"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></button><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content" href="../newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li><li class="site-block-navigation-item site-block-navigation-link"><a class="site-block-navigation-item__content"  href="/programmerStories/dont-speak-british-in-la.html"><span class="site-block-navigation-item__label">Coding Conventions</span></a></li></ul>
+								
+							</div>
+						</div>
+					</div>
+				</div></nav></div>
+</div>
+</header>
+
+
+<main id="site--skip-link--target" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<div class="site-block-group alignfull has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"><nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/articles.html#languages">Java, Go, C++ and Python</a></nav>
+<h1 class="site-block-post-title">Go vs Java: Where Each Language Fits</h1>
+
+
+
+
+<div class="site-block-group has-link-color has-accent-4-color has-text-color has-small-font-size is-layout-flex site-container-core-group-is-layout-fd1a9a6d site-block-group-is-layout-flex" style="margin-bottom:var(--site--preset--spacing--60)">
+<p class="site-block-paragraph">Written by </p>
+
+
+<div class="site-block-post-author-name"><a href="/about.html" rel="author">Boris Fain</a></div>
+
+
+<p class="site-block-paragraph">in</p>
+
+
+<div style="font-weight:300" class="taxonomy-category site-block-post-terms"><a href="/articles.html#stories" rel="tag">Programming Stories</a></div></div>
+
+
+<div class="entry-content alignfull site-block-post-content has-global-padding is-layout-constrained site-block-post-content-is-layout-constrained">
+<figure class="site-block-image size-full is-resized"><img decoding="async" width="151" height="148" src="../assets/images/goLang-funny.png" alt="" class="site-image-571" style="aspect-ratio:1.5813093980992607;width:172px;height:auto"/></figure>
+
+
+
+<h2 class="site-block-heading">Introduction.</h2>
+
+
+
+<p class="site-block-paragraph"></p>
+
+
+
+<p class="site-block-paragraph">In was annonced and released as open-source language in end of 2009. </p>
+
+
+
+<p class="site-block-paragraph">Go or Golang was invented in 2007 at Google by  three  men <strong>Robert Griesemer, Rob Pike, and Ken Thompson</strong>. </p>
+
+
+
+<p class="site-block-paragraph">Since 2012-2013 It started to take more amd more popularity as simple and power language on the same time. This is light as script language but it is real complier. Many fresh and not only fresh developers don&#8217;t realy realize compiler advantage vs interpritator. You see error in runtime not in compile time . I spent a lot of time in Python and  Java Script, Bash and other looking for a error like <em><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-4-color"><strong>this method doesn&#8217;t exist or missing parameter    </strong>or </mark><strong><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-4-color">other one</mark></strong></em>.</p>
+
+
+
+<p>
+  <span style="color: blue;">[Running]</span> 
+  <span style="color: orange;">python -u &#8220;c:\PythonPrograms\OOP\commandPattern.py&#8221;</span><br>
+  Traceback (most recent call last):<br>
+  &nbsp;&nbsp;File &#8220;c:\PythonPrograms\OOP\commandPattern.py&#8221;, line 50, in &lt;module&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;add(10,5)<br>
+  TypeError: add() takes 1 positional argument but 2 were given<br><br>
+  <span style="color: blue;">[Done]</span> 
+  <span style="color: orange;">exited with</span> 
+  <span style="color: red;">code=1</span> 
+  <span style="color: orange;">in 0.107 seconds</span>
+</p>
+
+
+
+<p class="site-block-paragraph">This example is simple and to find error is easy it can take a few seconds my be two minutes  after 10-11 hours working day. </p>
+
+
+
+<h2 class="site-block-heading">Starting</h2>
+
+
+
+<p class="site-block-paragraph">Most articles  start to explain about language from command line. I am personaly don&#8217;t  think it is good idea . I would say it clumsy idea, because you need to spend more time on the first steps. I am strongly recommend use IDE . Two best are Intelij IDEA and Visual Studio Code.  If you are not familiar with basical issues I am strongly recomend to do it . I am going to talk about few language details.</p>
+
+
+
+<p class="site-block-paragraph"><em><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-6-color"><strong>  </strong></mark><strong><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-4-color">Asynchronous programming</mark></strong></em></p>
+
+
+
+<p class="site-block-paragraph">Golang is sutable for asynch programming only . There is no   possible to create thread like in Java , C/C++ or any others </p>
+
+
+
+<p class="site-block-paragraph">for C++ it looks </p>
+
+
+
+<pre><code class="language-java">
+     public class UserThread extends Thread {
+         public void run() {
+           System.out.println("This code is running in a thread");
+  }
+}
+  </code></pre>
+
+
+
+<p class="site-block-paragraph"> Another way to create a thread is to implement          the&nbsp;<code>Runnable</code>&nbsp;interface:  </p>
+
+
+
+<p class="site-block-paragraph"></p>
+
+
+
+<pre><code class="language-java">
+   public class Main implements Runnable {
+    public void run() {
+    System.out.println("This code is running in a thread");
+  }
+}
+int main() {
+    std::cout &lt;&lt; "Hello, World!";
+    return 0;
+}
+</code>
+</pre>
+
+
+
+<p class="site-block-paragraph"> And in C++ </p>
+
+
+
+
+
+<pre><code class="language-cpp">#include &lt;iostream>
+#include &lt;thread>
+#include &lt;chrono>
+
+// A function that the new thread will execute
+void thread_task() {
+    std::cout << "Hello from the new thread!" << std::endl;
+    // Sleep for a moment to ensure the main thread waits
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::cout << "New thread finishing." << std::endl;
+}
+
+int main() {
+    std::cout << "Main thread started." << std::endl;
+    // Create a new thread and pass the function pointer
+    std::thread newThread(thread_task); // The new thread starts running immediately
+    std::cout << "Main thread continuing..." << std::endl;
+    // Wait for the new thread to finish execution
+    newThread.join(); 
+    std::cout << "Main thread finished." << std::endl;
+    return 0;
+}</code></pre>
+
+
+
+
+
+<p class="site-block-paragraph">Your thread is managed by OS kernel which decide to suspend it or resume.  This is named  blocking.   In Golang we do it like here </p>
+
+
+
+<pre><code class="language-go">
+package main
+import (
+    "fmt"
+    "time"
+)
+
+func f(from string) {
+    for i := range 3 {
+        fmt.Println(from, ":", i)
+    }
+}
+
+func main() {
+    f("direct")
+    go f("goroutine")
+    go func(msg string) {
+        fmt.Println(msg)
+    }("going")
+    time.Sleep(time.Second)
+    fmt.Println("done")
+}
+</code></pre>
+
+
+
+<p class="site-block-paragraph">You can see it very easy just add <mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color"><code><em>go</em></code><strong> </strong></mark>identificator. But this is not blocking  any resource and your thread is not going to sleep see in the picture </p>
+
+
+
+<figure class="site-block-image size-large"><img fetchpriority="high" decoding="async" width="1024" height="611" src="../assets/images/sync-vs-async-schema-1024x611.png" alt="" class="site-image-468" srcset="assets/images/sync-vs-async-schema-1024x611.png 1024w, assets/images/sync-vs-async-schema-300x179.png 300w, assets/images/sync-vs-async-schema-768x458.png 768w, assets/images/sync-vs-async-schema-1536x917.png 1536w, assets/images/sync-vs-async-schema.png 1630w" sizes="(max-width: 1024px) 100vw, 1024px" /></figure>
+
+
+
+<p class="site-block-paragraph"></p>
+
+
+
+<p class="site-block-paragraph">That why and this not  only one  goland is not a good choice for large enterprise system.  The laguage does't support  enhiriatance and it doesn't have class like in OOP language it much more similar to C  with pointer to function than in Java or C++  </p>
+
+
+
+<pre><code class="language-go">
+import "fmt"
+
+// 1. Base Struct (The "parent" features)
+type Animal struct {
+    Name  string
+    Age   int
+}
+
+// Method for the base struct
+func (a Animal) Introduce() {
+    fmt.Printf("Hello, my name is %s and I am %d years old.\n", a.Name, a.Age)
+}
+
+// 2. Composed Struct (The "child" features)
+// Dog embeds Animal by simply listing the type (Animal) within its definition.
+type Dog struct {
+    Animal       // <-- This is the embedding. Dog now "inherits" Name, Age, and Introduce().
+    Breed string
+}
+
+// 3. Shadowing/Overriding (Polymorphism)
+// We can define a method on Dog with the same name as an Animal method.
+// This is not true overriding, but the Dog's method takes precedence.
+func (d Dog) Introduce() {
+    // We can call the base (embedded) method explicitly if needed:
+    // d.Animal.Introduce()
+    
+    fmt.Printf("Woof! I'm %s, a %s, and I love treats!\n", d.Name, d.Breed)
+}
+
+func main() {
+    // Create a Dog instance.
+    // We can initialize the embedded fields directly.
+    myDog := Dog{
+        Animal: Animal{
+            Name: "Buddy",
+            Age:  5,
+        },
+        Breed: "Golden Retriever",
+    }
+
+    // Access inherited fields directly:
+    fmt.Printf("Dog's age: %d\n", myDog.Age)
+
+    // Call the Dog's method (the overridden/shadowed method):
+    myDog.Introduce() // Output: Woof! I'm Buddy, a Golden Retriever, and I love treats!
+
+    // We can also access the Animal's method directly if we need the original behavior:
+    myDog.Animal.Introduce() // Output: Hello, my name is Buddy and I am 5 years old.
+}
+Ke
+</code></pre>
+
+
+
+<p class="site-block-paragraph">Instead of  hidden <strong><code><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">this </mark></code></strong>parameter in each Java or C++ method you shoud define it directly after function body <strong><code><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-3-color">func </mark></code></strong>(d Dog) <strong><code><mark style="background-color:rgba(0, 0, 0, 0)" class="has-inline-color has-accent-4-color">Introduce</mark></code></strong>(). </p>
+
+
+
+<p class="site-block-paragraph">Golang has also very limited interface usage  mechanism your class needs implicitly satisfies to the interface </p>
+
+
+
+<pre><code class="language-go">
+ package main
+ import "fmt"
+
+// 1. Define the Interface
+// An interface defines a set of methods that a type must implement.
+type Speaker interface {
+    SayHello() string // Required method: takes no arguments, returns a string
+}
+
+// 2. Concrete Type 1: Human
+type Human struct {
+    Name string
+}
+
+// Human implicitly satisfies the Speaker interface because it provides the SayHello() method.
+func (h Human) SayHello() string {
+    return fmt.Sprintf("Hello, my name is %s!", h.Name)
+}
+
+// 3. Concrete Type 2: Dog
+type Dog struct {
+    Name string
+}
+
+// Dog implicitly satisfies the Speaker interface because it provides the SayHello() method.
+func (d Dog) SayHello() string {
+    return fmt.Sprintf("Woof! I'm %s, the dog!", d.Name)
+}
+
+// 4. A general function that accepts the Interface
+// This function doesn't care if it's a Human or a Dog; it only cares that the input
+// implements the SayHello() method.
+func Greet(s Speaker) {
+    message := s.SayHello()
+    fmt.Println(message)
+}
+
+func main() {
+    // Create instances of our concrete types
+    alice := Human{Name: "Alice"}
+    buddy := Dog{Name: "Buddy"}
+
+    // 5. Polymorphism in action:
+    // We can call the same Greet function with completely different types.
+    fmt.Println("--- Calling Greet Function ---")
+    Greet(alice) // Greet treats Alice as a Speaker
+    Greet(buddy) // Greet treats Buddy as a Speaker
+
+    // 6. Creating a slice of Interfaces
+    // A slice of type []Speaker can hold any type that satisfies the Speaker interface.
+    speakers := []Speaker{
+        alice,
+        buddy,
+        Human{Name: "Charlie"}, // Can mix types freely
+    }
+
+    fmt.Println("\n--- Looping Through Interface Slice ---")
+    for _, speaker := range speakers {
+        // We can call the interface method directly on the element
+        fmt.Println(speaker.SayHello())
+    }
+}
+</code> 
+</pre>
+
+
+
+<p class="site-block-paragraph">There is also missing reflection mechnism. But on other way development could be easy for some futures because you don't need to use maven/gradle . However   in this case </p>
+
+
+
+<pre><code class="language-go">
+ package main
+ import "fmt"
+
+// 1. Define the Interface
+// An interface defines a set of methods that a type must implement.
+type Speaker interface {
+    SayHello() string // Required method: takes no arguments, returns a string
+}
+
+// 2. Concrete Type 1: Human
+type Human struct {
+    Name string
+}
+
+// Human implicitly satisfies the Speaker interface because it provides the SayHello() method.
+func (h Human) SayHello() string {
+    return fmt.Sprintf("Hello, my name is %s!", h.Name)
+}
+
+// 3. Concrete Type 2: Dog
+type Dog struct {
+    Name string
+}
+
+// Dog implicitly satisfies the Speaker interface because it provides the SayHello() method.
+func (d Dog) SayHello() string {
+    return fmt.Sprintf("Woof! I'm %s, the dog!", d.Name)
+}
+
+// 4. A general function that accepts the Interface
+// This function doesn't care if it's a Human or a Dog; it only cares that the input
+// implements the SayHello() method.
+func Greet(s Speaker) {
+    message := s.SayHello()
+    fmt.Println(message)
+}
+
+func main() {
+    // Create instances of our concrete types
+    alice := Human{Name: "Alice"}
+    buddy := Dog{Name: "Buddy"}
+
+    // 5. Polymorphism in action:
+    // We can call the same Greet function with completely different types.
+    fmt.Println("--- Calling Greet Function ---")
+    Greet(alice) // Greet treats Alice as a Speaker
+    Greet(buddy) // Greet treats Buddy as a Speaker
+
+    // 6. Creating a slice of Interfaces
+    // A slice of type []Speaker can hold any type that satisfies the Speaker interface.
+    speakers := []Speaker{
+        alice,
+        buddy,
+        Human{Name: "Charlie"}, // Can mix types freely
+    }
+
+    fmt.Println("\n--- Looping Through Interface Slice ---")
+    for _, speaker := range speakers {
+        // We can call the interface method directly on the element
+        fmt.Println(speaker.SayHello())
+    }
+}
+</code> 
+</pre>
+
+
+
+<p class="site-block-paragraph"></p>
+
+
+
+<p class="site-block-paragraph">Now I hope this article and the examples clearly demonstrate that Golang is a lightweight, practical language designed for rapid development, while Java continues to lead in large-scale enterprise systems.</p>
+</div>
+
+
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)"></div>
+
+
+
+<div class="site-block-group alignwide is-layout-flow site-block-group-is-layout-flow" style="margin-top:var(--site--preset--spacing--60);margin-bottom:var(--site--preset--spacing--60)">
+<nav class="site-block-group alignwide is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-878fe601 site-block-group-is-layout-flex" aria-label="Post navigation" style="border-top-color:var(--site--preset--color--accent-6);border-top-width:1px;padding-top:var(--site--preset--spacing--40);padding-bottom:var(--site--preset--spacing--40)"><div class="post-navigation-link-previous site-block-post-navigation-link"><span class="site-block-post-navigation-link__arrow-previous is-arrow-arrow" aria-hidden="true">←</span><a href="../nonJava/python-is-not-real-programming-language.html" rel="prev">Python vs Java and C++: A Developer Opinion</a></div>
+
+<div class="post-navigation-link-next site-block-post-navigation-link"><a href="linux-how-to-manage-the-password-safety.html" rel="next">Linux Password Security and Account Protection</a><span class="site-block-post-navigation-link__arrow-next is-arrow-arrow" aria-hidden="true">→</span></div></nav>
+</div>
+
+
+
+</div>
+
+
+
+<div class="site-block-group alignwide has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="padding-top:var(--site--preset--spacing--60);padding-bottom:var(--site--preset--spacing--60)">
+<h2 class="site-block-heading alignwide has-small-font-size" style="font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">More posts</h2>
+
+
+
+<div class="site-block-query alignwide is-layout-flow site-block-query-is-layout-flow"><ul class="alignfull site-block-post-template is-layout-flow site-container-core-post-template-is-layout-b4d04ffe site-block-post-template-is-layout-flow"><li class="site-block-post post-727 post type-post status-publish format-standard has-post-thumbnail hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html" target="_self" >FTP File Transfers With Kotlin and Python</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/ftp-file-transfer-protocol.html"><time datetime="2026-03-01T10:29:08+00:00">March 1, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-672 post type-post status-publish format-standard hentry category-not-only-http">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../notOnlyHttp/tcp-udp-socket.html" target="_self" >TCP vs UDP in Go: runnable echo server examples</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../notOnlyHttp/tcp-udp-socket.html"><time datetime="2026-02-22T14:21:05+00:00">February 22, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-626 post type-post status-publish format-standard hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/go-lang.html" target="_self" >RAII in Go: Resource Cleanup With defer</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/go-lang.html"><time datetime="2026-01-25T13:39:08+00:00">January 25, 2026</time></a></div></div>
+
+</li><li class="site-block-post post-608 post type-post status-publish format-standard has-post-thumbnail hentry category-other-languages">
+
+<div class="site-block-group alignfull is-content-justification-space-between is-nowrap is-layout-flex site-container-core-group-is-layout-cba70755 site-block-group-is-layout-flex" style="border-bottom-color:var(--site--preset--color--accent-6);border-bottom-width:1px;padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><h3 class="site-block-post-title has-large-font-size"><a href="../nonJava/native-language.html" target="_self" >Native C and C++ for Modern Developers</a></h3>
+
+<div class="has-text-align-right site-block-post-date"><a href="../nonJava/native-language.html"><time datetime="2026-01-19T09:29:16+00:00">January 19, 2026</time></a></div></div>
+
+</li></ul></div>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li><a href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li><li><a href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li></ul><p><a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+
+
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath · Programming beneath the frameworks.</p></footer></div>
+
+<script src="../assets/js/static-navigation.js" defer></script>
+    <script>
+        hljs.highlightAll();
+    </script>
+    
+<script id="prisma-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script id="prisma-markup-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script id="prisma-markup-templating-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script id="prisma-c-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script id="prisma-java-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script id="prisma-go-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+<script id="prisma-bash-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script id="prisma-php-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script id="prisma-kotlin-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+<script id="prisma-cpp-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script id="prisma-sql-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script id="prisma-toolbar-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script id="prisma-clipboard-js" src="../assets/vendor/cdnjs/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script id="highlight-js" src="../assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,551 @@
+{
+  "_meta": {
+    "site": "Code Beneath",
+    "domain": "https://codebeneath.com",
+    "author": "Boris Fain",
+    "generated": "2026-09-27",
+    "strategy": {
+      "goal": "traffic and visitor volume (broad reach), targeting US/Canada + keeping EU",
+      "core_insight": "Head terms (tcp vs udp, java websocket tutorial) are owned by DA80+ giants (MDN, Cloudflare, GeeksforGeeks, Baeldung, DZone, dev.to, Medium, GitHub). A young site cannot win those. The winnable lane is LONG-TAIL, code-first, runnable-example queries where small niche blogs still rank (ops.tips, hyr.mn, xojoc.pw all rank for 'tcp udp echo server go example'). Code Beneath's existing strength (opinionated, runnable code, GitHub-linked) is exactly what wins these.",
+      "how_we_beat_competitors": "Every article must be MORE complete than the current top-3 result for its keyword: full runnable code (not fragments), edge cases and common errors, a comparison table where relevant, and a short FAQ. That depth + specificity is how we outrank bigger domains on long-tail.",
+      "cadence": "2-3 articles per week",
+      "publish_model": "fully automatic with an AI self-QA gate before publish; fail -> one auto-repair -> still fail -> _needs-review/ quarantine, never published",
+      "hard_rules": [
+        "no em dash (— or –) anywhere",
+        "code must be runnable and correct",
+        "1200+ words",
+        "original vs existing articles",
+        "keyword in title + H1 + first paragraph",
+        "internal links to hub + 2-3 siblings"
+      ]
+    }
+  },
+  "clusters": {
+    "sockets": {
+      "label": "Sockets and File Transfer",
+      "hub": "/category/not-only-http/",
+      "folder": "notOnlyHttp"
+    },
+    "http": {
+      "label": "HTTP Requests and Authentication",
+      "hub": "/category/http/",
+      "folder": "handlingHttpRequest",
+      "hub_status": "to_create"
+    },
+    "languages": {
+      "label": "Programming Languages",
+      "hub": "/category/languages/",
+      "folder": "nonJava",
+      "hub_status": "to_create"
+    },
+    "spring": {
+      "label": "Spring Framework",
+      "hub": "/category/spring-alternatives/",
+      "folder": "springAlternatives"
+    },
+    "security": {
+      "label": "Security and Linux",
+      "hub": "/category/security/",
+      "folder": "programmerStories",
+      "hub_status": "to_create"
+    },
+    "tools": {
+      "label": "Development Tools",
+      "hub": "/category/tools/",
+      "folder": "recommendedTools",
+      "hub_status": "to_create"
+    }
+  },
+  "topics": [
+    {
+      "id": "http2-vs-http3-quic",
+      "cluster": "http",
+      "title": "HTTP/2 vs HTTP/3 and QUIC: What Actually Changed",
+      "slug": "http2-vs-http3-quic",
+      "target_keyword": "http2 vs http3 quic explained",
+      "intent": "informational, developers comparing protocol versions",
+      "competitors": [
+        "cloudflare.com learning center",
+        "GeeksforGeeks",
+        "various Medium posts"
+      ],
+      "beat_strategy": "Most explainers stay abstract. We add a runnable curl/nghttp demo showing multiplexing and head-of-line blocking, plus a real latency comparison table and a 'when to actually enable HTTP/3' section.",
+      "internal_links": [
+        "/notOnlyHttp/web-socket.html",
+        "/handlingHttpRequest/how-to-read-dynamic-http-type.html"
+      ],
+      "priority": 1,
+      "status": "published",
+      "meta_description": "HTTP/2 vs HTTP/3 and QUIC explained: multiplexing, head-of-line blocking, stream prioritization, and when to enable HTTP/3 in production"
+    },
+    {
+      "id": "tls-mtls-handshake-explained",
+      "cluster": "security",
+      "title": "TLS and mTLS Handshake Explained With a Runnable Example",
+      "slug": "tls-mtls-handshake-explained",
+      "target_keyword": "mtls handshake example",
+      "intent": "informational + how-to, backend/security developers",
+      "competitors": [
+        "Cloudflare",
+        "Baeldung (Spring mTLS)",
+        "smallstep blog"
+      ],
+      "beat_strategy": "Show the handshake byte-by-byte with openssl s_client output, then a minimal mTLS client+server in Go with self-signed certs the reader can run. Competitors show config, not a runnable end-to-end.",
+      "internal_links": [
+        "/handlingHttpRequest/token-based-security-in-web-applications.html",
+        "/programmerStories/linux-how-to-manage-the-password-safety.html"
+      ],
+      "priority": 1,
+      "status": "published",
+      "meta_description": "TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication."
+    },
+    {
+      "id": "dns-resolution-step-by-step",
+      "cluster": "sockets",
+      "title": "How DNS Resolution Works, Step by Step With dig",
+      "slug": "dns-resolution-step-by-step",
+      "target_keyword": "how dns resolution works step by step",
+      "intent": "informational, beginners to intermediate",
+      "competitors": [
+        "Cloudflare learning",
+        "GeeksforGeeks",
+        "AWS docs"
+      ],
+      "beat_strategy": "Trace one real lookup with dig +trace output annotated line by line (root -> TLD -> authoritative), plus a tiny Go program doing a manual resolver query. Concrete where competitors are diagrams-only.",
+      "internal_links": [
+        "/notOnlyHttp/tcp-udp-socket.html",
+        "/notOnlyHttp/ftp-file-transfer-protocol.html"
+      ],
+      "priority": 2,
+      "status": "published",
+      "meta_description": "How DNS resolution works step by step with dig: trace queries from root nameservers to authoritative answers in real time"
+    },
+    {
+      "id": "goroutines-vs-threads",
+      "cluster": "languages",
+      "title": "Goroutines vs OS Threads: What Runs Where",
+      "slug": "goroutines-vs-os-threads",
+      "target_keyword": "goroutines vs threads example",
+      "intent": "informational, Go and Java developers",
+      "competitors": [
+        "Medium posts",
+        "dev.to",
+        "Go blog"
+      ],
+      "beat_strategy": "Runnable Go program spawning 100k goroutines vs a Java program hitting the thread ceiling, with measured memory. Existing site already has a C++ std::thread snippet to cross-link.",
+      "internal_links": [
+        "/nonJava/go-lang.html",
+        "/programmerStories/go-land-never-replace-java.html"
+      ],
+      "priority": 2,
+      "status": "published",
+      "meta_description": "Goroutines vs threads example: why Go spawns 100k concurrent tasks while Java hits OS limits. Memory, CPU, and scheduling explained."
+    },
+    {
+      "id": "rest-vs-grpc",
+      "cluster": "http",
+      "title": "REST vs gRPC: A Practical Comparison With Code",
+      "slug": "rest-vs-grpc",
+      "target_keyword": "rest vs grpc example",
+      "intent": "informational + decision, backend developers",
+      "competitors": [
+        "Google Cloud docs",
+        "GeeksforGeeks",
+        "dev.to"
+      ],
+      "beat_strategy": "Same tiny service built both ways (REST JSON + a gRPC proto) with the wire size and latency measured, plus an honest 'when REST still wins' section.",
+      "internal_links": [
+        "/handlingHttpRequest/how-to-read-dynamic-http-type.html",
+        "/springAlternatives/spring-cant-work-with-another-clients.html"
+      ],
+      "priority": 2,
+      "status": "published",
+      "meta_description": "REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins."
+    },
+    {
+      "id": "jvm-garbage-collection",
+      "cluster": "languages",
+      "title": "JVM Garbage Collection Explained: G1, ZGC and When to Tune",
+      "slug": "jvm-garbage-collection-explained",
+      "target_keyword": "jvm garbage collection explained",
+      "intent": "informational, Java developers",
+      "competitors": [
+        "Baeldung",
+        "Oracle docs",
+        "DZone"
+      ],
+      "beat_strategy": "Show GC logs from a real allocation-heavy program, read them line by line, and demonstrate a measurable pause difference between G1 and ZGC. Competitors explain collectors abstractly.",
+      "internal_links": [
+        "/nonJava/native-language.html",
+        "/programmerStories/go-land-never-replace-java.html"
+      ],
+      "priority": 3,
+      "status": "queued"
+    },
+    {
+      "id": "sql-query-performance",
+      "cluster": "tools",
+      "title": "Why Your SQL Query Is Slow: Reading EXPLAIN",
+      "slug": "sql-query-performance-explain",
+      "target_keyword": "how to read sql explain plan",
+      "intent": "how-to, backend developers",
+      "competitors": [
+        "Postgres docs",
+        "Use The Index Luke",
+        "various blogs"
+      ],
+      "beat_strategy": "One slow query, its EXPLAIN ANALYZE output annotated, then the exact index that fixes it with before/after timing. Ties to Boris's consulting (databases).",
+      "internal_links": [
+        "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html",
+        "/my-service.html"
+      ],
+      "priority": 3,
+      "status": "queued"
+    },
+    {
+      "id": "linux-processes-syscalls",
+      "cluster": "security",
+      "title": "Linux Processes and System Calls, Traced With strace",
+      "slug": "linux-processes-and-syscalls",
+      "target_keyword": "linux strace tutorial example",
+      "intent": "how-to, systems developers",
+      "competitors": [
+        "Julia Evans",
+        "Linux man pages",
+        "GeeksforGeeks"
+      ],
+      "beat_strategy": "Run strace on a tiny C program and map each syscall (open, read, write, fork, execve) to what the kernel does. Extends the site's only Linux article into a real cluster.",
+      "internal_links": [
+        "/programmerStories/linux-how-to-manage-the-password-safety.html",
+        "/nonJava/native-language.html"
+      ],
+      "priority": 3,
+      "status": "queued"
+    },
+    {
+      "id": "memory-pointers-c-cpp",
+      "cluster": "languages",
+      "title": "Pointers and Memory in C and C++, Without the Fear",
+      "slug": "pointers-and-memory-c-cpp",
+      "target_keyword": "pointers and memory management c++ example",
+      "intent": "informational, learners and Java/Go devs going native",
+      "competitors": [
+        "cppreference",
+        "learncpp.com",
+        "GeeksforGeeks"
+      ],
+      "beat_strategy": "Show the stack vs heap with a runnable program printing addresses, then a use-after-free and how a smart pointer fixes it. Concrete memory addresses, not diagrams.",
+      "internal_links": [
+        "/nonJava/native-language.html",
+        "/nonJava/go-lang.html"
+      ],
+      "priority": 3,
+      "status": "queued"
+    },
+    {
+      "id": "containers-networking-basics",
+      "cluster": "sockets",
+      "title": "How Container Networking Works: From veth to the Bridge",
+      "slug": "container-networking-explained",
+      "target_keyword": "how docker container networking works",
+      "intent": "informational, backend/devops developers",
+      "competitors": [
+        "Docker docs",
+        "Cloudflare",
+        "various Medium"
+      ],
+      "beat_strategy": "Create a veth pair and a bridge by hand with ip commands to show what Docker automates, so the reader sees the primitives under the tool.",
+      "internal_links": [
+        "/notOnlyHttp/tcp-udp-socket.html",
+        "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html"
+      ],
+      "priority": 4,
+      "status": "queued"
+    },
+    {
+      "id": "http-keepalive-connection-pooling",
+      "cluster": "http",
+      "title": "HTTP Keep-Alive and Connection Pooling, Measured",
+      "slug": "http-keepalive-connection-pooling",
+      "target_keyword": "http keep alive connection pooling explained",
+      "intent": "informational, backend developers",
+      "competitors": [
+        "MDN",
+        "various blogs"
+      ],
+      "beat_strategy": "Measure requests-per-second with and without keep-alive using a tiny client, showing the real cost of a fresh TCP+TLS handshake per request.",
+      "internal_links": [
+        "/notOnlyHttp/web-socket.html",
+        "/handlingHttpRequest/token-based-security-in-web-applications.html"
+      ],
+      "priority": 4,
+      "status": "queued"
+    },
+    {
+      "id": "unix-domain-sockets",
+      "cluster": "sockets",
+      "title": "Unix Domain Sockets vs TCP Loopback: Faster Local IPC",
+      "slug": "unix-domain-sockets-vs-tcp",
+      "target_keyword": "unix domain socket vs tcp localhost",
+      "intent": "informational, systems/backend developers",
+      "competitors": [
+        "Stack Overflow",
+        "various blogs"
+      ],
+      "beat_strategy": "Runnable Go echo server on both a Unix socket and TCP loopback with a throughput benchmark showing the measurable difference. Direct extension of the existing TCP/UDP article.",
+      "internal_links": [
+        "/notOnlyHttp/tcp-udp-socket.html",
+        "/notOnlyHttp/ftp-file-transfer-protocol.html"
+      ],
+      "priority": 4,
+      "status": "queued"
+    },
+    {
+      "id": "tcp-socket-graceful-shutdown-go",
+      "cluster": "sockets",
+      "title": "TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss",
+      "slug": "tcp-socket-graceful-shutdown-go",
+      "target_keyword": "golang tcp socket graceful shutdown example",
+      "intent": "Learn how to properly close TCP connections in Go without dropping in-flight requests",
+      "competitors": [
+        "stackoverflow.com",
+        "medium.com",
+        "dev.to"
+      ],
+      "beat_strategy": "Full runnable server and client code showing context cancellation, connection draining, and timeout handling; include common pitfalls like goroutine leaks and incomplete writes",
+      "internal_links": [
+        "/nonJava/go-lang.html",
+        "/notOnlyHttp/tcp-udp-socket.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "http-chunked-transfer-encoding-example",
+      "cluster": "http",
+      "title": "HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice",
+      "slug": "http-chunked-transfer-encoding-example",
+      "target_keyword": "http transfer encoding chunked example implementation",
+      "intent": "Understand how to send HTTP responses in chunks and handle streaming without Content-Length",
+      "competitors": [
+        "mdn.org",
+        "stackoverflow.com"
+      ],
+      "beat_strategy": "Working code examples in two languages showing manual chunk writing, chunk size selection, and trailers; explain why browsers handle it differently",
+      "internal_links": [
+        "/handlingHttpRequest/how-to-read-dynamic-http-type.html",
+        "/category/http/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "go-defer-order-stack-unwinding",
+      "cluster": "languages",
+      "title": "Go Defer Order and Stack Unwinding: Execution Gotchas Explained",
+      "slug": "go-defer-order-stack-unwinding",
+      "target_keyword": "golang defer execution order multiple defer statements",
+      "intent": "Master the non-intuitive order of deferred function execution in Go",
+      "competitors": [
+        "golang.org blog",
+        "dev.to",
+        "medium.com"
+      ],
+      "beat_strategy": "Runnable examples showing defer stack LIFO behavior, panic propagation through defers, and real-world resource cleanup patterns; include a comparison table of defer vs finally in Java",
+      "internal_links": [
+        "/nonJava/go-lang.html",
+        "/category/languages/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "java-x509-certificate-parsing-validation",
+      "cluster": "security",
+      "title": "Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation",
+      "slug": "java-x509-certificate-parsing-validation",
+      "target_keyword": "java read x509 certificate parse chain example",
+      "intent": "Learn to extract certificate details and validate chains without Apache Commons",
+      "competitors": [
+        "baeldung.com",
+        "oracle.com"
+      ],
+      "beat_strategy": "Complete code showing CertificateFactory, certificate chain extraction, distinguished name parsing, and validity checking; include handling of self-signed certs",
+      "internal_links": [
+        "/programmerStories/tls-mtls-handshake-explained.html",
+        "/category/security/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "udp-datagram-size-fragmentation-example",
+      "cluster": "sockets",
+      "title": "UDP Datagram Size Limits and Fragmentation: When Packets Break",
+      "slug": "udp-datagram-size-fragmentation-example",
+      "target_keyword": "udp maximum datagram size fragmentation example",
+      "intent": "Understand UDP packet size limits and how IP fragmentation breaks reliability",
+      "competitors": [
+        "stackoverflow.com",
+        "cisco.com",
+        "researchgate.net"
+      ],
+      "beat_strategy": "Runnable UDP server sending progressively larger messages showing fragmentation, loss, and Path MTU discovery; include network capture output and Java plus Go code",
+      "internal_links": [
+        "/notOnlyHttp/tcp-udp-socket.html",
+        "/category/not-only-http/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "spring-boot-deferredresult-async-timeout",
+      "cluster": "spring",
+      "title": "Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors",
+      "slug": "spring-boot-deferredresult-async-timeout",
+      "target_keyword": "spring boot deferredresult timeout exception handling example",
+      "intent": "Implement non-blocking request handling in Spring without reactive frameworks",
+      "competitors": [
+        "spring.io docs",
+        "baeldung.com",
+        "medium.com"
+      ],
+      "beat_strategy": "Full working controller code showing DeferredResult setup, background task completion, timeout handling, and error callbacks; compare with CompletableFuture approach",
+      "internal_links": [
+        "/handlingHttpRequest/token-based-security-in-web-applications.html",
+        "/category/spring-alternatives/",
+        "/articles.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "linux-strace-debug-system-call-errors",
+      "cluster": "tools",
+      "title": "Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE",
+      "slug": "linux-strace-debug-system-call-errors",
+      "target_keyword": "linux strace permission denied eaddrinuse debugging example",
+      "intent": "Use strace to diagnose why sockets, files, and processes fail",
+      "competitors": [
+        "man7.org",
+        "opensource.com"
+      ],
+      "beat_strategy": "Hands-on examples tracing TCP bind failures, file descriptor leaks, and permission errors; show strace output with annotations and filtering flags to reduce noise",
+      "internal_links": [
+        "/category/tools/",
+        "/category/security/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "python-asyncio-run-in-executor-threading",
+      "cluster": "languages",
+      "title": "Python asyncio Event Loop and Thread Safety: When to Use run_in_executor",
+      "slug": "python-asyncio-run-in-executor-threading",
+      "target_keyword": "python asyncio run in executor blocking io example",
+      "intent": "Handle blocking I/O calls inside async code without blocking the event loop",
+      "competitors": [
+        "python.org docs",
+        "realpython.com",
+        "medium.com"
+      ],
+      "beat_strategy": "Runnable examples showing executor misconceptions, database queries in executors, and comparison with pure async alternatives; include performance measurement code",
+      "internal_links": [
+        "/nonJava/python-is-not-real-programming-language.html",
+        "/category/languages/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "http-range-requests-206-partial-content",
+      "cluster": "http",
+      "title": "HTTP Range Requests and Partial Content Responses: Byte Serving",
+      "slug": "http-range-requests-206-partial-content",
+      "target_keyword": "http range request 206 partial content byte serving example",
+      "intent": "Implement byte-range responses for video streaming and resumable downloads",
+      "competitors": [
+        "mdn.org",
+        "stackoverflow.com"
+      ],
+      "beat_strategy": "Server code showing Range header parsing, 206 response generation, multipart ranges, and error cases; include how to serve large files efficiently",
+      "internal_links": [
+        "/category/http/",
+        "/notOnlyHttp/ftp-file-transfer-protocol.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "linux-file-descriptor-limits-socket-leaks",
+      "cluster": "security",
+      "title": "Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max",
+      "slug": "linux-file-descriptor-limits-socket-leaks",
+      "target_keyword": "linux file descriptor limit socket leak ulimit example",
+      "intent": "Diagnose and fix too many open files errors in production",
+      "competitors": [
+        "stackoverflow.com",
+        "linux.com"
+      ],
+      "beat_strategy": "Working code showing fd leak detection, proper resource cleanup, ulimit configuration, and monitoring with /proc; include a reproducible leak example",
+      "internal_links": [
+        "/category/security/",
+        "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "cpp-move-semantics-rvalue-references",
+      "cluster": "languages",
+      "title": "C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies",
+      "slug": "cpp-move-semantics-rvalue-references",
+      "target_keyword": "c++ move semantics rvalue reference example std move",
+      "intent": "Write efficient C++ by understanding when objects are moved vs copied",
+      "competitors": [
+        "cppreference.com",
+        "isocpp.org",
+        "youtube.com"
+      ],
+      "beat_strategy": "Runnable code showing move constructor, move assignment, perfect forwarding, and common pitfalls; include copy elision behavior and compiler flags to observe moves",
+      "internal_links": [
+        "/nonJava/native-language.html",
+        "/category/languages/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "websocket-subprotocol-negotiation-errors",
+      "cluster": "sockets",
+      "title": "WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors",
+      "slug": "websocket-subprotocol-negotiation-errors",
+      "target_keyword": "websocket sec-websocket-protocol subprotocol negotiation example",
+      "intent": "Correctly negotiate WebSocket subprotocols and handle negotiation failures",
+      "competitors": [
+        "stackoverflow.com",
+        "mdn.org"
+      ],
+      "beat_strategy": "Client and server code showing subprotocol proposal, server selection, mismatch handling, and fallback strategies; explain why ignoring subprotocols breaks interop",
+      "internal_links": [
+        "/notOnlyHttp/web-socket.html",
+        "/category/not-only-http/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    }
+  ]
+}
