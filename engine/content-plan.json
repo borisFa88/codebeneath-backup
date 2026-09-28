@@ -97,7 +97,7 @@
       ],
       "priority": 1,
       "status": "published",
-      "meta_description": "TLS and mTLS handshake explained with runnable Go code and openssl byte-by-byte output. Learn mutual authentication."
+      "meta_description": "TLS and mTLS handshake explained with a runnable Go client and server plus openssl byte by byte output covering certificates, keys and mutual authentication."
     },
     {
       "id": "dns-resolution-step-by-step",
@@ -160,7 +160,7 @@
       ],
       "priority": 2,
       "status": "published",
-      "meta_description": "REST vs gRPC example: build the same service both ways, measure wire size and latency, see when each wins."
+      "meta_description": "REST vs gRPC compared with runnable code: one service built both ways, with measured wire size and latency, plus an honest look at when REST still wins."
     },
     {
       "id": "jvm-garbage-collection",
