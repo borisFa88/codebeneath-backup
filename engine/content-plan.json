@@ -180,7 +180,8 @@
         "/programmerStories/go-land-never-replace-java.html"
       ],
       "priority": 3,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "JVM garbage collection explained: learn how G1, ZGC collectors work, when to tune GC settings, and reduce latency spikes in production Java applications."
     },
     {
       "id": "sql-query-performance",

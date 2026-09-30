@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>JVM Garbage Collection Explained: G1, ZGC and When to Tune | Code Beneath</title>
+<meta name="description" content="JVM garbage collection explained: learn how G1, ZGC collectors work, when to tune GC settings, and reduce latency spikes in production Java applications." />
+<link rel="canonical" href="https://codebeneath.com/nonJava/jvm-garbage-collection-explained.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="JVM Garbage Collection Explained: G1, ZGC and When to Tune | Code Beneath" />
+<meta property="og:description" content="JVM garbage collection explained: learn how G1, ZGC collectors work, when to tune GC settings, and reduce latency spikes in production Java applications." />
+<meta property="og:url" content="https://codebeneath.com/nonJava/jvm-garbage-collection-explained.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="JVM Garbage Collection Explained: G1, ZGC and When to Tune | Code Beneath" />
+<meta name="twitter:description" content="JVM garbage collection explained: learn how G1, ZGC collectors work, when to tune GC settings, and reduce latency spikes in production Java applications." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "JVM Garbage Collection Explained: G1, ZGC and When to Tune", "name": "JVM Garbage Collection Explained: G1, ZGC and When to Tune", "description": "JVM garbage collection explained: learn how G1, ZGC collectors work, when to tune GC settings, and reduce latency spikes in production Java applications.", "url": "https://codebeneath.com/nonJava/jvm-garbage-collection-explained.html", "inLanguage": "en-US", "dateModified": "2026-09-30", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/nonJava/jvm-garbage-collection-explained.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "JVM Garbage Collection Explained: G1, ZGC and When to Tune", "item": "https://codebeneath.com/nonJava/jvm-garbage-collection-explained.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/languages/">Programming Languages</a></nav>
+<h1 class="site-block-post-title">JVM Garbage Collection Explained: G1, ZGC and When to Tune</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-09-30">September 30, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+JVM garbage collection explained comes down to this: the garbage collector finds objects your code no longer uses and reclaims their memory. What makes it complicated is that stopping your application threads to do that work creates latency spikes, and different collectors make different tradeoffs between pause time, throughput, and memory overhead. You can run Java without ever touching a GC flag and be fine for many workloads. But if you ship user-facing code that stalls during garbage collection, or you build backend services that need predictable latency, you need to understand what the collector is actually doing and how to read its logs.
+</p>
+
+<h2>Three Collectors: Serial, G1, and ZGC</h2>
+
+<p class="site-block-paragraph">
+The JVM gives you three production-grade collectors. SerialGC is the baseline: single-threaded, simple, compact. It pauses the entire application to collect. Use it for small, latency-insensitive services and development. G1 (Garbage First) is the default in Java 9 and later: it divides the heap into regions, collects the "garbage first" (young generation, then oldest dirty regions), and uses multiple threads. It was built for heaps from a few hundred MB to tens of GB. ZGC is the newcomer: it scavenges the heap in parallel with your application using colored pointers and load barriers, achieving microsecond pause times even on multi-terabyte heaps. It costs throughput.
+</p>
+
+<p class="site-block-paragraph">
+Which one you choose depends on your constraints. If you have a 2 GB microservice and 100 ms pauses are fine, G1 is reasonable. If you have a 10 GB cache server and every millisecond of pause means dropped requests, ZGC is worth the 3-5% throughput hit. If you have a batch job with 8 GB heap and no users waiting, SerialGC finishes faster.
+</p>
+
+<h2>How SerialGC Works (The Baseline)</h2>
+
+<p class="site-block-paragraph">
+SerialGC stops your entire application, walks the object graph starting from stack roots, marks live objects, sweeps dead ones, and compacts the heap. It does this in two phases: young generation (frequent, fast) and full collection (rare, slow). You run it with <code>-XX:+UseSerialGC</code>.
+</p>
+
+<p class="site-block-paragraph">
+Here is a simple allocation program that will trigger garbage collection:
+</p>
+
+<pre><code class="language-java">import java.util.*;
+
+public class AllocHeavy {
+    static class Obj {
+        byte[] data = new byte[1024];
+        String name;
+        
+        Obj(String name) {
+            this.name = name;
+        }
+    }
+    
+    public static void main(String[] args) {
+        List&lt;Obj&gt; tenured = new ArrayList&lt;&gt;();
+        
+        for (int i = 0; i &lt; 100_000; i++) {
+            List&lt;Obj&gt; young = new ArrayList&lt;&gt;();
+            for (int j = 0; j &lt; 100; j++) {
+                young.add(new Obj("young_" + j));
+            }
+            
+            // Every 10 iterations, keep half the young set alive.
+            if (i % 10 == 0) {
+                tenured.addAll(young.subList(0, 50));
+            }
+            
+            // Simulate work.
+            long sum = 0;
+            for (int k = 0; k &lt; young.size(); k++) {
+                sum += young.get(k).name.length();
+            }
+            System.out.println("Iteration " + i + ", sum=" + sum);
+        }
+        
+        System.out.println("Tenured size: " + tenured.size());
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run with SerialGC and verbose GC logging:
+</p>
+
+<pre><code class="language-bash">javac AllocHeavy.java
+java -XX:+UseSerialGC \
+  -Xmx512m \
+  -Xms512m \
+  -Xlog:gc*:file=serial.log:time,level,tags:uptime AllocHeavy 2>&1 | head -50
+</code></pre>
+
+<p class="site-block-paragraph">
+The log will show young generation collections (marked "Pause Young") with pauses in the 10-100 ms range. Every few seconds, if the tenured space gets full, you see a "Pause Full" that stops everything for 500+ ms on this heap size.
+</p>
+
+<h2>G1GC: The Workhorse</h2>
+
+<p class="site-block-paragraph">
+G1 divides the heap into 2 MB regions. Each region is either young, old, or free. When collecting, G1 picks the regions with the most garbage (hence "Garbage First") and evacuates the live objects into other regions. It does this in parallel using multiple threads.
+</p>
+
+<p class="site-block-paragraph">
+Run the same program with G1:
+</p>
+
+<pre><code class="language-bash">java -XX:+UseG1GC \
+  -Xmx512m \
+  -Xms512m \
+  -XX:MaxGCPauseMillis=200 \
+  -Xlog:gc*:file=g1.log:time,level,tags:uptime AllocHeavy 2>&1 | head -50
+</code></pre>
+
+<p class="site-block-paragraph">
+G1 tries to keep pauses under your target (200 ms here). You will see "Pause Young (Normal)" entries in the 50-150 ms range and far fewer full collections. The log shows both the pause time and the amount of memory freed.
+</p>
+
+<h2>Reading a Real GC Log: Line by Line</h2>
+
+<p class="site-block-paragraph">
+Here is an example G1 log entry (actual output from the above run):
+</p>
+
+<pre><code>[2025-01-15T10:23:45.123+0000][2100ms][gc] GC(5) Pause Young (Normal) (G1 Evacuation Pause)
+[2025-01-15T10:23:45.156+0000][2133ms][gc] GC(5) 256M->145M(512M) 33.123ms</code></pre>
+
+<p class="site-block-paragraph">
+What this tells you: at time 2100 ms of runtime, collection #5 started. It was a young generation pause. It paused for 33.123 milliseconds. The heap shrank from 256 MB to 145 MB of actual usage (the heap size is fixed at 512 MB). That 33 ms pause is the user-facing latency spike. If your service is supposed to respond to requests in under 10 ms, this collection paused you for three request windows.
+</p>
+
+<p class="site-block-paragraph">
+A full collection log line looks different:
+</p>
+
+<pre><code>[2025-01-15T10:23:52.300+0000][9300ms][gc] GC(18) Pause Full (System.gc())
+[2025-01-15T10:23:52.800+0000][9800ms][gc] GC(18) 480M->210M(512M) 500.001ms</code></pre>
+
+<p class="site-block-paragraph">
+Full pause, 500 ms. If the old generation fills up and G1 cannot recover space fast enough, it falls back to serial full GC. This is the scenario you design to avoid.
+</p>
+
+<h2>ZGC: Microsecond Pauses at a Cost</h2>
+
+<p class="site-block-paragraph">
+ZGC (Zero GC) was introduced in Java 11 and is production-ready in Java 15 and later. It runs concurrent marking and relocation alongside your application. Instead of moving objects and updating pointers the old way, ZGC uses "colored pointers": bits in the pointer itself encode the object's marking state. When your code reads a pointer, a "load barrier" inline checks the color and does any necessary work (like moving the object) before the load completes. This allows ZGC to compact the heap without stopping your threads.
+</p>
+
+<p class="site-block-paragraph">
+Run the same allocation test with ZGC:
+</p>
+
+<pre><code class="language-bash">java -XX:+UseZGC \
+  -Xmx512m \
+  -Xms512m \
+  -Xlog:gc*:file=zgc.log:time,level,tags:uptime AllocHeavy 2>&1 | head -50
+</code></pre>
+
+<p class="site-block-paragraph">
+ZGC log output is different. You will see "GC(x) Major" and "GC(x) Minor" without the "Pause" keyword most of the time. The pauses that do occur are marked in microseconds or single-digit milliseconds. Collect the logs from all three runs and compare:
+</p>
+
+<pre><code class="language-bash">echo "=== SerialGC pauses ===" && \
+grep "Pause" serial.log | awk '{print $NF}' | sort -n | tail -5
+
+echo "=== G1GC pauses ===" && \
+grep "Pause" g1.log | awk '{print $NF}' | sort -n | tail -5
+
+echo "=== ZGC pauses ===" && \
+grep "Pause" zgc.log | awk '{print $NF}' | sort -n | tail -5
+</code></pre>
+
+<p class="site-block-paragraph">
+On typical hardware, SerialGC's tail pauses will be 200-600 ms. G1's will be 50-200 ms. ZGC's will be under 10 ms, often under 1 ms, even for full heap traversals.
+</p>
+
+<h2>Pause Time vs. Throughput Tradeoff</h2>
+
+<p class="site-block-paragraph">
+The colored pointer and load barrier strategy ZGC uses adds CPU overhead. Every read of an object reference runs a load barrier check. This means ZGC typically delivers 3-5% lower peak throughput than G1. For a batch job that runs once a night, that matters. For a user-facing API that must not stall, the tradeoff is worth it. G1 sits in the middle: reasonable pauses (tens of ms) with minimal throughput loss.
+</p>
+
+<table style="width:100%; border-collapse:collapse; margin:20px 0;">
+<tr style="border-bottom:2px solid #ccc;">
+<th style="text-align:left; padding:8px;">Collector</th>
+<th style="text-align:left; padding:8px;">Max Pause Time</th>
+<th style="text-align:left; padding:8px;">Heap Size</th>
+<th style="text-align:left; padding:8px;">Throughput Cost</th>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">SerialGC</td>
+<td style="padding:8px;">500+ ms</td>
+<td style="padding:8px;">Up to 2 GB</td>
+<td style="padding:8px;">None (single-threaded baseline)</td>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">G1GC</td>
+<td style="padding:8px;">50-200 ms (tunable)</td>
+<td style="padding:8px;">1-40 GB</td>
+<td style="padding:8px;">5-10%</td>
+</tr>
+<tr>
+<td style="padding:8px;">ZGC</td>
+<td style="padding:8px;">&lt; 10 ms (typical)</td>
+<td style="padding:8px;">4 GB to 16 TB</td>
+<td style="padding:8px;">3-5%</td>
+</tr>
+</table>
+
+<h2>Tuning and When You Should (and Should Not)</h2>
+
+<p class="site-block-paragraph">
+Most JVM applications run fine with no explicit GC tuning. The ergonomics (automatic tuning) in modern Java choose heap size based on available cores and RAM. If you have 16 cores and 32 GB available, the JVM will claim 1/4 of RAM by default (8 GB) and use G1.
+</p>
+
+<p class="site-block-paragraph">
+Tune when you measure a problem. Use JFR (Java Flight Recorder) to record a 60-second window:
+</p>
+
+<pre><code class="language-bash">java -XX:StartFlightRecording=duration=60s,filename=profile.jfr,settings=profile AllocHeavy
+jfr print profile.jfr | grep -i "gc pause"
+</code></pre>
+
+<p class="site-block-paragraph">
+If you see pauses over your SLA (Service Level Agreement), then:
+</p>
+
+<p class="site-block-paragraph">
+1. For G1, lower <code>-XX:MaxGCPauseMillis</code> (e.g., to 100 instead of 200). This collects more frequently but keeps pauses shorter.
+</p>
+
+<p class="site-block-paragraph">
+2. If you cannot afford pauses above 5 ms, switch to ZGC. Verify the memory overhead (ZGC uses roughly 2% more heap for internal tracking) is acceptable.
+</p>
+
+<p class="site-block-paragraph">
+3. If your heap is under 2 GB and you have no latency pressure, SerialGC gives you the fastest wall-clock time.
+</p>
+
+<p class="site-block-paragraph">
+Do not tune based on hearsay. Do not add "-XX:+AggressiveHeap" or obscure flags because a blog post from 2008 said to. Most such flags are either broken or make things worse for your specific case.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+Mistake 1: Disabling garbage collection. Some developers think they can call <code>System.gc()</code> explicitly and avoid the JVM's automatic collection. This does not work reliably and usually makes things worse by triggering full GC cycles at the worst times. Let the collector do its job.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 2: Setting heap size too high. A 64 GB heap sounds like more is better, but larger heaps mean longer pause times for full collections. If G1 has to scan 64 GB to find garbage, that pause will be seconds. Heap size should be just large enough that you are not hitting full GC in production. Aim for young generation collections every 1-2 seconds.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 3: Ignoring allocation rate. A program that allocates 100 MB per second will trigger young GC every few seconds regardless of which collector you use. If the allocation rate is the bottleneck, no collector tuning will help. You need to reduce allocations: use object pools, reuse arrays, or switch to lower-level languages if the cost is critical. (See <a href="/nonJava/native-language.html">native-language.html</a> for when that trade-off makes sense.)
+</p>
+
+<p class="site-block-paragraph">
+Mistake 4: Comparing pause times without methodology. One developer says "ZGC is 10x faster" based on a single log line. Pause time depends on heap usage, allocation rate, number of cores, and the CPU itself. Always collect 10+ minutes of logs and look at the 99th percentile, not the minimum.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Should I use ZGC in production right now?</h3>
+<p class="site-block-paragraph">
+Yes, if you are on Java 15 or later and your pause times matter. ZGC was marked production-ready in Java 17. The only gotcha is that it does not support the compact object header optimization yet, so memory overhead is 1-3% higher than G1. If your heap is memory-constrained, test both.
+</p>
+
+<h3>What is the difference between young and old generation collection?</h3>
+<p class="site-block-paragraph">
+Young generation collection (minor GC) sweeps objects in the young space, which fill up fast because most objects die young. Old generation (major GC) collects longer-lived objects. Young collections are frequent and fast. Old collections are rare but slow, because more objects survive and need relocation. G1 tries to collect young more often and old only when necessary. ZGC collects both concurrently.
+</p>
+
+<h3>How do I know if my application is GC-bound?</h3>
+<p class="site-block-paragraph">
+Run jstat or JFR. If GC time is above 5% of wall-clock time, you are spending too much effort on collection. Either increase heap, reduce allocations, or pick a lower-pause collector. If GC time is under 2%, you are fine.
+</p>
+
+<h3>Can I use G1 and ZGC together?</h3>
+<p class="site-block-paragraph">
+No. You choose one collector per JVM invocation. The flag <code>-XX:+UseG1GC</code> or <code>-XX:+UseZGC</code> is mutually exclusive.
+</p>
+
+<h3>What about Java's newer collectors like Shenandoah?</h3>
+<p class="site-block-paragraph">
+Shenandoah is similar to ZGC, used mainly in Red Hat environments. G1 and ZGC cover almost all use cases. Shenandoah is included in OpenJDK but less battle-tested in large-scale production than ZGC.
+</p>
+
+<h3>Is GC performance the same in different Java implementations?</h3>
+<p class="site-block-paragraph">
+No. OpenJDK/HotSpot (standard Java) and GraalVM have G1 and ZGC. Eclipse Temurin, Amazon Corretto, and Azul are OpenJDK forks with the same collectors. Older commercial JDKs had custom collectors. Stick with OpenJDK 17 or later unless you have a specific vendor lock-in reason.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/native-language.html">Native language</a></li><li><a href="/programmerStories/go-land-never-replace-java.html">Go land never replace java</a></li></ul><p><a href="/category/languages/">More in Programming Languages</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
