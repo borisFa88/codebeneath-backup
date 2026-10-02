@@ -58,6 +58,15 @@ def process_one(topic, plan):
         topic["status"] = "published"
         rec["file"] = str(out)
         print(f'   PUBLISHED -> {out}  (cost ${total:.4f})')
+        # distribution layer: cross-post to dev.to with canonical back to us (best-effort)
+        try:
+            import distribute as D
+            d = D.cross_post(topic["title"], E._url_for(topic), inner,
+                             topic.get("meta_description", ""), topic["cluster"], live=True)
+            print("   dev.to:", d.get("url") if d.get("ok") else "skip (" + str(d.get("error")) + ")")
+            rec["devto"] = d.get("url") if d.get("ok") else d.get("error")
+        except Exception as e:
+            print("   dev.to error:", e)
     elif passed and ARGS.dry:
         print(f'   DRY RUN: would publish  (cost ${total:.4f})')
     else:

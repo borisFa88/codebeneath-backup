@@ -201,7 +201,8 @@
         "/my-service.html"
       ],
       "priority": 3,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "Learn how to read SQL EXPLAIN plan output to find bottlenecks, with a real slow query, step-by-step EXPLAIN ANALYZE annotation, and the exact index that fixes it."
     },
     {
       "id": "linux-processes-syscalls",

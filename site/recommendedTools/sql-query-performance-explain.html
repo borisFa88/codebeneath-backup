@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Why Your SQL Query Is Slow: Reading EXPLAIN | Code Beneath</title>
+<meta name="description" content="Learn how to read SQL EXPLAIN plan output to find bottlenecks, with a real slow query, step-by-step EXPLAIN ANALYZE annotation, and the exact index that fixes it." />
+<link rel="canonical" href="https://codebeneath.com/recommendedTools/sql-query-performance-explain.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Why Your SQL Query Is Slow: Reading EXPLAIN | Code Beneath" />
+<meta property="og:description" content="Learn how to read SQL EXPLAIN plan output to find bottlenecks, with a real slow query, step-by-step EXPLAIN ANALYZE annotation, and the exact index that fixes it." />
+<meta property="og:url" content="https://codebeneath.com/recommendedTools/sql-query-performance-explain.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Why Your SQL Query Is Slow: Reading EXPLAIN | Code Beneath" />
+<meta name="twitter:description" content="Learn how to read SQL EXPLAIN plan output to find bottlenecks, with a real slow query, step-by-step EXPLAIN ANALYZE annotation, and the exact index that fixes it." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why Your SQL Query Is Slow: Reading EXPLAIN", "name": "Why Your SQL Query Is Slow: Reading EXPLAIN", "description": "Learn how to read SQL EXPLAIN plan output to find bottlenecks, with a real slow query, step-by-step EXPLAIN ANALYZE annotation, and the exact index that fixes it.", "url": "https://codebeneath.com/recommendedTools/sql-query-performance-explain.html", "inLanguage": "en-US", "dateModified": "2026-10-02", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/recommendedTools/sql-query-performance-explain.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Why Your SQL Query Is Slow: Reading EXPLAIN", "item": "https://codebeneath.com/recommendedTools/sql-query-performance-explain.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/tools/">Development Tools</a></nav>
+<h1 class="site-block-post-title">Why Your SQL Query Is Slow: Reading EXPLAIN</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-02">October 2, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+You run a query and it takes 12 seconds. You know it should take 200 milliseconds. The problem is somewhere in the database, not your application code. But where? This is where knowing how to read SQL EXPLAIN plan output becomes the difference between a quick fix and hours of guessing. An EXPLAIN plan shows you exactly what the database engine is doing: which tables it reads, in what order, whether it uses an index, how many rows it examines, and where the time actually goes. This is not optional knowledge for backend engineers. It is the foundation of real database performance work.
+</p>
+
+<p class="site-block-paragraph">
+Most developers learn the basics: "use an index" or "add a WHERE clause." But they do not understand what the EXPLAIN output actually means, so they add indexes randomly and hope. They see a Seq Scan and think it is always bad. They see a Hash Join and assume it is slow. They miss the actual bottleneck because they do not know where to look. This article walks through a real slow query, shows you exactly how to read the EXPLAIN ANALYZE output line by line, and demonstrates the precise index that fixes it with before-and-after timings.
+</p>
+
+<h2>What an EXPLAIN Plan Actually Shows</h2>
+
+<p class="site-block-paragraph">
+An EXPLAIN plan is a tree of operations. The database tells you which operation runs first, what data it reads, how many rows it expects versus how many it actually finds, and how much time each step consumes. The indentation shows nesting: outer operations depend on inner ones.
+</p>
+
+<p class="site-block-paragraph">
+In PostgreSQL, the two most important commands are EXPLAIN and EXPLAIN ANALYZE. EXPLAIN shows the estimated plan without running the query. EXPLAIN ANALYZE actually runs the query and shows real numbers. Always use EXPLAIN ANALYZE for real troubleshooting, because estimates can be wildly wrong.
+</p>
+
+<p class="site-block-paragraph">
+Each line in an EXPLAIN ANALYZE output tells you:
+</p>
+
+<ul>
+<li>The operation (Seq Scan, Index Scan, Hash Join, Sort, Aggregate, etc.)</li>
+<li>The table or index involved</li>
+<li>The filter conditions applied</li>
+<li>Rows output by this step (actual)</li>
+<li>Rows estimated by the planner (planned)</li>
+<li>Time spent in this step</li>
+<li>Total time including child operations</li>
+</ul>
+
+<h2>A Real Slow Query: Orders Report</h2>
+
+<p class="site-block-paragraph">
+Consider a typical SaaS database with orders, customers, and line items. A report needs to find all orders placed after January 2024 by customers in California with a total value over 1000 dollars. Here is the schema:
+</p>
+
+<pre><code class="language-sql">
+CREATE TABLE customers (
+  id BIGINT PRIMARY KEY,
+  name VARCHAR(255),
+  state VARCHAR(2),
+  created_at TIMESTAMP
+);
+
+CREATE TABLE orders (
+  id BIGINT PRIMARY KEY,
+  customer_id BIGINT NOT NULL,
+  order_date TIMESTAMP NOT NULL,
+  created_at TIMESTAMP,
+  FOREIGN KEY(customer_id) REFERENCES customers(id)
+);
+
+CREATE TABLE order_items (
+  id BIGINT PRIMARY KEY,
+  order_id BIGINT NOT NULL,
+  price NUMERIC(10, 2),
+  quantity INT,
+  FOREIGN KEY(order_id) REFERENCES orders(id)
+);
+
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_orders_date ON orders(order_date);
+</code></pre>
+
+<p class="site-block-paragraph">
+The query:
+</p>
+
+<pre><code class="language-sql">
+SELECT
+  o.id,
+  c.name,
+  SUM(oi.price * oi.quantity) as total
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+JOIN order_items oi ON oi.order_id = o.id
+WHERE c.state = 'CA'
+  AND o.order_date &gt;= '2024-01-01'
+  AND (oi.price * oi.quantity) IS NOT NULL
+GROUP BY o.id, c.name
+HAVING SUM(oi.price * oi.quantity) &gt; 1000
+ORDER BY total DESC;
+</code></pre>
+
+<p class="site-block-paragraph">
+Assume the database has 500,000 orders, 50,000 customers, and 2,000,000 line items. The query takes 8.4 seconds. Here is the actual EXPLAIN ANALYZE output:
+</p>
+
+<pre><code class="language-sql">
+Limit  (cost=145223.50..145223.63 rows=50 width=52) (actual time=8421.340..8421.365 rows=50 loops=1)
+  -&gt;  Sort  (cost=145223.50..145223.63 rows=50 width=52) (actual time=8421.320..8421.340 rows=50 loops=1)
+        Sort Key: (sum(oi.price * oi.quantity)) DESC
+        Sort Space Used: 4 kB
+        -&gt;  GroupAggregate  (cost=145198.72..145221.92 rows=50 width=52) (actual time=8420.120..8421.310 rows=50 loops=1)
+              Group By Key: o.id, c.name
+              Filter: (sum(oi.price * oi.quantity) &gt; 1000)
+              Plans:
+                -&gt;  Sort  (cost=145198.72..145205.92 rows=2876 width=52) (actual time=8420.100..8420.300 rows=28950 loops=1)
+                      Sort Key: o.id, c.name
+                      Sort Space Used: 2450 kB
+                      -&gt;  Hash Join  (cost=1252.50..145120.50 rows=28950 width=52) (actual time=12.250..8380.240 rows=28950 loops=1)
+                            Hash Cond: (oi.order_id = o.id)
+                            -&gt;  Seq Scan on order_items oi  (cost=0.00..98560.00 rows=2000000 width=16) (actual time=0.050..245.150 rows=2000000 loops=1)
+                            -&gt;  Hash  (cost=1200.50..1200.50 rows=4160 width=36) (actual time=12.100..12.100 rows=4160 loops=1)
+                                  -&gt;  Hash Join  (cost=352.50..1200.50 rows=4160 width=36) (actual time=0.100..11.890 rows=4160 loops=1)
+                                        Hash Cond: (o.customer_id = c.id)
+                                        -&gt;  Index Scan using idx_orders_date on orders o  (cost=0.42..875.00 rows=4160 width=8) (actual time=0.050..5.240 rows=4160 loops=1)
+                                              Index Cond: (order_date &gt;= '2024-01-01')
+                                        -&gt;  Hash  (cost=250.00..250.00 rows=1000 width=28) (actual time=0.030..0.030 rows=1000 loops=1)
+                                              -&gt;  Seq Scan on customers c  (cost=0.00..250.00 rows=1000 width=28) (actual time=0.010..0.240 rows=1000 loops=1)
+                                                    Filter: (state = 'CA')
+                                                    Rows Removed by Filter: 49000
+</code></pre>
+
+<h2>Reading the EXPLAIN Output Step by Step</h2>
+
+<p class="site-block-paragraph">
+Start at the innermost operation and work outward. The database engine executes from the bottom up.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Innermost: Seq Scan on customers (state = 'CA')</strong>
+The filter "state = 'CA'" removes 49,000 rows out of 50,000. It takes 0.24 milliseconds and returns 1,000 rows. This is fine. A full table scan of 50,000 rows is acceptable here.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Hash on customers</strong>
+The 1,000 CA customers are loaded into a hash table in memory (12.1 ms). This is necessary for the join and is fast.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Index Scan on orders (order_date >= '2024-01-01')</strong>
+The planner uses idx_orders_date to find 4,160 orders after January 2024. The index is being used efficiently (5.24 ms). Notice: actual rows (4,160) match the plan estimate almost exactly. The planner got this right.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Hash Join: orders + customers</strong>
+The 4,160 orders are joined to the 1,000 CA customers using a hash join. This takes 11.89 ms and produces 4,160 rows (all the matching orders).
+</p>
+
+<p class="site-block-paragraph">
+<strong>Seq Scan on order_items: THE PROBLEM</strong>
+Look at this line: "Seq Scan on order_items oi (cost=0.00..98560.00 rows=2000000 width=16) (actual time=0.050..245.150 rows=2000000 loops=1)". The database reads all 2,000,000 line items. It scans every single row in the table. This operation takes 245 milliseconds. But we only need line items for the 4,160 orders we found. We are reading 480 times more rows than necessary.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Hash Join: order_items + orders</strong>
+The join itself (8,380 ms) is dominated by the Seq Scan on order_items. The hash table for the 4,160 orders is built, then matched against all 2,000,000 line items. Output: 28,950 rows (about 7 line items per matching order). The join itself is fast; the bottleneck is reading all 2,000,000 rows first.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Sort and GroupAggregate</strong>
+After the join, 28,950 rows must be sorted by (o.id, c.name) so the GROUP BY can aggregate them. This sort takes 8,420 ms and uses 2,450 kB of memory. This is not the root cause, but a consequence of the massive join output.
+</p>
+
+<p class="site-block-paragraph">
+The real problem: the Seq Scan on order_items reads 2,000,000 rows when it should read only the ~30,000 line items we need. We need an index on order_items(order_id) so the database can jump directly to the relevant rows.
+</p>
+
+<h2>The Fix: Create the Missing Index</h2>
+
+<pre><code class="language-sql">
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+</code></pre>
+
+<p class="site-block-paragraph">
+Now run the query again with EXPLAIN ANALYZE:
+</p>
+
+<pre><code class="language-sql">
+Limit  (cost=5234.50..5234.63 rows=50 width=52) (actual time=185.240..185.265 rows=50 loops=1)
+  -&gt;  Sort  (cost=5234.50..5234.63 rows=50 width=52) (actual time=185.220..185.240 rows=50 loops=1)
+        Sort Key: (sum(oi.price * oi.quantity)) DESC
+        Sort Space Used: 4 kB
+        -&gt;  GroupAggregate  (cost=5209.72..5231.92 rows=50 width=52) (actual time=184.120..185.210 rows=50 loops=1)
+              Group By Key: o.id, c.name
+              Filter: (sum(oi.price * oi.quantity) &gt; 1000)
+              Plans:
+                -&gt;  Sort  (cost=5209.72..5216.92 rows=2876 width=52) (actual time=184.100..184.300 rows=28950 loops=1)
+                      Sort Key: o.id, c.name
+                      Sort Space Used: 2450 kB
+                      -&gt;  Nested Loop  (cost=352.50..5130.50 rows=28950 width=52) (actual time=0.100..80.240 rows=28950 loops=1)
+                            -&gt;  Hash Join  (cost=352.50..1200.50 rows=4160 width=36) (actual time=0.100..11.890 rows=4160 loops=1)
+                                  Hash Cond: (o.customer_id = c.id)
+                                  -&gt;  Index Scan using idx_orders_date on orders o  (cost=0.42..875.00 rows=4160 width=8) (actual time=0.050..5.240 rows=4160 loops=1)
+                                        Index Cond: (order_date &gt;= '2024-01-01')'
+                                  -&gt;  Hash  (cost=250.00..250.00 rows=1000 width=28) (actual time=0.030..0.030 rows=1000 loops=1)
+                                        -&gt;  Seq Scan on customers c  (cost=0.00..250.00 rows=1000 width=28) (actual time=0.010..0.240 rows=1000 loops=1)
+                                              Filter: (state = 'CA')
+                                              Rows Removed by Filter: 49000
+                            -&gt;  Index Scan using idx_order_items_order_id on order_items oi  (cost=0.29..0.95 rows=7 width=16) (actual time=0.010..0.015 rows=7 loops=4160)
+</code></pre>
+
+<p class="site-block-paragraph">
+Look at the difference in the order_items step:
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Before Index</th>
+<th>After Index</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operation</td>
+<td>Seq Scan (all 2M rows)</td>
+<td>Index Scan (specific rows)</td>
+</tr>
+<tr>
+<td>Rows Read</td>
+<td>2,000,000</td>
+<td>~28,950 (via nested loop)</td>
+</tr>
+<tr>
+<td>Per-Loop Time</td>
+<td>245 ms total</td>
+<td>0.015 ms per iteration</td>
+</tr>
+<tr>
+<td>Loops</td>
+<td>1</td>
+<td>4,160 (one per order)</td>
+</tr>
+<tr>
+<td>Total Query Time</td>
+<td>8,421 ms</td>
+<td>185 ms</td>
+</tr>
+</tbody>
+</table>
+
+<p class="site-block-paragraph">
+The join strategy changed from Hash Join to Nested Loop. With the index, the database can now say: "For each of these 4,160 orders, look up the order_items directly in the index." Each lookup takes 0.015 ms and finds 7 rows on average. 4,160 orders × 7 rows = 28,950 rows. The sort still takes time (184 ms), but that is unavoidable for ordering.
+</p>
+
+<p class="site-block-paragraph">
+Total improvement: 8,421 ms to 185 ms. A 45x speedup. The query is now acceptable.
+</p>
+
+<h2>Understanding Key Metrics in EXPLAIN Output</h2>
+
+<p class="site-block-paragraph">
+<strong>cost=X..Y</strong> The planner's estimate of work. X is startup cost, Y is total cost. These are abstract units, not milliseconds. Larger costs usually mean more I/O or processing, but they are relative, not absolute. Use them to compare plans, not to predict real time.
+</p>
+
+<p class="site-block-paragraph">
+<strong>actual time=X..Y</strong> Only shown in EXPLAIN ANALYZE. X is time to return the first row, Y is time to return all rows. Measured in milliseconds. This is real timing data and is what you care about.
+</p>
+
+<p class="site-block-paragraph">
+<strong>rows</strong> The actual number of rows returned by this operation. Compare it to the estimated rows in the plan. If actual is much higher than estimated, the planner is bad at guessing, and you may need to update table statistics with ANALYZE.
+</p>
+
+<p class="site-block-paragraph">
+<strong>loops</strong> How many times this operation ran. A Nested Loop that scans order_items with loops=4160 means it ran 4,160 times, once for each order. loops=1 means it ran once.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Filter vs Index Cond</strong> Index Cond is applied by the index itself (fast). Filter is applied after the index returns rows (slower). If you see Filter on a table scan, that condition was not used in the index, so the database had to read the rows first.
+</p>
+
+<h2>Common Mistakes When Reading EXPLAIN</h2>
+
+<p class="site-block-paragraph">
+<strong>Mistake 1: Focusing on cost instead of actual time</strong> Many developers see cost=145223 and assume the operation is slow. Cost is a planner heuristic. Real time comes from the actual time field. A high cost might be justified if the result set is small.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 2: Assuming Seq Scan is always bad</strong> A Seq Scan reading 50,000 rows in 240 ms is completely fine and often the right choice. Seq Scans are fast for small tables or when the cost of an index scan (with random I/O) would be higher. The problem in our example was reading 2,000,000 rows, not the Seq Scan itself.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 3: Missing the actual bottleneck because you stop reading early</strong> Developers see a Hash Join and assume it is slow, then add indexes randomly. The actual bottleneck is often in the child operations (the Seq Scan that feeds the join), not the join itself.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 4: Not updating ANALYZE</strong> If the planner estimates are wildly off (actual rows vs planned rows differ by 10x), run ANALYZE on the table to update statistics. The planner makes decisions based on these statistics.
+</p>
+
+<pre><code class="language-sql">
+ANALYZE order_items;
+</code></pre>
+
+<p class="site-block-paragraph">
+<strong>Mistake 5: Confusing loops with parallelism</strong> loops=10 does not mean the operation ran in parallel. It means it ran 10 times sequentially, probably in a nested loop. Parallelism is shown differently (Parallel Seq Scan).
+</p>
+
+<h2>When to Add Indexes vs Other Fixes</h2>
+
+<p class="site-block-paragraph">
+EXPLAIN ANALYZE tells you if an index would help, but not whether you should add one. Consider:
+</p>
+
+<p class="site-block-paragraph">
+<strong>Add an index if:</strong> You see a Seq Scan on a large table where the output is much smaller than the input (many rows filtered out), and the query is slow. The index scan cost (including random I/O) should be lower than reading all rows.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Do not add an index if:</strong> The table is small (under 1,000 rows) or the index would be unused (no matching filter conditions). Indexes add write overhead to INSERT, UPDATE, and DELETE operations.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Consider rewriting the query if:</strong> The plan shows a massive join output followed by a sort and group, like in our example. Sometimes a different join order or aggregation strategy is faster. This is where a database consultant can help. If you manage a production database that regularly has slow query problems, consulting on query optimization can save significant engineering time.
+</p>
+
+<h2>Tools for Real-World Debugging</h2>
+
+<p class="site-block-paragraph">
+EXPLAIN is built into every SQL database, but parsing output by hand is tedious. Tools like pgAdmin for PostgreSQL, or DBeaver (which works across databases) make this easier by highlighting slow operations and suggesting optimizations. See <a href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">recommended tools</a> for a list of debuggers and analyzers that actually work.
+</p>
+
+<p class="site-block-paragraph">
+For production systems, log slow queries and their EXPLAIN plans automatically. PostgreSQL has log_min_duration_statement to log queries over a threshold. MySQL has the slow query log. Use these logs to find the real bottlenecks in your system, not guesses from development.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>What does a Seq Scan mean?</h3>
+<p>Seq Scan (sequential scan) means the database reads every row in the table, in order. It does not use an index. This is not always bad. It is fast for small tables or when filtering most rows. It is a problem when you have millions of rows and the WHERE condition could use an index but does not.</p>
+
+<h3>Why do actual rows differ from planned rows?</h3>
+<p>The planner estimates based on table statistics, which become stale. Run ANALYZE to update statistics after large data changes. If estimates are still wrong, you may have columns with non-uniform data distribution, or the statistics table settings need tuning.</p>
+
+<h3>What is a Nested Loop?</h3>
+<p>A Nested Loop join runs the inner operation once for each row from the outer operation. It is fast when the inner operation is cheap (like an index lookup) and the outer result set is small. It is slow when combined with Seq Scans because you read the inner table repeatedly.</p>
+
+<h3>Can I force the planner to use a specific index?</h3>
+<p>In PostgreSQL, you can use the enable_* parameters or hint extensions like pg_hint_plan. In MySQL, you can use USE INDEX or FORCE INDEX. Avoid this unless the planner is clearly wrong. It is usually a sign that your statistics are outdated or the schema needs restructuring.</p>
+
+<h3>How do I know if an index will slow down writes?</h3>
+<p>Every index adds overhead to INSERT, UPDATE, and DELETE. Run a write-heavy workload before and after adding an index and measure throughput. For OLTP systems, the read speedup usually justifies the write cost. For write-heavy systems (logs, event streams), indexes must be selective.</p>
+
+<h3>Should I index every column used in a WHERE clause?</h3>
+<p>No. Index the columns that filter the most rows first, then add multi-column indexes if the planner still uses Seq Scans. Too many indexes slow down writes and waste storage. Read the EXPLAIN plan to see which columns actually need indexes.</p>
+
+<h3>What is the difference between EXPLAIN and EXPLAIN ANALYZE?</h3>
+<p>EXPLAIN shows the plan without running the query (fast, estimates only). EXPLAIN ANALYZE actually runs the query and shows real numbers (slow, but accurate). Always use EXPLAIN ANALYZE for troubleshooting.</p>
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">1 tools which i like and recommend to use</a></li><li><a href="/my-service.html">My service</a></li></ul><p><a href="/category/tools/">More in Development Tools</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
