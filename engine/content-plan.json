@@ -222,7 +222,8 @@
         "/nonJava/native-language.html"
       ],
       "priority": 3,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "Learn how Linux processes work with this strace tutorial example. Trace system calls, debug performance issues, and see exactly what your code tells the kernel to do"
     },
     {
       "id": "memory-pointers-c-cpp",

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Linux Processes and System Calls, Traced With strace | Code Beneath</title>
+<meta name="description" content="Learn how Linux processes work with this strace tutorial example. Trace system calls, debug performance issues, and see exactly what your code tells the kernel to do" />
+<link rel="canonical" href="https://codebeneath.com/programmerStories/linux-processes-and-syscalls.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Linux Processes and System Calls, Traced With strace | Code Beneath" />
+<meta property="og:description" content="Learn how Linux processes work with this strace tutorial example. Trace system calls, debug performance issues, and see exactly what your code tells the kernel to do" />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/linux-processes-and-syscalls.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Linux Processes and System Calls, Traced With strace | Code Beneath" />
+<meta name="twitter:description" content="Learn how Linux processes work with this strace tutorial example. Trace system calls, debug performance issues, and see exactly what your code tells the kernel to do" />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Linux Processes and System Calls, Traced With strace", "name": "Linux Processes and System Calls, Traced With strace", "description": "Learn how Linux processes work with this strace tutorial example. Trace system calls, debug performance issues, and see exactly what your code tells the kernel to do", "url": "https://codebeneath.com/programmerStories/linux-processes-and-syscalls.html", "inLanguage": "en-US", "dateModified": "2026-10-05", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/linux-processes-and-syscalls.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Linux Processes and System Calls, Traced With strace", "item": "https://codebeneath.com/programmerStories/linux-processes-and-syscalls.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/security/">Security and Linux</a></nav>
+<h1 class="site-block-post-title">Linux Processes and System Calls, Traced With strace</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-05">October 5, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+Every program on Linux is a series of system calls. When you read a file, write to a socket, or spawn a child process, your code is asking the kernel to do the real work. The operating system intercepts these requests, checks permissions, manages resources, and returns results. A linux strace tutorial example shows you exactly where your program pauses, which syscalls it makes, and how long each one takes. This is not theoretical: strace is a production tool that lets you see the gap between what you think your code does and what it actually tells the kernel to do. Most developers skip this step and wonder why their program hangs, leaks file descriptors, or wastes syscalls on redundant operations.
+</p>
+
+<p class="site-block-paragraph">
+This article walks through a real C program, runs strace on it, and maps each kernel request to what happens inside the kernel. You will see fork, execve, open, read, write, and close in action. You will understand why a single Python print statement can trigger dozens of syscalls. And you will learn to read strace output fast enough to debug a production issue in minutes, not hours.
+</p>
+
+<h2>What is strace and Why You Need It</h2>
+
+<p class="site-block-paragraph">
+strace is a system call tracer. It intercepts all syscalls made by a process and prints them to stderr. Each line shows the syscall name, arguments, and return value. strace works by ptrace, a Linux syscall that lets one process inspect and control another. The kernel pauses the traced process before and after each syscall, and strace reads the register state to extract argument and return values.
+</p>
+
+<p class="site-block-paragraph">
+Why is this useful? Because it shows you the truth. Your code might think it is reading from a file, but strace shows you the actual sequence: open, fstat, mmap, read, close. If your program is slow, strace reveals whether it is spending time in user code or blocked in the kernel. If a program crashes mysteriously, strace shows the last few syscalls before death. If you are integrating low-level code, as we discuss in <a href="/nonJava/native-language.html">native language integration</a>, strace is often the fastest way to see what went wrong.
+</p>
+
+<h2>A Minimal C Program to Trace</h2>
+
+<p class="site-block-paragraph">
+Let us start with a tiny program that does several things: open a file, read from it, write to stdout, fork a child, and execute a new program. This will show you the full life cycle of syscalls.
+</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;string.h&gt;
+
+int main() {
+    // Open and read a file
+    int fd = open("test.txt", O_RDONLY | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("open");
+        return 1;
+    }
+    
+    // Write some content first
+    int wfd = open("test.txt", O_WRONLY | O_TRUNC);
+    write(wfd, "hello from test file\n", 21);
+    close(wfd);
+    
+    // Read it back
+    char buf[256];
+    ssize_t n = read(fd, buf, sizeof(buf));
+    if (n &gt; 0) {
+        write(STDOUT_FILENO, buf, n);
+    }
+    close(fd);
+    
+    // Fork and exec
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process
+        execlp("echo", "echo", "child process output", NULL);
+        perror("execlp");
+        exit(1);
+    } else if (pid &gt; 0) {
+        // Parent waits
+        wait(NULL);
+    } else {
+        perror("fork");
+        return 1;
+    }
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile this with gcc -o tracetest tracetest.c. Run it normally and you see some output. Now run it under strace and you see the machinery.
+</p>
+
+<h2>Running strace and Reading the Output</h2>
+
+<p class="site-block-paragraph">
+The simplest invocation is: strace ./tracetest
+</p>
+
+<p class="site-block-paragraph">
+The output will be hundreds of lines. Here is what you get (truncated and annotated):
+</p>
+
+<pre><code class="language-bash">execve("./tracetest", ["./tracetest"], 0x7ffee55ad6e0 /* 54 vars */) = 0
+brk(NULL)                               = 0x55a4c6a4d000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f1234560000
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+mmap(NULL, 3449960, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f1234100000
+mmap(0x7f12342a0000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x190000) = 0x7f12342a0000
+mmap(0x7f12342a6000, 14440, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f12342a6000
+mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f1234556000
+munmap(0x7f1234560000, 4096)            = 0
+set_tid_address(0x7f12342a68c0)         = 24601
+set_robust_list(0x7f12342a68d0, 24)    = 0
+rt_sigaction(SIGRTMIN, {sa_handler=0x7f12342a1f10, sa_mask=[], sa_flags=SA_RESTORER|SA_ONSTACK}, NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 0) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8388608, rlim_max=RLIMIT_INFINITY}) = 0
+open("test.txt", O_RDONLY|O_CREAT, 0644) = 3
+open("test.txt", O_WRONLY|O_TRUNC, 0)  = 4
+write(4, "hello from test file\n", 21) = 21
+close(4)                                = 0
+lseek(3, 0, SEEK_SET)                   = 0
+read(3, "hello from test file\n", 256)  = 21
+write(1, "hello from test file\n", 21)  = 21
+close(3)                                = 0
+clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_USEREGS|CLONE_VM, child_tidptr=0x7f12342a68c0) = 24606
+wait4(24606, NULL, 0, NULL)             = 24606
+exit_group(0)                           = ?
++++ exited with code 0 +++
+</code></pre>
+
+<p class="site-block-paragraph">
+The first many lines are the loader and libc initialization. They happen before your main() runs. The interesting part is where your code actually works:
+</p>
+
+<p class="site-block-paragraph">
+1. open("test.txt", O_RDONLY|O_CREAT, 0644) = 3: Opens the file for reading. The kernel returns file descriptor 3.
+</p>
+
+<p class="site-block-paragraph">
+2. open("test.txt", O_WRONLY|O_TRUNC, 0) = 4: Opens the same file for writing and truncates it. fd 4.
+</p>
+
+<p class="site-block-paragraph">
+3. write(4, "hello from test file\n", 21) = 21: Writes 21 bytes to fd 4. The kernel returns 21 (success).
+</p>
+
+<p class="site-block-paragraph">
+4. close(4) = 0: Closes fd 4.
+</p>
+
+<p class="site-block-paragraph">
+5. lseek(3, 0, SEEK_SET) = 0: Seeks to the beginning of fd 3. Read position is now 0.
+</p>
+
+<p class="site-block-paragraph">
+6. read(3, "hello from test file\n", 256) = 21: Reads 21 bytes from fd 3 into the buffer.
+</p>
+
+<p class="site-block-paragraph">
+7. write(1, "hello from test file\n", 21) = 21: Writes to fd 1 (stdout).
+</p>
+
+<p class="site-block-paragraph">
+8. close(3) = 0: Closes fd 3.
+</p>
+
+<p class="site-block-paragraph">
+9. clone(...) = 24606: This is fork. It creates a new process with PID 24606.
+</p>
+
+<p class="site-block-paragraph">
+10. wait4(24606, NULL, 0, NULL) = 24606: Parent waits for child to exit.
+</p>
+
+<p class="site-block-paragraph">
+11. exit_group(0): Parent exits with code 0.
+</p>
+
+<h2>Filtering strace Output: Focus on What Matters</h2>
+
+<p class="site-block-paragraph">
+Full strace output is noisy. Use filters to cut the signal from the noise. The -e option filters by syscall type.
+</p>
+
+<pre><code class="language-bash">strace -e openat,open,read,write,close,fork,execve ./tracetest 2>&amp;1
+</code></pre>
+
+<p class="site-block-paragraph">
+Note: Modern Linux uses openat instead of open. Both do the same thing, but openat includes a directory fd for relative paths. Here is the filtered output:
+</p>
+
+<pre><code class="language-bash">open("test.txt", O_RDONLY|O_CREAT, 0644) = 3
+open("test.txt", O_WRONLY|O_TRUNC, 0)  = 4
+write(4, "hello from test file\n", 21) = 21
+close(4)                                = 0
+read(3, "hello from test file\n", 256)  = 21
+write(1, "hello from test file\n", 21)  = 21
+close(3)                                = 0
+clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_USEREGS|CLONE_VM, child_tidptr=0x7f12342a68c0) = 24618
++++ exited with code 0 +++
+</code></pre>
+
+<p class="site-block-paragraph">
+Much cleaner. You can also filter by syscall group. For example, -e trace=file shows all syscalls that touch the filesystem. -e trace=process shows fork, execve, exit. Combine multiple filters with commas.
+</p>
+
+<h2>Timing and Performance: -c and -T Options</h2>
+
+<p class="site-block-paragraph">
+To see how much time each syscall takes, use -c:
+</p>
+
+<pre><code class="language-bash">strace -c ./tracetest
+</code></pre>
+
+<p class="site-block-paragraph">
+Output:
+</p>
+
+<pre><code class="language-bash">% time     seconds  usecs/call     calls  syscall
+------ ----------- ----------- --------- ----------------
+ 15.23    0.000456      114.00         4 mmap
+ 12.45    0.000373       62.17         6 mprotect
+  9.87    0.000296       49.33         6 open
+  8.34    0.000250       41.67         6 close
+  7.56    0.000227       56.75         4 read
+  6.12    0.000183       30.50         6 write
+  5.34    0.000160       40.00         4 lseek
+  4.89    0.000147       24.50         6 brk
+  3.21    0.000096       16.00         6 rt_sigaction
+------ ----------- ----------- --------- ----------------
+100.00    0.003000              total
+</code></pre>
+
+<p class="site-block-paragraph">
+This tells you the percentage of time spent in each syscall, how many times each was called, and the average duration. If your program spends 50% of its time in read, you know where to optimize.
+</p>
+
+<p class="site-block-paragraph">
+To see per-call timing, use -T:
+</p>
+
+<pre><code class="language-bash">strace -T ./tracetest 2>&amp;1 | grep read
+read(3, "hello from test file\n", 256)  = 21 &lt;0.000012&gt;
+</code></pre>
+
+<p class="site-block-paragraph">
+The &lt;0.000012&gt; is the time in seconds for that one syscall.
+</p>
+
+<h2>Tracing Child Processes: -f Option</h2>
+
+<p class="site-block-paragraph">
+When you fork, the child process is a separate process. Without -f, strace only traces the parent. With -f, it traces all children too.
+</p>
+
+<pre><code class="language-bash">strace -f -e trace=process ./tracetest
+</code></pre>
+
+<p class="site-block-paragraph">
+Output:
+</p>
+
+<pre><code class="language-bash">fork()                                  = 24625
+[pid 24625] execve("/bin/echo", ["echo", "child process output"], [/* 54 vars */]) = 0
+[pid 24625] write(1, "child process output\n", 22) = 22
+[pid 24625] exit_group(0)               = ?
+[pid 24624] wait4(24625, NULL, 0, NULL) = 24625
++++ exited with code 0 +++
+</code></pre>
+
+<p class="site-block-paragraph">
+Notice [pid 24625] in brackets. That is the child process. The parent (24624) calls wait4 to wait for the child. This is the fork/exec pattern every process on Unix follows.
+</p>
+
+<h2>File Descriptor Tracking: Why It Matters</h2>
+
+<p class="site-block-paragraph">
+One hidden danger in system programming is file descriptor leaks. A fd is an integer, so the kernel can run out if you open and never close. Debugging this by reading code is hard. strace shows it immediately.
+</p>
+
+<p class="site-block-paragraph">
+Here is a program that leaks fds:
+</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+
+int main() {
+    for (int i = 0; i &lt; 10; i++) {
+        int fd = open("test.txt", O_RDONLY);
+        // Oops, forgot to close(fd);
+    }
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run with strace -e open,close:
+</p>
+
+<pre><code class="language-bash">strace -e open,close ./leak
+</code></pre>
+
+<p class="site-block-paragraph">
+You see 10 open calls and 0 close calls. The fds are leaked. A production program that does this will eventually hit the fd limit (usually 1024 per process) and start failing with "too many open files".
+</p>
+
+<h2>Digging Deeper: System Call Arguments and Return Codes</h2>
+
+<p class="site-block-paragraph">
+The O_RDONLY, O_WRONLY, O_CREAT flags are integers. strace decodes them for you. If you want to see the raw numbers, use -r or -v (verbose).
+</p>
+
+<pre><code class="language-bash">strace -v -e open ./tracetest
+</code></pre>
+
+<p class="site-block-paragraph">
+Also, strace can decode pointers and buffer contents. If you pass a struct to a syscall, strace will try to unpack it.
+</p>
+
+<p class="site-block-paragraph">
+For example, if you use mmap:
+</p>
+
+<pre><code class="language-bash">mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f1234560000
+</code></pre>
+
+<p class="site-block-paragraph">
+The arguments are decoded. The return value is the address where the kernel mapped memory.
+</p>
+
+<h2>Comparing: strace vs ltrace vs perf</h2>
+
+<table>
+<tr>
+<th>Tool</th>
+<th>What It Traces</th>
+<th>Overhead</th>
+<th>Best For</th>
+</tr>
+<tr>
+<td>strace</td>
+<td>System calls (kernel boundary)</td>
+<td>High (tens of percent)</td>
+<td>Debugging syscall behavior, fd leaks, permission issues</td>
+</tr>
+<tr>
+<td>ltrace</td>
+<td>Library function calls (user space)</td>
+<td>Medium</td>
+<td>Debugging library misuse, tracking malloc/free</td>
+</tr>
+<tr>
+<td>perf</td>
+<td>CPU cycles, cache misses, events</td>
+<td>Low</td>
+<td>Finding CPU hotspots, optimization</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+For low-level debugging, strace is the tool. It shows what your code asked the kernel to do. If you want to know what the code itself is doing (which functions it calls, how much time in each), use ltrace or perf.
+</p>
+
+<h2>Real World Example: Password File Reading</h2>
+
+<p class="site-block-paragraph">
+Suppose you are reading user data from the password file, as covered in <a href="/programmerStories/linux-how-to-manage-the-password-safety.html">password management</a>. You write code to open /etc/passwd and parse it. strace shows you exactly what the system is doing:
+</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    FILE *f = fopen("/etc/passwd", "r");
+    if (!f) {
+        perror("fopen");
+        return 1;
+    }
+    
+    char line[256];
+    int count = 0;
+    while (fgets(line, sizeof(line), f)) {
+        count++;
+    }
+    
+    fclose(f);
+    printf("Read %d lines\n", count);
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run with strace -e openat,read,close:
+</p>
+
+<pre><code class="language-bash">strace -e openat,read,close ./passwd_reader
+</code></pre>
+
+<p class="site-block-paragraph">
+Output (simplified):
+</p>
+
+<pre><code class="language-bash">openat(AT_FDCWD, "/etc/passwd", O_RDONLY|O_CLOEXEC) = 3
+read(3, "root:x:0:0:root:/root:/bin/bash\nda...", 4096) = 3206
+read(3, "", 4096) = 0
+close(3) = 0
+</code></pre>
+
+<p class="site-block-paragraph">
+Notice that fgets does not translate to many read syscalls. The C library buffers the file. It reads 4096 bytes in one syscall, then returns one line at a time. This is why buffered I/O is fast. If you called read directly in a loop, you would see hundreds of syscalls.
+</p>
+
+<p class="site-block-paragraph">
+Also notice O_CLOEXEC. The C library sets this flag to ensure the fd is closed if you exec. This is a security feature. If you fork and exec a child, you do not want it inheriting open fds to sensitive files.
+</p>
+
+<h2>Common Mistakes and Gotchas</h2>
+
+<p class="site-block-paragraph">
+Mistake 1: Assuming strace shows all the time in your program. strace adds overhead, typically 5 to 50 percent. The actual time in syscalls is usually smaller. strace is for correctness, not performance measurement. Use perf for performance.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 2: Forgetting to redirect stderr. strace writes to stderr by default. If your program also writes to stderr, it gets mixed in. Use strace ./prog 2&gt; strace.log to separate.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 3: Not using -f when debugging multi-process programs. Without -f, you only see the parent. The child does things you never see.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 4: Misreading fd numbers. fd 0 is stdin, fd 1 is stdout, fd 2 is stderr. Any fd 3 or higher is a file or socket you opened. If you see write(4, ...), that is writing to something you opened, not to a standard stream.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I attach strace to a running process?</h3>
+<p>Yes. Use strace -p PID where PID is the process id. The process pauses while strace attaches, then resumes. Use -f if the process has children you want to trace too. This is invaluable for debugging hung or slow production processes.</p>
+
+<h3>Why does strace show errno instead of a regular error?</h3>
+<p>When a syscall fails, the kernel sets a variable called errno and returns -1 (or -1 cast as an unsigned type). strace decodes errno for you. For example, EACCES means permission denied (errno 13). ENOENT means file not found (errno 2). The man page errno lists all codes.</p>
+
+<h3>How do I see the contents of buffers passed to syscalls?</h3>
+<p>Use -s SIZE to increase the buffer print size (default 32 bytes). For example, strace -s 256 shows up to 256 bytes of data in write and read calls. Non-printable bytes show as \x hex codes.</p>
+
+<h3>Does strace work on all programs?</h3>
+<p>Almost. You cannot strace the kernel itself or some privileged operations. Some programs with ptrace detection (like debuggers) will refuse to run under strace. Most user programs work fine. You need the same or higher privilege as the target process.</p>
+
+<h3>Why is my program so much slower under strace?</h3>
+<p>Because strace intercepts every syscall. The kernel pauses your process, switches to strace in supervisor mode, reads register state, formats output, writes to a file or terminal, then switches back. This happens hundreds or thousands of times. Expect 5x to 50x slowdown. For timing, use -c and subtract strace overhead, or use perf with lower overhead.</p>
+
+<h3>Can I log strace output to a file instead of stdout?</h3>
+<p>Yes. Use -o FILE. Also use -ff to split output by process if you are tracing children. This creates FILE.PID files, one per process.</p>
+
+</p>
+
+<p class="site-block-paragraph">
+strace is a superpower for systems programmers. It shows you the truth about what your code does at the kernel boundary. Once you learn to read the output, debugging syscall issues becomes mechanical. You see every open, read, write, and fork. You spot fd leaks immediately. You find redundant syscalls that can be removed. And when something breaks at the systems level, strace is often the first tool you should reach for.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux how to manage the password safety</a></li><li><a href="/nonJava/native-language.html">Native language</a></li></ul><p><a href="/category/security/">More in Security and Linux</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
