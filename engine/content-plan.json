@@ -243,7 +243,8 @@
         "/nonJava/go-lang.html"
       ],
       "priority": 3,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "Master pointers and memory management C++ example: stack, heap, ownership, and smart pointers with runnable code that prints real addresses."
     },
     {
       "id": "containers-networking-basics",

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Pointers and Memory in C and C++, Without the Fear | Code Beneath</title>
+<meta name="description" content="Master pointers and memory management C++ example: stack, heap, ownership, and smart pointers with runnable code that prints real addresses." />
+<link rel="canonical" href="https://codebeneath.com/nonJava/pointers-and-memory-c-cpp.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Pointers and Memory in C and C++, Without the Fear | Code Beneath" />
+<meta property="og:description" content="Master pointers and memory management C++ example: stack, heap, ownership, and smart pointers with runnable code that prints real addresses." />
+<meta property="og:url" content="https://codebeneath.com/nonJava/pointers-and-memory-c-cpp.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Pointers and Memory in C and C++, Without the Fear | Code Beneath" />
+<meta name="twitter:description" content="Master pointers and memory management C++ example: stack, heap, ownership, and smart pointers with runnable code that prints real addresses." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Pointers and Memory in C and C++, Without the Fear", "name": "Pointers and Memory in C and C++, Without the Fear", "description": "Master pointers and memory management C++ example: stack, heap, ownership, and smart pointers with runnable code that prints real addresses.", "url": "https://codebeneath.com/nonJava/pointers-and-memory-c-cpp.html", "inLanguage": "en-US", "dateModified": "2026-10-07", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/nonJava/pointers-and-memory-c-cpp.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Pointers and Memory in C and C++, Without the Fear", "item": "https://codebeneath.com/nonJava/pointers-and-memory-c-cpp.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/languages/">Programming Languages</a></nav>
+<h1 class="site-block-post-title">Pointers and Memory in C and C++, Without the Fear</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-07">October 7, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+If you come from Java or Go, pointers and memory management in C++ feel like someone handed you a loaded gun without a safety. The language will not stop you from dereferencing null, reading freed memory, or leaking gigabytes. But pointers are not evil. They are the mechanism underneath every network socket, every memory pool, every high-performance system. Once you see what actually happens in memory, the fear dissolves into understanding. This article shows you pointers and memory management C++ example code that prints real addresses, demonstrates the stack, the heap, and the specific mistakes that burn production services.
+</p>
+
+<h2>The Stack and Heap, Visible</h2>
+
+<p class="site-block-paragraph">
+In Java, you think in references. In Go, the language decides whether a value lives on the stack or heap, and you rarely care. In C++, you decide, and you see the consequences immediately. Let us start with a program that prints actual memory addresses so you can watch the stack and heap in action.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+int main() {
+    // Stack allocation
+    int stack_int = 42;
+    int* ptr_to_stack = &amp;stack_int;
+    
+    cout &lt;&lt; "Stack int address: " &lt;&lt; ptr_to_stack &lt;&lt; endl;
+    cout &lt;&lt; "Stack int value: " &lt;&lt; *ptr_to_stack &lt;&lt; endl;
+    
+    // Heap allocation
+    int* heap_int = new int(100);
+    cout &lt;&lt; "Heap int address: " &lt;&lt; heap_int &lt;&lt; endl;
+    cout &lt;&lt; "Heap int value: " &lt;&lt; *heap_int &lt;&lt; endl;
+    
+    // Another stack variable
+    int another_stack = 999;
+    cout &lt;&lt; "Another stack int address: " &lt;&lt; &amp;another_stack &lt;&lt; endl;
+    
+    // Typical output on a 64-bit system:
+    // Stack int address: 0x7ffc6b7ff65c
+    // Stack int value: 42
+    // Heap int address: 0x55a7c1a19260
+    // Heap int value: 100
+    // Another stack int address: 0x7ffc6b7ff658
+    
+    delete heap_int;
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run this: the stack addresses are close together and large (typically 0x7fff...). The heap address is different and typically smaller. That is not magic. The operating system maps these regions. When your program starts, it gets a stack that grows downward (on most systems) and a heap that grows upward. Variables declared directly in a function live on the stack. Memory allocated with <code>new</code> lives on the heap. The pointer itself (the address value) lives wherever you declare it. The thing it points to lives on the heap or stack depending on how it was created.
+</p>
+
+<p class="site-block-paragraph">
+Stack variables are fast and automatic. They vanish when the function returns. Heap memory persists until you explicitly deallocate it with <code>delete</code>. That freedom is also a trap.
+</p>
+
+<h2>Ownership and the Use-After-Free Bug</h2>
+
+<p class="site-block-paragraph">
+Here is the most common nightmare in C++: you free memory, then accidentally read or write it anyway.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+int* create_number() {
+    int* num = new int(42);
+    return num;
+}
+
+int main() {
+    int* my_number = create_number();
+    
+    cout &lt;&lt; "Value: " &lt;&lt; *my_number &lt;&lt; endl;  // OK
+    
+    delete my_number;
+    
+    cout &lt;&lt; "After delete: " &lt;&lt; *my_number &lt;&lt; endl;  // UNDEFINED BEHAVIOR
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run this. It might print garbage, crash, or appear to work (do not trust that). The memory is gone, but the pointer is still valid in the sense that it holds an address. You can still dereference it. The operating system did not magic away the bits. It just marked that memory as "available to reuse." When you read or write to freed memory, you are corrupting whatever now lives there. In a server, this is a data corruption bug that shows up as silent, random failures weeks later.
+</p>
+
+<p class="site-block-paragraph">
+Who owns the memory? In the code above, <code>create_number</code> allocates but does not deallocate. The caller gets the pointer and must remember to delete it. If you forget, memory leaks. If you delete twice, crash. If you delete in the wrong place, the other place crashes. This is why everyone dreads C++ in large codebases.
+</p>
+
+<h2>Smart Pointers: Automatic Ownership</h2>
+
+<p class="site-block-paragraph">
+In C++11 and later, smart pointers solve ownership by using a concept borrowed from Rust: the memory is owned by an object that cleans itself up. The two main types are <code>unique_ptr</code> (exclusive ownership) and <code>shared_ptr</code> (reference counted).
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+using namespace std;
+
+int* create_number_raw() {
+    return new int(42);
+}
+
+unique_ptr&lt;int&gt; create_number_smart() {
+    return make_unique&lt;int&gt;(42);
+}
+
+int main() {
+    // The old way: you manage
+    int* raw_num = create_number_raw();
+    cout &lt;&lt; "Raw: " &lt;&lt; *raw_num &lt;&lt; endl;
+    delete raw_num;  // Must not forget
+    
+    // The smart way: the pointer manages itself
+    unique_ptr&lt;int&gt; smart_num = create_number_smart();
+    cout &lt;&lt; "Smart: " &lt;&lt; *smart_num &lt;&lt; endl;
+    // Automatically deleted when smart_num goes out of scope
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+A <code>unique_ptr</code> owns its memory exclusively. When the <code>unique_ptr</code> object is destroyed (at the end of the function, or when a variable goes out of scope), it automatically calls <code>delete</code>. You cannot copy it. You can only move it (transfer ownership). This makes ownership explicit in the code: if a function returns a <code>unique_ptr&lt;int&gt;</code>, you know who owns the memory.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+class Config {
+public:
+    Config(const string&amp; name) : name(name) {
+        cout &lt;&lt; "Config created: " &lt;&lt; name &lt;&lt; endl;
+    }
+    ~Config() {
+        cout &lt;&lt; "Config destroyed: " &lt;&lt; name &lt;&lt; endl;
+    }
+    
+    string name;
+};
+
+unique_ptr&lt;Config&gt; load_config() {
+    return make_unique&lt;Config&gt;("production");
+}
+
+int main() {
+    cout &lt;&lt; "Before scope" &lt;&lt; endl;
+    {
+        auto config = load_config();
+        cout &lt;&lt; "Inside scope, config name: " &lt;&lt; config-&gt;name &lt;&lt; endl;
+    }
+    cout &lt;&lt; "After scope" &lt;&lt; endl;
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this and watch the output. You will see "Config created", then "Inside scope", then "Config destroyed", then "After scope". The destructor runs automatically when the <code>unique_ptr</code> goes out of scope. No manual cleanup, no leak, no use-after-free possible.
+</p>
+
+<p class="site-block-paragraph">
+<code>shared_ptr</code> is similar but counts references. If multiple parts of your code own a piece of data, use <code>shared_ptr</code>. When the last reference is released, the memory is freed.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+using namespace std;
+
+class Resource {
+public:
+    Resource(int id) : id(id) {
+        cout &lt;&lt; "Resource " &lt;&lt; id &lt;&lt; " allocated" &lt;&lt; endl;
+    }
+    ~Resource() {
+        cout &lt;&lt; "Resource " &lt;&lt; id &lt;&lt; " freed" &lt;&lt; endl;
+    }
+    int id;
+};
+
+int main() {
+    shared_ptr&lt;Resource&gt; r1 = make_shared&lt;Resource&gt;(1);
+    cout &lt;&lt; "r1 use_count: " &lt;&lt; r1.use_count() &lt;&lt; endl;  // 1
+    
+    {
+        shared_ptr&lt;Resource&gt; r2 = r1;  // Copy, increment reference count
+        cout &lt;&lt; "r1 use_count after r2 = r1: " &lt;&lt; r1.use_count() &lt;&lt; endl;  // 2
+    }
+    
+    cout &lt;&lt; "r1 use_count after r2 destroyed: " &lt;&lt; r1.use_count() &lt;&lt; endl;  // 1
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+This prints: "Resource 1 allocated", "r1 use_count: 1", "r1 use_count after r2 = r1: 2", "r1 use_count after r2 destroyed: 1". When you exit main, r1 is destroyed, use_count drops to 0, and "Resource 1 freed" prints. You never write a destructor or delete. The shared_ptr handles it. This is closest to Go's garbage collection, but deterministic and transparent.
+</p>
+
+<h2>Stack vs. Heap Performance and Semantics</h2>
+
+<p class="site-block-paragraph">
+When should you allocate on the stack versus the heap? The rule is simple: stack when the size and lifetime are known at compile time, heap for large objects, long-lived data, or polymorphism. Here is a comparison.
+</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+<tr style="border-bottom: 2px solid #333;">
+<th style="padding: 10px; text-align: left; border-right: 1px solid #ccc;">Aspect</th>
+<th style="padding: 10px; text-align: left; border-right: 1px solid #ccc;">Stack</th>
+<th style="padding: 10px; text-align: left;">Heap</th>
+</tr>
+<tr style="border-bottom: 1px solid #ccc;">
+<td style="padding: 10px; border-right: 1px solid #ccc;">Speed</td>
+<td style="padding: 10px; border-right: 1px solid #ccc;">Very fast, one instruction</td>
+<td style="padding: 10px;">Slower, involves allocator</td>
+</tr>
+<tr style="border-bottom: 1px solid #ccc;">
+<td style="padding: 10px; border-right: 1px solid #ccc;">Lifetime</td>
+<td style="padding: 10px; border-right: 1px solid #ccc;">Automatic, function scope</td>
+<td style="padding: 10px;">Manual (you decide when to free)</td>
+</tr>
+<tr style="border-bottom: 1px solid #ccc;">
+<td style="padding: 10px; border-right: 1px solid #ccc;">Size limits</td>
+<td style="padding: 10px; border-right: 1px solid #ccc;">Limited (usually 1-8 MB)</td>
+<td style="padding: 10px;">Large (limited by RAM)</td>
+</tr>
+<tr style="border-bottom: 1px solid #ccc;">
+<td style="padding: 10px; border-right: 1px solid #ccc;">Fragmentation</td>
+<td style="padding: 10px; border-right: 1px solid #ccc;">None</td>
+<td style="padding: 10px;">Possible</td>
+</tr>
+<tr>
+<td style="padding: 10px; border-right: 1px solid #ccc;">Suitable for</td>
+<td style="padding: 10px; border-right: 1px solid #ccc;">Small, local values</td>
+<td style="padding: 10px;">Large structures, containers</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+In practice, on a <a href="/nonJava/native-language.html">native language</a> like C++, you allocate small local structures on the stack and wrap heap allocations in smart pointers. Containers like <code>vector</code> and <code>map</code> manage their own heap memory internally, so you do not have to think about it. When you need polymorphism (virtual functions), you use pointers to base classes, and again, wrap them in smart pointers.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Mistake 1: Returning a pointer to a stack variable.</strong>
+</p>
+
+<pre><code class="language-cpp">int* bad_function() {
+    int x = 42;
+    return &amp;x;  // WRONG: x is destroyed when function returns
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The caller gets a pointer to memory that no longer belongs to the program. This is a classic dangling pointer. Always return by value or return a <code>unique_ptr</code>.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 2: Deleting the same pointer twice.</strong>
+</p>
+
+<pre><code class="language-cpp">int* p = new int(42);
+delete p;
+delete p;  // CRASH: undefined behavior
+</code></pre>
+
+<p class="site-block-paragraph">
+If you use smart pointers, this is impossible. A <code>unique_ptr</code> can only be deleted once because it cannot be copied.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 3: Mixing new and delete with stack allocation.</strong>
+</p>
+
+<pre><code class="language-cpp">int x = 42;
+delete &amp;x;  // WRONG: x is on the stack, not heap
+</code></pre>
+
+<p class="site-block-paragraph">
+Only delete memory you allocated with <code>new</code>. Stack variables clean themselves up.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 4: Creating a <code>shared_ptr</code> from a raw pointer twice.</strong>
+</p>
+
+<pre><code class="language-cpp">int* raw = new int(42);
+shared_ptr&lt;int&gt; sp1(raw);
+shared_ptr&lt;int&gt; sp2(raw);  // WRONG: both think they own it
+// When sp1 is destroyed, it deletes raw
+// When sp2 is destroyed, it tries to delete it again: crash
+</code></pre>
+
+<p class="site-block-paragraph">
+If you have a raw pointer, create one smart pointer and use that. If you need multiple references, copy the smart pointer.
+</p>
+
+<h2>Pointers to Pointers and Indirection</h2>
+
+<p class="site-block-paragraph">
+Sometimes you need a pointer to a pointer. This is rare but essential for callbacks and certain data structures. Here is what is happening at the memory level.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+int main() {
+    int value = 42;
+    int* ptr = &amp;value;              // Pointer to int
+    int** ptr_ptr = &amp;ptr;           // Pointer to pointer
+    
+    cout &lt;&lt; "value: " &lt;&lt; value &lt;&lt; endl;
+    cout &lt;&lt; "ptr (address of value): " &lt;&lt; ptr &lt;&lt; endl;
+    cout &lt;&lt; "ptr_ptr (address of ptr): " &lt;&lt; ptr_ptr &lt;&lt; endl;
+    cout &lt;&lt; "*ptr (dereference once): " &lt;&lt; *ptr &lt;&lt; endl;
+    cout &lt;&lt; "**ptr_ptr (dereference twice): " &lt;&lt; **ptr_ptr &lt;&lt; endl;
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+<code>ptr_ptr</code> holds the address of <code>ptr</code>, which holds the address of <code>value</code>. Dereference once to get the pointer, twice to get the value. You will see this in C APIs (like sorting callbacks) and when working with arrays of pointers. In modern C++, avoid it when possible. Use references or containers instead.
+</p>
+
+<h2>References vs. Pointers</h2>
+
+<p class="site-block-paragraph">
+C++ has references, which are safer than pointers because they cannot be null and cannot be reseated (changed after initialization). A reference is a compiled-away alias to the original variable.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+void modify_by_pointer(int* p) {
+    *p = 100;
+}
+
+void modify_by_reference(int&amp; r) {
+    r = 100;
+}
+
+int main() {
+    int x = 42;
+    
+    modify_by_pointer(&amp;x);
+    cout &lt;&lt; "After pointer call: " &lt;&lt; x &lt;&lt; endl;
+    
+    x = 42;
+    modify_by_reference(x);
+    cout &lt;&lt; "After reference call: " &lt;&lt; x &lt;&lt; endl;
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Both produce the same machine code. Use pointers when you need to store an address, pass a pointer to another function, or use nullptr as a sentinel. Use references for function parameters and return values. This makes the calling code cleaner and the intent clearer.
+</p>
+
+<h2>Arrays and Pointer Decay</h2>
+
+<p class="site-block-paragraph">
+In C++, an array name decays to a pointer to its first element. This is where many off-by-one bugs and buffer overruns live.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+int main() {
+    int arr[5] = {10, 20, 30, 40, 50};
+    
+    int* ptr = arr;  // arr decays to pointer to first element
+    
+    cout &lt;&lt; "arr[2]: " &lt;&lt; arr[2] &lt;&lt; endl;
+    cout &lt;&lt; "ptr[2]: " &lt;&lt; ptr[2] &lt;&lt; endl;  // Same
+    cout &lt;&lt; "*(ptr + 2): " &lt;&lt; *(ptr + 2) &lt;&lt; endl;  // Same
+    
+    cout &lt;&lt; "Size of arr: " &lt;&lt; sizeof(arr) &lt;&lt; endl;  // 20 (5 ints)
+    cout &lt;&lt; "Size of ptr: " &lt;&lt; sizeof(ptr) &lt;&lt; endl;  // 8 (one address)
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+When <code>arr</code> is assigned to <code>ptr</code>, you lose the size information. <code>ptr</code> is now just a pointer. In a function, if you pass an array as a parameter, it also decays. This is why C APIs that take arrays also take a size parameter. In C++, use <code>std::vector</code> or <code>std::array</code> to avoid this pitfall. They maintain bounds and size.
+</p>
+
+<h2>Function Pointers and Callbacks</h2>
+
+<p class="site-block-paragraph">
+Function pointers are addresses of executable code. They enable callbacks and late binding without virtual functions.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int multiply(int a, int b) {
+    return a * b;
+}
+
+int operate(int x, int y, int (*func)(int, int)) {
+    return func(x, y);
+}
+
+int main() {
+    int (*func_ptr)(int, int) = add;
+    
+    cout &lt;&lt; "Using add: " &lt;&lt; func_ptr(5, 3) &lt;&lt; endl;
+    
+    func_ptr = multiply;
+    cout &lt;&lt; "Using multiply: " &lt;&lt; func_ptr(5, 3) &lt;&lt; endl;
+    
+    cout &lt;&lt; "Using operate: " &lt;&lt; operate(5, 3, add) &lt;&lt; endl;
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Function pointers are rare in modern C++. Use <code>std::function</code> or lambdas instead. They are cleaner and type-safer.
+</p>
+
+<h2>The const Pointer</h2>
+
+<p class="site-block-paragraph">
+Const pointers confuse everyone. Remember: read from right to left. <code>const int* p</code> means "pointer to const int" (you cannot change the int). <code>int* const p</code> means "const pointer to int" (you cannot change the pointer, but can change the int).
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+int main() {
+    int x = 42;
+    int y = 100;
+    
+    // Pointer to const int: cannot modify x through this pointer
+    const int* p1 = &amp;x;
+    // *p1 = 50;  // COMPILE ERROR
+    p1 = &amp;y;      // OK, can change where p1 points
+    
+    // Const pointer to int: cannot change where p2 points
+    int* const p2 = &amp;x;
+    *p2 = 50;      // OK, can modify x
+    // p2 = &amp;y;  // COMPILE ERROR
+    
+    // Const pointer to const int: cannot do either
+    const int* const p3 = &amp;x;
+    // *p3 = 50;  // COMPILE ERROR
+    // p3 = &amp;y;  // COMPILE ERROR
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+This matters for function signatures. If a function takes <code>const int*</code>, it promises not to modify the data, and you can safely pass a pointer to const data. This is a key tool for communicating intent and preventing bugs.
+</p>
+
+<h2>Memory Alignment and Padding</h2>
+
+<p class="site-block-paragraph">
+Pointers and memory addresses must respect alignment. On a 64-bit system, a 64-bit value must be at an address divisible by 8. Smaller types have looser constraints. The compiler adds padding to structures to maintain alignment.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using namespace std;
+
+struct Bad {
+    char a;    // 1 byte
+    long b;    // 8 bytes
+    char c;    // 1 byte
+};
+
+struct Good {
+    long b;    // 8 bytes
+    char a;    // 1 byte
+    char c;    // 1 byte
+};
+
+int main() {
+    cout &lt;&lt; "sizeof(Bad): " &lt;&lt; sizeof(Bad) &lt;&lt; endl;   // 24 (not 10)
+    cout &lt;&lt; "sizeof(Good): " &lt;&lt; sizeof(Good) &lt;&lt; endl;  // 16 (not 10)
+    
+    Bad b;
+    cout &lt;&lt; "Address of b.a: " &lt;&lt; (void*)&amp;b.a &lt;&lt; endl;
+    cout &lt;&lt; "Address of b.b: " &lt;&lt; (void*)&amp;b.b &lt;&lt; endl;
+    cout &lt;&lt; "Address of b.c: " &lt;&lt; (void*)&amp;b.c &lt;&lt; endl;
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The compiler reorders and pads to keep <code>b</code> aligned to an 8-byte boundary. You do not control this directly (without compiler attributes), but you can optimize by grouping similar-sized fields. This is not usually critical for correctness, but it matters for tight memory constraints or cache-heavy workloads.
+</p>
+
+<h2>Common Debugging with Valgrind</h2>
+
+<p class="site-block-paragraph">
+When you suspect a memory bug, use Valgrind (on Linux). It detects use-after-free, leaks, and invalid writes.
+</p>
+
+<pre><code class="language-bash">g++ -g -o program program.cpp
+valgrind --leak-check=full ./program
+</code></pre>
+
+<p class="site-block-paragraph">
+The <code>-g</code> flag includes debug symbols so Valgrind can report line numbers. Valgrind runs your program in an emulator and tracks every memory operation. On a native language project, this is your safety net until you can refactor to smart pointers.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>What is the difference between a pointer and a reference?</h3>
+<p class="site-block-paragraph">
+A reference is an alias that cannot be null or reseated. A pointer holds an address and can be reassigned or null. Use references in function signatures and return types for clarity. Use pointers when you need to store addresses, check for null, or interface with C code.
+</p>
+
+<h3>When should I use unique_ptr vs. shared_ptr?</h3>
+<p class="site-block-paragraph">
+Use <code>unique_ptr</code> by default. It has zero overhead and clear ownership. Use <code>shared_ptr</code> only when multiple objects need to own the same resource. Reference counting has a small performance cost.
+</p>
+
+<h3>Can I return a raw pointer from a function?</h3>
+<p class="site-block-paragraph">
+Only if the caller is not responsible for deleting it. For example, returning a pointer to a member of an object that owns it. If the function allocates and the caller must delete, return a <code>unique_ptr</code> instead. It makes ownership explicit.
+</p>
+
+<h3>What causes a segmentation fault?</h3>
+<p class="site-block-paragraph">
+Reading or writing memory you do not own. Common causes: dereferencing null, using a dangling pointer, buffer overflow, or corrupted heap. Use Valgrind to find the exact line. Use smart pointers to prevent most causes.
+</p>
+
+<h3>Is C++ memory management faster than garbage collection?</h3>
+<p class="site-block-paragraph">
+Yes, but only if you write correct code. Smart pointers have negligible overhead compared to garbage collection, and you control exactly when cleanup happens. However, manual memory management is error-prone. For most code, choose clarity and correctness over micro-optimized manual cleanup.
+</p>
+
+<h3>How do I know if a pointer is valid?</h3>
+<p class="site-block-paragraph">
+You do not, without additional bookkeeping. This is why smart pointers are essential. A <code>unique_ptr</code> guarantees the memory is valid or null. For raw pointers, you must document ownership and lifetime in code comments or use static analysis tools.
+</p>
+
+<h3>What about null pointers?</h3>
+<p class="site-block-paragraph">
+A null pointer (address 0) is not valid to dereference. Always check before dereferencing a raw pointer: <code>if (ptr != nullptr) { ... }</code>. Smart pointers and references eliminate most null checks by design.
+</p>
+
+<h3>Should I worry about memory alignment when writing network code?</h3>
+<p class="site-block-paragraph">
+Yes, for parsing binary protocols. Misaligned casts can cause crashes or undefined behavior. Use <code>memcpy</code> for unaligned reads and writes, or use <code>#pragma pack</code> carefully. See <a href="/nonJava/native-language.html">native language</a> guides for serialization best practices.
+</p>
+
+<h3>How do I learn more about low-level memory in Go or languages like it?</h3>
+<p class="site-block-paragraph">
+Go abstracts memory, but reading about <a href="/nonJava/go-lang.html">Go</a> runtime and escape analysis is enlightening. Go shows you that memory decisions are still being made, just by the compiler, not you. C++ teaches you to make those decisions explicitly and understand the cost.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/native-language.html">Native language</a></li><li><a href="/nonJava/go-lang.html">Go lang</a></li></ul><p><a href="/category/languages/">More in Programming Languages</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
