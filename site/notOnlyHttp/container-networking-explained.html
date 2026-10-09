@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>How Container Networking Works: From veth to the Bridge | Code Beneath</title>
+<meta name="description" content="Learn how docker container networking works by building a veth pair and bridge manually with ip commands. See the kernel primitives Docker automates." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/container-networking-explained.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="How Container Networking Works: From veth to the Bridge | Code Beneath" />
+<meta property="og:description" content="Learn how docker container networking works by building a veth pair and bridge manually with ip commands. See the kernel primitives Docker automates." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/container-networking-explained.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="How Container Networking Works: From veth to the Bridge | Code Beneath" />
+<meta name="twitter:description" content="Learn how docker container networking works by building a veth pair and bridge manually with ip commands. See the kernel primitives Docker automates." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How Container Networking Works: From veth to the Bridge", "name": "How Container Networking Works: From veth to the Bridge", "description": "Learn how docker container networking works by building a veth pair and bridge manually with ip commands. See the kernel primitives Docker automates.", "url": "https://codebeneath.com/notOnlyHttp/container-networking-explained.html", "inLanguage": "en-US", "dateModified": "2026-10-09", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/container-networking-explained.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "How Container Networking Works: From veth to the Bridge", "item": "https://codebeneath.com/notOnlyHttp/container-networking-explained.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">How Container Networking Works: From veth to the Bridge</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-09">October 9, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you run a Docker container, you assume the network just works. A container gets an IP, you can reach it from the host, and you don't think about the mechanics. But understanding how docker container networking works is essential if you want to debug network issues, build custom networks, or understand why your container can't reach a service. The magic is not magic at all: it is virtual ethernet devices, kernel bridges, network namespaces, and some iptables rules. This article strips away the Docker abstraction and builds a bridge and veth pair by hand using only the <code>ip</code> command, so you see exactly what Docker does for you.
+</p>
+
+<h2>The Problem: Why Containers Need Special Networking</h2>
+
+<p class="site-block-paragraph">
+A container is not a separate physical machine. It is a Linux process with its own network namespace: its own set of network interfaces, routing table, and firewall rules. The kernel uses namespaces to isolate processes. A container's process thinks it owns eth0, but that interface does not exist on the host. The host has eth0 or wlan0, not the container.
+</p>
+
+<p class="site-block-paragraph">
+So how does a packet from inside a container reach the outside world? How does the host reach the container? Docker solves this with virtual ethernet devices and a bridge. The bridge acts like a network switch: it connects the host to one side and the container to the other, and it forwards packets between them. Each container gets a virtual ethernet pair, one half in the container namespace and one half connected to the bridge on the host.
+</p>
+
+<h2>Virtual Ethernet Pairs (veth): The Tunnel Between Namespaces</h2>
+
+<p class="site-block-paragraph">
+A veth pair is a Linux kernel mechanism that creates two virtual network interfaces permanently connected to each other. Send a packet to one side, it emerges from the other side. Think of it as a pipe between two network namespaces.
+</p>
+
+<p class="site-block-paragraph">
+Let us create a veth pair by hand:
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Create a veth pair
+# One side: veth-host, one side: veth-container
+ip link add veth-host type veth peer name veth-container
+
+# Check that both exist
+ip link show veth-host
+ip link show veth-container
+
+# Bring both up
+ip link set veth-host up
+ip link set veth-container up
+
+# Verify status
+ip link show | grep veth
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this script and you will see two new network interfaces. They are not connected to anything yet, just hanging there. If you send a packet to veth-host, the kernel forwards it to veth-container and vice versa. But since there is no namespace setup yet, both are on the host namespace.
+</p>
+
+<h2>Network Namespaces: Isolating the Container</h2>
+
+<p class="site-block-paragraph">
+A container's network isolation comes from a network namespace. The kernel separates each namespace so a process in a namespace sees only its own network interfaces. Create a namespace, move veth-container into it, and now the container process sees only veth-container, not the host's real interfaces.
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Create a network namespace called "container1"
+ip netns add container1
+
+# Move veth-container into the container1 namespace
+ip link set veth-container netns container1
+
+# Verify: veth-container is no longer visible on the host
+ip link show veth-container 2>&1 || echo "veth-container not on host (expected)"
+
+# But it is visible from inside the namespace
+ip netns exec container1 ip link show
+
+# We can also run a shell inside the namespace
+# ip netns exec container1 bash
+</code></pre>
+
+<p class="site-block-paragraph">
+Once veth-container is in the container1 namespace, the host kernel still manages it, but the container process cannot see veth-host or eth0. This is the isolation. The container thinks it has a brand new veth-container interface that is its only link to the outside.
+</p>
+
+<h2>The Bridge: The Network Switch</h2>
+
+<p class="site-block-paragraph">
+Now we need a way for the host and container to communicate. Enter the bridge: a virtual network switch that lives on the host. A bridge interface on Linux can connect multiple physical or virtual interfaces and forward frames between them, just like a hardware switch.
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Create a bridge
+ip link add br0 type bridge
+
+# Bring the bridge up
+ip link set br0 up
+
+# Connect veth-host to the bridge
+ip link set veth-host master br0
+
+# Give the bridge an IP address (the gateway for containers)
+ip addr add 172.17.0.1/16 dev br0
+
+# Verify
+ip link show br0
+ip addr show br0
+</code></pre>
+
+<p class="site-block-paragraph">
+The bridge is now up and has an IP address on the 172.17.0.0/16 subnet. veth-host is connected to it. When the host sends to 172.17.0.x, it goes to the bridge. The bridge, seeing veth-host, forwards it into veth-container. The container receives it on its veth-container interface.
+</p>
+
+<h2>Assigning IPs to the Container and Host Side</h2>
+
+<p class="site-block-paragraph">
+The bridge has 172.17.0.1. Now we assign the container side an IP on the same subnet. Inside the container namespace, we also need a default route pointing back to the bridge (the gateway).
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Inside container1 namespace: assign IP to veth-container
+ip netns exec container1 ip addr add 172.17.0.2/16 dev veth-container
+
+# Bring up the interface inside the namespace
+ip netns exec container1 ip link set veth-container up
+
+# Set default route inside the container to the bridge (host's veth-host IP is not visible, but gateway on bridge is)
+ip netns exec container1 ip route add default via 172.17.0.1 dev veth-container
+
+# Verify from inside the container
+ip netns exec container1 ip addr show
+ip netns exec container1 ip route show
+</code></pre>
+
+<p class="site-block-paragraph">
+Now the container has 172.17.0.2 on its veth-container interface, and its default route points to 172.17.0.1 (the bridge). The host has 172.17.0.1 on br0. They are on the same subnet.
+</p>
+
+<h2>Testing Connectivity</h2>
+
+<p class="site-block-paragraph">
+Let us verify that packets flow between the host and container. The simplest test is a ping from the container to the gateway.
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Ping from container to the bridge (gateway)
+echo "Pinging gateway from container:"
+ip netns exec container1 ping -c 2 172.17.0.1
+
+# Ping from host to the container
+echo "Pinging container from host:"
+ping -c 2 172.17.0.2
+
+# Verify packet flow with tcpdump (optional, requires another terminal)
+# sudo tcpdump -i veth-host -n icmp
+</code></pre>
+
+<p class="site-block-paragraph">
+If both pings work, packets are flowing through the veth pair and the bridge. The host sees 172.17.0.2 on the bridge. The container sees 172.17.0.1 as its gateway. This is the core of container networking.
+</p>
+
+<h2>Reaching External Networks</h2>
+
+<p class="site-block-paragraph">
+So far, the container can reach the host on the bridge. But can the container reach the outside world (for example, 8.8.8.8)? No, not yet. The host knows about the 172.17.0.0/16 subnet (it has a route to it via br0), but external networks do not know how to reach 172.17.0.2. The container's packets leave the bridge but hit a dead end.
+</p>
+
+<p class="site-block-paragraph">
+Docker solves this with NAT (network address translation). The host adds an iptables rule to masquerade outgoing packets from the container, rewriting the source IP from 172.17.0.2 to the host's real IP. Replies come back to the host, and iptables rewrites them back to 172.17.0.2. The container never knows.
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Enable IP forwarding on the host
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+
+# Add a masquerade rule for the bridge subnet
+sudo iptables -t nat -A POSTROUTING -s 172.17.0.0/16 ! -o br0 -j MASQUERADE
+
+# Now test external connectivity from the container
+ip netns exec container1 ping -c 2 8.8.8.8 || echo "External ping may fail if no default route outside"
+
+# Check the iptables rule
+sudo iptables -t nat -L -n
+</code></pre>
+
+<p class="site-block-paragraph">
+With masquerade, outgoing packets from 172.17.0.2 are rewritten to the host's IP. The outside world replies to the host, and the host rewrites the response back to 172.17.0.2. The container receives it as if it was talking directly to 8.8.8.8.
+</p>
+
+<h2>Inbound Traffic: Exposing Container Ports</h2>
+
+<p class="site-block-paragraph">
+A container runs a web server on port 8080. You want to access it from outside. The container listens on 172.17.0.2:8080, but the outside world cannot reach 172.17.0.2. Docker adds a port mapping: the host listens on 0.0.0.0:8080 and forwards incoming connections to 172.17.0.2:8080.
+</p>
+
+<p class="site-block-paragraph">
+This is also done with iptables rules in the PREROUTING and POSTROUTING chains:
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Map host port 8080 to container port 8080
+sudo iptables -t nat -A PREROUTING -d 172.17.0.1 -p tcp --dport 8080 -j DNAT --to-destination 172.17.0.2:8080
+sudo iptables -t nat -A POSTROUTING -d 172.17.0.2 -p tcp --dport 8080 -j MASQUERADE
+
+# Or use docker-proxy, which Docker does internally
+# docker-proxy -container-ip 172.17.0.2 -container-port 8080 -host-port 0.0.0.0:8080
+
+# To test, run a simple HTTP server inside the container
+# ip netns exec container1 python3 -m http.server 8080 &
+# curl http://172.17.0.1:8080 (from host)
+</code></pre>
+
+<p class="site-block-paragraph">
+The first rule intercepts incoming traffic to the bridge IP on port 8080 and rewrites the destination to the container IP. The second rule masquerades the reply so the container thinks it is talking to the outside.
+</p>
+
+<h2>What Docker Automates</h2>
+
+<p class="site-block-paragraph">
+Docker does all of the above automatically when you run a container. Here is what it does under the hood:
+</p>
+
+<ol>
+  <li>Creates a veth pair</li>
+  <li>Moves one side into the container's network namespace</li>
+  <li>Creates or reuses a bridge (docker0, or a user-defined bridge network)</li>
+  <li>Connects the host side of the veth to the bridge</li>
+  <li>Assigns IPs from the bridge subnet to both the host side and container side</li>
+  <li>Sets up the default route inside the container</li>
+  <li>Adds iptables rules for masquerading and port mapping</li>
+  <li>Ensures IP forwarding is enabled on the host</li>
+</ol>
+
+<p class="site-block-paragraph">
+The primitives are simple: veth pairs, bridges, network namespaces, and iptables. Everything else is orchestration.
+</p>
+
+<h2>Comparison: Host, Bridge, and Overlay Networks</h2>
+
+<table>
+  <tr>
+    <th>Mode</th>
+    <th>Isolation</th>
+    <th>Performance</th>
+    <th>Use Case</th>
+  </tr>
+  <tr>
+    <td>Host</td>
+    <td>None; container shares host namespace</td>
+    <td>Minimal overhead; direct access to host NICs</td>
+    <td>High-performance services, monitoring agents</td>
+  </tr>
+  <tr>
+    <td>Bridge (default)</td>
+    <td>Full; container in separate namespace</td>
+    <td>One veth pair per container, iptables overhead</td>
+    <td>Typical single-host containerized apps</td>
+  </tr>
+  <tr>
+    <td>Overlay</td>
+    <td>Full; encrypted tunnel between hosts</td>
+    <td>Additional encapsulation, slight latency</td>
+    <td>Multi-host Docker Swarm or Kubernetes</td>
+  </tr>
+</table>
+
+<h2>How to Inspect the Real Thing in Docker</h2>
+
+<p class="site-block-paragraph">
+Start a real Docker container and inspect the networking:
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# Start a container in the background
+docker run -d --name test-container alpine sleep 1000
+
+# Get the container's PID
+PID=$(docker inspect -f '{{.State.Pid}}' test-container)
+echo "Container PID: $PID"
+
+# Inspect the veth pair from the container side
+# The container's interface is usually eth0
+docker exec test-container ip link show
+
+# Get the container IP
+docker exec test-container ip addr show
+
+# Find the host-side veth by looking at the bridge
+docker network inspect bridge
+
+# Look at iptables rules Docker created
+sudo iptables -t nat -L -n
+
+# Ping the container from the host
+docker exec test-container ip addr show eth0 | grep "inet " | awk '{print $2}' | cut -d/ -f1 | xargs ping -c 2
+
+# Clean up
+docker stop test-container
+docker rm test-container
+</code></pre>
+
+<h2>Socket and TCP/UDP Fundamentals</h2>
+
+<p class="site-block-paragraph">
+Understanding veth pairs and bridges is the foundation, but it sits on top of sockets and the TCP/UDP layer. If you are debugging network issues at the container level, you also need to understand how <a href="/notOnlyHttp/tcp-udp-socket.html">TCP and UDP sockets work</a> and how the kernel routes packets through the network stack. A container's process makes a socket call, the kernel forwards it through the veth pair, the bridge, and eventually out the host's real NIC. If a packet does not arrive, the problem could be at any layer: the veth pair, the bridge, the routing table, or the firewall rules.
+</p>
+
+<h2>Debugging Tips</h2>
+
+<p class="site-block-paragraph">
+When container networking breaks:
+</p>
+
+<ol>
+  <li>Check that veth pairs exist: <code>ip link show | grep veth</code></li>
+  <li>Verify the bridge exists and the veth is attached: <code>ip link show br0</code> and <code>brctl show</code></li>
+  <li>Confirm IPs are assigned: <code>ip addr show br0</code>, <code>docker inspect &lt;container&gt;</code></li>
+  <li>Test connectivity with ping from the host to the container IP</li>
+  <li>Check iptables rules: <code>sudo iptables -t nat -L -n</code></li>
+  <li>Enable IP forwarding if it is disabled: <code>echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward</code></li>
+  <li>Use tcpdump to see packet flow: <code>sudo tcpdump -i br0 -n</code></li>
+</ol>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+IP forwarding disabled. By default, Linux does not forward packets between interfaces. If you set up a bridge and try to ping from the container to an external host, you will see packets arrive at the bridge but no response. Enable forwarding with <code>echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward</code>.
+</p>
+
+<p class="site-block-paragraph">
+Forgot masquerade rules. Without iptables masquerading, outgoing packets from the container carry the source IP 172.17.0.2, which the outside world does not know how to route back to. The host receives no reply. Add the masquerade rule.
+</p>
+
+<p class="site-block-paragraph">
+Assigning the same IP to multiple containers. If two containers get the same IP on the same bridge, the kernel will not know which veth pair to use, and packets will be dropped or routed incorrectly. Each container needs a unique IP on the bridge subnet.
+</p>
+
+<p class="site-block-paragraph">
+Confusing the bridge IP with the host IP. The bridge is a separate interface with its own IP (172.17.0.1). It is not the host's primary NIC. The host might have eth0 with 192.168.1.100, and br0 with 172.17.0.1. They are independent. The container talks to the bridge, not directly to eth0.
+</p>
+
+<h2>Tools and Resources</h2>
+
+<p class="site-block-paragraph">
+If you want to explore this further, use <a href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">tools like strace, tcpdump, and iptables</a> to watch the kernel do its work. strace shows every system call a process makes, including socket creation and bind. tcpdump shows every frame on every interface. iptables lets you see and modify the rules the kernel uses to route traffic.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Why does Docker use bridges and not just connect containers directly?</h3>
+
+<p class="site-block-paragraph">
+A bridge scales. One bridge can connect dozens of containers. The bridge acts as a central hub, so you do not need a unique veth pair for every pair of containers. Also, the bridge sits on the host, so it can apply global rules like masquerading and port mapping in one place.
+</p>
+
+<h3>Can I put a container on the host network?</h3>
+
+<p class="site-block-paragraph">
+Yes. Docker supports <code>--network host</code>, which runs the container in the host's network namespace. The container sees the host's eth0, listens on the host's ports, and has no isolation. It is fast but not isolated, so it is only safe for trusted workloads.
+</p>
+
+<h3>What is the difference between a bridge and overlay network?</h3>
+
+<p class="site-block-paragraph">
+A bridge is single-host only. All containers on a bridge must be on the same physical machine. An overlay network spans multiple machines: it uses a tunnel (usually VXLAN) to connect containers on different hosts. Docker Swarm and Kubernetes use overlay networks for multi-host deployments.
+</p>
+
+<h3>Does every container get its own veth pair?</h3>
+
+<p class="site-block-paragraph">
+Yes, when using bridge networking. Each container has one veth pair, with the container side in the container's namespace and the host side connected to the bridge. If a container joins multiple networks, it gets multiple veth pairs.
+</p>
+
+<h3>What happens if I delete the bridge while containers are running?</h3>
+
+<p class="site-block-paragraph">
+The containers lose connectivity. If you try to delete a bridge that has veth pairs attached, the kernel will refuse. You must disconnect the veth pairs first, then delete the bridge. Docker handles this cleanup automatically.
+</p>
+
+<h3>Can I manually create a Docker network?</h3>
+
+<p class="site-block-paragraph">
+Yes. <code>docker network create my-net</code> creates a user-defined bridge network. Docker assigns it a subnet and creates a new bridge interface. Containers on this network can communicate with each other by name (if they use the embedded DNS). This is better than the default bridge because it offers service discovery.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li><li><a href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">1 tools which i like and recommend to use</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

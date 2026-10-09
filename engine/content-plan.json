@@ -264,7 +264,8 @@
         "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html"
       ],
       "priority": 4,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "Learn how docker container networking works by building a veth pair and bridge manually with ip commands. See the kernel primitives Docker automates."
     },
     {
       "id": "http-keepalive-connection-pooling",
