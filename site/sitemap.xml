@@ -154,4 +154,8 @@
     <loc>https://codebeneath.com/notOnlyHttp/container-networking-explained.html</loc>
     <lastmod>2026-10-09</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html</loc>
+    <lastmod>2026-10-12</lastmod>
+  </url>
 </urlset>

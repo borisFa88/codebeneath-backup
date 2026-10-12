@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>HTTP Keep-Alive and Connection Pooling, Measured | Code Beneath</title>
+<meta name="description" content="HTTP keep-alive and connection pooling explained: measure the impact of TCP handshakes on throughput and latency with runnable Go benchmarks." />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="HTTP Keep-Alive and Connection Pooling, Measured | Code Beneath" />
+<meta property="og:description" content="HTTP keep-alive and connection pooling explained: measure the impact of TCP handshakes on throughput and latency with runnable Go benchmarks." />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="HTTP Keep-Alive and Connection Pooling, Measured | Code Beneath" />
+<meta name="twitter:description" content="HTTP keep-alive and connection pooling explained: measure the impact of TCP handshakes on throughput and latency with runnable Go benchmarks." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "HTTP Keep-Alive and Connection Pooling, Measured", "name": "HTTP Keep-Alive and Connection Pooling, Measured", "description": "HTTP keep-alive and connection pooling explained: measure the impact of TCP handshakes on throughput and latency with runnable Go benchmarks.", "url": "https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html", "inLanguage": "en-US", "dateModified": "2026-10-12", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "HTTP Keep-Alive and Connection Pooling, Measured", "item": "https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">HTTP Keep-Alive and Connection Pooling, Measured</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-12">October 12, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you make an HTTP request without keep-alive, the client opens a fresh TCP connection, performs a three-way handshake, sends the request, receives the response, and closes the connection. If you're making dozens of requests per second to the same host, you're burning CPU and network round-trips on handshakes alone. HTTP keep-alive and connection pooling explained: keep-alive lets you reuse a TCP connection across multiple HTTP requests, while connection pooling lets you maintain a pool of warm connections ready to go. The real cost difference is measurable, and this article shows you exactly what happens inside the socket layer when you enable or disable keep-alive, and how to measure it in your own services.
+</p>
+
+<h2>Why Keep-Alive Matters</h2>
+
+<p class="site-block-paragraph">
+A TCP handshake costs at least one round-trip time (RTT). In a data center with 100 microsecond RTT, that's already a 100 microsecond tax on every request. Over the network, a typical RTT is 50-200 milliseconds. If your service makes 100 requests per second to a backend, you're spending 5-20 seconds per second just on handshakes. That's not hyperbole. Add TLS negotiation (one more RTT for TLS 1.3, two for TLS 1.2), and a "simple" request to a remote HTTPS endpoint can take 100-300 milliseconds just for the ceremony before the first byte of the request even sends.
+</p>
+
+<p class="site-block-paragraph">
+Keep-alive solves this by keeping the TCP connection open after the response. The next request reuses the same socket, skipping the handshake. Connection pooling takes this further: instead of sharing a single connection (which becomes a bottleneck under load), you maintain a pool of N warm connections, so multiple concurrent requests can proceed in parallel without waiting for each other.
+</p>
+
+<h2>How Keep-Alive Works</h2>
+
+<p class="site-block-paragraph">
+HTTP/1.1 made keep-alive the default. Each request includes a Connection header; the client sends Connection: close to signal "close after this response," or the server does the same. If neither side sends close, the connection stays open. The server may also send Keep-Alive: timeout=60, max=100 to tell the client "I'll keep this connection alive for up to 60 seconds and 100 requests."
+</p>
+
+<p class="site-block-paragraph">
+At the socket level, nothing special happens. The kernel buffers the data, TCP stays established, and the client can send a new HTTP request immediately. The server reads the new request from the same socket, processes it, and sends a response. From a system calls perspective, keep-alive eliminates the socket(), connect(), and close() calls, and for TLS, it eliminates the TLS 1.3 handshake.
+</p>
+
+<h2>Measuring the Real Difference</h2>
+
+<p class="site-block-paragraph">
+Let's build a tiny benchmark that makes HTTP requests with and without keep-alive, measuring requests per second. This Go program starts a local server and a client that fires requests at it. The server responds with a fixed 1 KB payload. We'll measure two scenarios: one connection per request (no keep-alive), and one pool of connections with keep-alive.
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"sync"
+	"sync/atomic"
+	"time"
+)
+
+func startServer() *http.Server {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		payload := make([]byte, 1024)
+		w.Write(payload)
+	})
+
+	server := &http.Server{
+		Addr:           ":8765",
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	go func() {
+		server.ListenAndServe()
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	return server
+}
+
+func benchmarkNoKeepAlive(duration time.Duration, numGoroutines int) int64 {
+	var count int64
+	var wg sync.WaitGroup
+
+	start := time.Now()
+	for i := 0; i &lt; numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for time.Since(start) &lt; duration {
+				req, _ := http.NewRequest("GET", "http://localhost:8765/test", nil)
+				req.Header.Set("Connection", "close")
+
+				client := &http.Client{
+					Transport: &http.Transport{
+						DisableKeepAlives: true,
+					},
+				}
+				resp, err := client.Do(req)
+				if err != nil {
+					continue
+				}
+				io.ReadAll(resp.Body)
+				resp.Body.Close()
+				atomic.AddInt64(&count, 1)
+			}
+		}()
+	}
+
+	wg.Wait()
+	return count
+}
+
+func benchmarkWithKeepAlive(duration time.Duration, numGoroutines int) int64 {
+	var count int64
+	var wg sync.WaitGroup
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
+
+	start := time.Now()
+	for i := 0; i &lt; numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for time.Since(start) &lt; duration {
+				req, _ := http.NewRequest("GET", "http://localhost:8765/test", nil)
+				resp, err := client.Do(req)
+				if err != nil {
+					continue
+				}
+				io.ReadAll(resp.Body)
+				resp.Body.Close()
+				atomic.AddInt64(&count, 1)
+			}
+		}()
+	}
+
+	wg.Wait()
+	return count
+}
+
+func main() {
+	server := startServer()
+	defer server.Close()
+
+	testDuration := 5 * time.Second
+	numGoroutines := 4
+
+	fmt.Println("Benchmarking HTTP keep-alive and connection pooling...")
+	fmt.Println()
+
+	fmt.Printf("Test duration: %v, Goroutines: %d\n", testDuration, numGoroutines)
+	fmt.Println()
+
+	fmt.Print("Running without keep-alive (Connection: close)...")
+	noKeepAliveCount := benchmarkNoKeepAlive(testDuration, numGoroutines)
+	fmt.Printf(" Done\n")
+	fmt.Printf("Requests completed: %d\n", noKeepAliveCount)
+	fmt.Printf("Requests per second: %.0f\n", float64(noKeepAliveCount)/testDuration.Seconds())
+	fmt.Println()
+
+	fmt.Print("Running with keep-alive and connection pooling...")
+	withKeepAliveCount := benchmarkWithKeepAlive(testDuration, numGoroutines)
+	fmt.Printf(" Done\n")
+	fmt.Printf("Requests completed: %d\n", withKeepAliveCount)
+	fmt.Printf("Requests per second: %.0f\n", float64(withKeepAliveCount)/testDuration.Seconds())
+	fmt.Println()
+
+	improvement := float64(withKeepAliveCount) / float64(noKeepAliveCount)
+	fmt.Printf("Improvement factor: %.2fx\n", improvement)
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run this:
+</p>
+
+<pre><code class="language-bash">go run main.go
+</code></pre>
+
+<p class="site-block-paragraph">
+On a modern laptop with a local server, you should see something like:
+</p>
+
+<pre><code class="language-bash">Benchmarking HTTP keep-alive and connection pooling...
+
+Test duration: 5s, Goroutines: 4
+
+Running without keep-alive (Connection: close)... Done
+Requests completed: 892
+Requests per second: 178
+
+Running with keep-alive and connection pooling... Done
+Requests completed: 8342
+Requests per second: 1668
+
+Improvement factor: 9.35x
+</code></pre>
+
+<p class="site-block-paragraph">
+That 9x difference is real. Without keep-alive, the client spends most of its time in socket setup and teardown. With keep-alive and a small pool, requests pipeline through warm connections.
+</p>
+
+<h2>Connection Pooling Details</h2>
+
+<p class="site-block-paragraph">
+Connection pooling is not magic. It's a queue of established TCP connections. When a goroutine needs to make a request, it checks if a connection is available in the pool. If yes, it reuses it. If no, it opens a new one (up to a limit) or waits for one to be returned. Most HTTP client libraries handle this automatically.
+</p>
+
+<p class="site-block-paragraph">
+In Go's net/http.Transport, key settings are:
+</p>
+
+<ul>
+<li><strong>MaxIdleConns:</strong> Total idle connections across all hosts. Default is 100.</li>
+<li><strong>MaxIdleConnsPerHost:</strong> Idle connections per host. Default is 2. If you're hammering one backend, increase this.</li>
+<li><strong>MaxConnsPerHost:</strong> Absolute limit of connections per host (idle + active). Default is unlimited.</li>
+<li><strong>IdleConnTimeout:</strong> How long an idle connection sits before the client closes it. Default is 90 seconds.</li>
+</ul>
+
+<p class="site-block-paragraph">
+Under the hood, the Transport maintains a map of "http://hostname:port" to a queue of connections. When you call client.Do(), the Transport looks up that host, grabs an idle connection if available, or opens a new one. After the response is read, the connection is returned to the pool (unless you set DisableKeepAlives: true or the server sent Connection: close).
+</p>
+
+<h2>TLS and Keep-Alive</h2>
+
+<p class="site-block-paragraph">
+For HTTPS, keep-alive saves even more work. A TLS 1.3 handshake is one additional round-trip. TLS 1.2 is two. Without keep-alive, every request eats that cost. With keep-alive, the TLS session is cached inside the TCP connection, and subsequent requests on the same connection use the same session key. No re-negotiation.
+</p>
+
+<p class="site-block-paragraph">
+If you're integrating a third-party authentication service or making calls to <a href="/handlingHttpRequest/token-based-security-in-web-applications.html">token-based security systems</a>, the latency difference between connection pooling and no pooling can be the difference between 50 ms per request and 500 ms. That adds up quickly.
+</p>
+
+<h2>Idle Connections and Resource Limits</h2>
+
+<p class="site-block-paragraph">
+Idle connections consume resources: kernel socket buffers, file descriptors, and TCP control structures. On high-concurrency services, you need to balance pool size against system limits. Linux has /proc/sys/fs/file-max and per-process limits (ulimit -n). If your pool maintains 10,000 idle connections, that's 10,000 file descriptors.
+</p>
+
+<p class="site-block-paragraph">
+The IdleConnTimeout is your safeguard. Set it to match the server's keep-alive timeout (often 60-90 seconds). If the server closes after 60 seconds and your client keeps the connection open for 120 seconds, you'll get surprise connection resets when trying to reuse a dead connection. Most robust clients detect this and transparently retry, but it's latency you could avoid.
+</p>
+
+<h2>When to Disable Keep-Alive</h2>
+
+<p class="site-block-paragraph">
+Keep-alive is usually right. But there are exceptions:
+</p>
+
+<ul>
+<li><strong>Proxies or gateways:</strong> If you're a stateless proxy passing through requests, connection pooling can mask load distribution. Some setups prefer connection-per-request to spread load across backend instances.</li>
+<li><strong>Long-lived connections that timeout:</strong> If the server aggressively closes idle connections (e.g., every 10 seconds), keeping a pool of idle connections wastes resources and causes timeouts.</li>
+<li><strong>Old HTTP/1.0 servers:</strong> Some legacy services don't support keep-alive. Set DisableKeepAlives: true in the Transport.</li>
+<li><strong>Memory-constrained environments:</strong> Embedded systems or containers with tight memory budgets may not afford pool overhead.</li>
+</ul>
+
+<h2>HTTP/2 and Beyond</h2>
+
+<p class="site-block-paragraph">
+HTTP/2 multiplexes multiple requests over a single connection by default. No connection pooling needed; you get stream-level concurrency on one connection. This is one reason HTTP/2 is faster for many workloads. However, if the connection is interrupted or the server closes it, you still pay for a fresh handshake.
+</p>
+
+<p class="site-block-paragraph">
+WebSockets, by contrast, establish a persistent bidirectional connection and do not benefit from HTTP's connection pooling model; see <a href="/notOnlyHttp/web-socket.html">our WebSocket article</a> for that pattern.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Creating a new http.Client per request:</strong> Clients include a Transport with its own pool. If you do client := &http.Client{} for every request, each one starts with an empty pool. Reuse a single client across your application.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Not reading response bodies:</strong> If you ignore resp.Body, the Transport doesn't return the connection to the pool; it closes it instead. Always call io.ReadAll(resp.Body) and resp.Body.Close() or use io.Copy to drain the body.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Setting MaxIdleConnsPerHost too low:</strong> If you have 10 goroutines all hammering one endpoint and MaxIdleConnsPerHost is 2, you're thrashing the pool. Increase it to match your concurrency.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mismatched timeouts:</strong> If your IdleConnTimeout is 90 seconds but the server closes after 60, you'll get silent connection resets. Check the server's Keep-Alive header.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Does HTTP/2 make connection pooling irrelevant?</h3>
+
+<p class="site-block-paragraph">
+No. HTTP/2 multiplexes streams on a single connection, which is more efficient than pooling multiple connections. However, you still want to maintain a pool of HTTP/2 connections (even if small) to handle reconnection and geographic distribution across multiple servers.
+</p>
+
+<h3>Can I manually close an idle connection to force refresh?</h3>
+
+<p class="site-block-paragraph">
+Yes. Call client.CloseIdleConnections(). Useful when testing or when the backend rotates servers. But in production, let the IdleConnTimeout do the work.
+</p>
+
+<h3>What if the server doesn't send a Keep-Alive header?</h3>
+
+<p class="site-block-paragraph">
+In HTTP/1.1, connections are keep-alive by default unless Connection: close is sent. The absence of a Keep-Alive header does not mean the connection closes. However, some servers do close after a fixed duration anyway (often 30-60 seconds). Monitor your logs for reset errors and adjust IdleConnTimeout if needed.
+</p>
+
+<h3>Is connection pooling safe with multiple goroutines?</h3>
+
+<p class="site-block-paragraph">
+Yes. http.Client and Transport are goroutine-safe. Multiple goroutines can call client.Do() concurrently, and the Transport serializes access to the pool internally with mutexes.
+</p>
+
+<h3>How do I know what pool size is optimal?</h3>
+
+<p class="site-block-paragraph">
+Measure. Start with MaxIdleConnsPerHost equal to your expected concurrency (e.g., 20 goroutines, set it to 20). Monitor TCP connection count and request latency. If latency is stable and connection count grows to your pool size during load, you're sized right. If you're hitting MaxConnsPerHost limits and getting delays, increase the limit.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/web-socket.html">Web socket</a></li><li><a href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token based security in web applications</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

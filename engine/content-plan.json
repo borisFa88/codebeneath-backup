@@ -284,7 +284,8 @@
         "/handlingHttpRequest/token-based-security-in-web-applications.html"
       ],
       "priority": 4,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "HTTP keep-alive and connection pooling explained: measure the impact of TCP handshakes on throughput and latency with runnable Go benchmarks."
     },
     {
       "id": "unix-domain-sockets",
