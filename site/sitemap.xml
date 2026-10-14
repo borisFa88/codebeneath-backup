@@ -158,4 +158,8 @@
     <loc>https://codebeneath.com/handlingHttpRequest/http-keepalive-connection-pooling.html</loc>
     <lastmod>2026-10-12</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html</loc>
+    <lastmod>2026-10-14</lastmod>
+  </url>
 </urlset>

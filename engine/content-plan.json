@@ -304,7 +304,8 @@
         "/notOnlyHttp/ftp-file-transfer-protocol.html"
       ],
       "priority": 4,
-      "status": "queued"
+      "status": "published",
+      "meta_description": "Unix domain socket vs TCP localhost for local IPC: architecture, performance differences, and when each wins. Complete runnable benchmarks in Go."
     },
     {
       "id": "tcp-socket-graceful-shutdown-go",

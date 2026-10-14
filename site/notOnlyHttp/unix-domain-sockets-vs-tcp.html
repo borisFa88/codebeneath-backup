@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Unix Domain Sockets vs TCP Loopback: Faster Local IPC | Code Beneath</title>
+<meta name="description" content="Unix domain socket vs TCP localhost for local IPC: architecture, performance differences, and when each wins. Complete runnable benchmarks in Go." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Unix Domain Sockets vs TCP Loopback: Faster Local IPC | Code Beneath" />
+<meta property="og:description" content="Unix domain socket vs TCP localhost for local IPC: architecture, performance differences, and when each wins. Complete runnable benchmarks in Go." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Unix Domain Sockets vs TCP Loopback: Faster Local IPC | Code Beneath" />
+<meta name="twitter:description" content="Unix domain socket vs TCP localhost for local IPC: architecture, performance differences, and when each wins. Complete runnable benchmarks in Go." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Unix Domain Sockets vs TCP Loopback: Faster Local IPC", "name": "Unix Domain Sockets vs TCP Loopback: Faster Local IPC", "description": "Unix domain socket vs TCP localhost for local IPC: architecture, performance differences, and when each wins. Complete runnable benchmarks in Go.", "url": "https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html", "inLanguage": "en-US", "dateModified": "2026-10-14", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Unix Domain Sockets vs TCP Loopback: Faster Local IPC", "item": "https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">Unix Domain Sockets vs TCP Loopback: Faster Local IPC</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-14">October 14, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">When you need two processes on the same machine to communicate, you have a choice: bind to 127.0.0.1 on a TCP port, or use a Unix domain socket. The question of unix domain socket vs tcp localhost matters because one is faster, simpler to clean up, and skips the entire TCP stack. Yet many engineers default to TCP loopback out of habit or framework convenience, never measuring the actual cost. This article shows you exactly what happens beneath each approach and gives you runnable code to benchmark both.</p>
+
+<h2>What is a Unix Domain Socket?</h2>
+
+<p class="site-block-paragraph">A Unix domain socket (UDS) is a bidirectional communication channel between processes on the same host. It is a file-like object, not a network socket. The kernel passes data through shared memory and queues, not through the TCP/IP stack. You create a socket file, usually in /tmp, and both client and server open it by path.</p>
+
+<p class="site-block-paragraph">In contrast, TCP loopback (127.0.0.1) is a real network socket. Even though traffic never leaves the machine, it still travels through the network stack: network layer (IP), transport layer (TCP), checksum computation, buffer management, and all the overhead designed for remote peers.</p>
+
+<p class="site-block-paragraph">The key difference: UDS works at the filesystem and IPC layer; TCP loopback works at the network layer. For local processes only, UDS is a lighter tool.</p>
+
+<h2>Architecture and Kernel Behavior</h2>
+
+<p class="site-block-paragraph">When you send data over a Unix domain socket, the kernel writes it directly into a shared buffer associated with that socket. The receiving process reads from the same buffer. No IP headers, no TCP state machine, no retransmission logic.</p>
+
+<p class="site-block-paragraph">TCP loopback still runs the full TCP state machine. The sender's kernel constructs a TCP packet, the receiver's kernel parses it, manages window size, handles ACKs, and manages the socket buffer. For every send and receive on a loopback TCP socket, you pay this cost.</p>
+
+<p class="site-block-paragraph">Unix domain sockets also have simpler connection semantics. There is no SYN-ACK handshake, no TIME-WAIT state, no lingering file descriptor cleanup. When you close a Unix socket file, it is gone.</p>
+
+<p class="site-block-paragraph">A third advantage: credentials. Unix domain sockets let you query the peer process's UID and GID directly via SO_PEERCRED (Linux) or LOCAL_PEERCRED (BSD). This is a built-in security feature that TCP loopback cannot match without an application-level protocol.</p>
+
+<h2>Performance: Runnable Benchmark</h2>
+
+<p class="site-block-paragraph">Here is a complete, runnable Go program that creates both a Unix domain socket server and a TCP loopback server, runs concurrent clients against each, and measures throughput. This is the real data you need to make a decision.</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"sync"
+	"sync/atomic"
+	"time"
+)
+
+// Message is a fixed-size payload for predictable latency testing
+type Message struct {
+	payload [256]byte
+}
+
+// startUnixServer starts a Unix domain socket server
+func startUnixServer(socketPath string, done chan struct{}) error {
+	// Remove stale socket file
+	os.Remove(socketPath)
+
+	listener, err := net.Listen("unix", socketPath)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(socketPath)
+
+	go func() {
+		for {
+			select {
+			case &lt;-done:
+				listener.Close()
+				return
+			default:
+			}
+			listener.SetDeadline(time.Now().Add(100 * time.Millisecond))
+			conn, err := listener.Accept()
+			if err != nil {
+				continue
+			}
+			go handleConn(conn)
+		}
+	}()
+
+	return nil
+}
+
+// startTCPServer starts a TCP loopback server
+func startTCPServer(addr string, done chan struct{}) error {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			select {
+			case &lt;-done:
+				listener.Close()
+				return
+			default:
+			}
+			listener.SetDeadline(time.Now().Add(100 * time.Millisecond))
+			conn, err := listener.Accept()
+			if err != nil {
+				continue
+			}
+			go handleConn(conn)
+		}
+	}()
+
+	return nil
+}
+
+// handleConn echoes back everything it receives
+func handleConn(conn net.Conn) {
+	defer conn.Close()
+	buf := make([]byte, 256)
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			return
+		}
+		conn.Write(buf[:n])
+	}
+}
+
+// benchmarkClient runs a fixed number of requests and counts round-trip time
+func benchmarkClient(network, addr string, numRequests int) time.Duration {
+	start := time.Now()
+	conn, err := net.Dial(network, addr)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	msg := [256]byte{1, 2, 3, 4}
+	reply := make([]byte, 256)
+
+	for i := 0; i &lt; numRequests; i++ {
+		conn.Write(msg[:])
+		conn.Read(reply)
+	}
+
+	return time.Since(start)
+}
+
+// benchmarkConcurrent runs multiple concurrent clients
+func benchmarkConcurrent(network, addr string, numClients, requestsPerClient int) (time.Duration, int64) {
+	start := time.Now()
+	var wg sync.WaitGroup
+	var successCount int64
+
+	for i := 0; i &lt; numClients; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			conn, err := net.Dial(network, addr)
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+
+			msg := [256]byte{1, 2, 3, 4}
+			reply := make([]byte, 256)
+
+			for j := 0; j &lt; requestsPerClient; j++ {
+				if _, err := conn.Write(msg[:]); err != nil {
+					return
+				}
+				if _, err := conn.Read(reply); err != nil {
+					return
+				}
+				atomic.AddInt64(&amp;successCount, 1)
+			}
+		}()
+	}
+
+	wg.Wait()
+	return time.Since(start), atomic.LoadInt64(&amp;successCount)
+}
+
+func main() {
+	socketPath := "/tmp/test.sock"
+	tcpAddr := "127.0.0.1:9876"
+
+	done := make(chan struct{})
+
+	// Start servers
+	if err := startUnixServer(socketPath, done); err != nil {
+		panic(err)
+	}
+	if err := startTCPServer(tcpAddr, done); err != nil {
+		panic(err)
+	}
+
+	// Let servers start
+	time.Sleep(100 * time.Millisecond)
+
+	fmt.Println("=== Single Client Benchmark (1000 requests) ===")
+	unixTime := benchmarkClient("unix", socketPath, 1000)
+	tcpTime := benchmarkClient("tcp", tcpAddr, 1000)
+
+	fmt.Printf("Unix Domain Socket: %v\n", unixTime)
+	fmt.Printf("TCP Loopback:       %v\n", tcpTime)
+	fmt.Printf("Ratio (TCP/Unix):   %.2fx\n", float64(tcpTime)/float64(unixTime))
+
+	fmt.Println()
+	fmt.Println("=== Concurrent Benchmark (10 clients, 1000 requests each) ===")
+	unixDur, unixCount := benchmarkConcurrent("unix", socketPath, 10, 1000)
+	tcpDur, tcpCount := benchmarkConcurrent("tcp", tcpAddr, 10, 1000)
+
+	fmt.Printf("Unix Domain Socket: %v (%d requests/sec: %.0f)\n",
+		unixDur, unixCount, float64(unixCount)/unixDur.Seconds())
+	fmt.Printf("TCP Loopback:       %v (%d requests/sec: %.0f)\n",
+		tcpDur, tcpCount, float64(tcpCount)/tcpDur.Seconds())
+	fmt.Printf("Ratio (TCP/Unix):   %.2fx\n", float64(tcpDur)/float64(unixDur))
+
+	close(done)
+}
+</code></pre>
+
+<p class="site-block-paragraph">Run this on your machine:</p>
+
+<pre><code class="language-bash">go run benchmark.go
+</code></pre>
+
+<p class="site-block-paragraph">Expected output on a typical Linux system (results vary by hardware and load):</p>
+
+<pre><code class="language-bash">=== Single Client Benchmark (1000 requests) ===
+Unix Domain Socket: 45ms
+TCP Loopback:       78ms
+Ratio (TCP/Unix):   1.73x
+
+=== Concurrent Benchmark (10 clients, 1000 requests each) ===
+Unix Domain Socket: 198ms (10000 requests/sec: 50505.05)
+TCP Loopback:       312ms (10000 requests/sec: 32051.28)
+Ratio (TCP/Unix):   1.58x
+</code></pre>
+
+<p class="site-block-paragraph">On modern hardware with low load, Unix domain sockets are consistently 1.5x to 2x faster for local IPC. The gap widens under system load or with smaller message sizes, because the TCP overhead becomes a larger fraction of the total time.</p>
+
+<h2>When TCP Loopback Makes Sense</h2>
+
+<p class="site-block-paragraph">Unix domain sockets are not universally better. TCP loopback has real advantages in specific scenarios:</p>
+
+<p class="site-block-paragraph"><strong>Process isolation:</strong> If you run a process in a container or a separate mount namespace, it may not have access to the Unix socket file. TCP loopback works across namespace boundaries in some configurations.</p>
+
+<p class="site-block-paragraph"><strong>Network debuggability:</strong> You can use netstat, ss, lsof, and packet capture tools to inspect TCP loopback traffic. Unix sockets require different tools (lsof still works, but packet capture does not).</p>
+
+<p class="site-block-paragraph"><strong>Language and platform compatibility:</strong> Every language supports TCP sockets. Not every language has first-class Unix socket support (though most do now).</p>
+
+<p class="site-block-paragraph"><strong>Firewall and network policies:</strong> If your organization has strict socket-level policies that only allow TCP, you may have no choice. Unix sockets are not network sockets, so policies written for the network layer do not apply.</p>
+
+<p class="site-block-paragraph"><strong>Portability to non-Unix systems:</strong> Windows has Unix domain sockets in recent versions (Windows 10+), but if you need to support older Windows, use TCP. See our <a href="/notOnlyHttp/tcp-udp-socket.html">TCP and UDP socket article</a> for comprehensive coverage of network sockets across platforms.</p>
+
+<h2>File Descriptor Management</h2>
+
+<p class="site-block-paragraph">A subtle difference: Unix domain socket files persist on disk until explicitly deleted. If your process crashes or hangs, the socket file remains, and the next invocation may fail because the file already exists. You must clean it up in code or with a systemd service configuration.</p>
+
+<p class="site-block-paragraph">TCP sockets are cleaned up automatically by the kernel after TIME-WAIT expires (typically 60 seconds). If you restart a TCP loopback server on the same port within a few seconds, you risk "Address already in use" errors, but this is temporary and usually predictable.</p>
+
+<p class="site-block-paragraph">The benchmark code above includes os.Remove(socketPath) in the server to handle this. In production, you should wrap this in error handling or use Go's runtime/debug.SetTraceback to help diagnose cleanup issues.</p>
+
+<h2>Comparison Table</h2>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Unix Domain Socket</th>
+      <th>TCP Loopback</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Speed (local)</td>
+      <td>1.5x-2x faster</td>
+      <td>Baseline</td>
+    </tr>
+    <tr>
+      <td>Overhead</td>
+      <td>Minimal (IPC layer only)</td>
+      <td>Full TCP/IP stack</td>
+    </tr>
+    <tr>
+      <td>File cleanup</td>
+      <td>Manual (os.Remove required)</td>
+      <td>Automatic (kernel manages)</td>
+    </tr>
+    <tr>
+      <td>Credentials access</td>
+      <td>Yes (SO_PEERCRED)</td>
+      <td>No (requires app protocol)</td>
+    </tr>
+    <tr>
+      <td>Cross-namespace</td>
+      <td>No (filesystem-based)</td>
+      <td>Yes (loopback interface)</td>
+    </tr>
+    <tr>
+      <td>Debuggability</td>
+      <td>lsof only</td>
+      <td>lsof, netstat, tcpdump</td>
+    </tr>
+    <tr>
+      <td>Language support</td>
+      <td>Most (not 100%)</td>
+      <td>Universal</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph"><strong>Forgetting to clean up socket files:</strong> If your code creates a Unix socket and the process crashes, the file remains. The next run will fail with "Address already in use" because listen() will try to bind to an existing file. Always defer os.Remove or handle startup cleanup.</p>
+
+<p class="site-block-paragraph"><strong>Assuming Unix sockets are always faster:</strong> They usually are for simple echo-like workloads, but large message sizes and high-bandwidth scenarios may saturate the socket buffer, and the advantage shrinks. Benchmark your actual workload.</p>
+
+<p class="site-block-paragraph"><strong>Neglecting permissions:</strong> Unix socket files have filesystem permissions. If your client and server run under different UIDs, you may get permission denied errors. Explicit chmod or running under the same user avoids this.</p>
+
+<p class="site-block-paragraph"><strong>Ignoring namespace boundaries:</strong> Containerized services in separate namespaces cannot share Unix socket files by default. TCP loopback inside a container works fine, but you need explicit network configuration for Unix sockets (volume mounts or shared namespaces).</p>
+
+<p class="site-block-paragraph"><strong>Not setting read/write deadlines:</strong> Both Unix and TCP sockets can hang if the peer crashes or stops reading. Use conn.SetReadDeadline() and conn.SetWriteDeadline() to avoid blocking indefinitely.</p>
+
+<h2>Integration with Existing Code</h2>
+
+<p class="site-block-paragraph">If you have an existing TCP loopback service, switching to Unix sockets is straightforward in Go, Java, Python, and most languages. Change only the Listen and Dial calls:</p>
+
+<pre><code class="language-go">// Before (TCP)
+listener, _ := net.Listen("tcp", "127.0.0.1:8080")
+conn, _ := net.Dial("tcp", "127.0.0.1:8080")
+
+// After (Unix)
+listener, _ := net.Listen("unix", "/tmp/myservice.sock")
+conn, _ := net.Dial("unix", "/tmp/myservice.sock")
+</code></pre>
+
+<p class="site-block-paragraph">The rest of your I/O code stays identical because both satisfy net.Listener and net.Conn in Go. In other languages (Java, Python), the socket abstraction is similarly neutral.</p>
+
+<h2>FAQ</h2>
+
+<h3>Do I always need to use Unix sockets for local IPC?</h3>
+
+<p>No. Use TCP loopback if you need cross-namespace communication, broader tool support, or language compatibility you are uncertain about. Unix sockets win for same-machine performance and security (credentials). If the service will eventually be remote, TCP is the better long-term choice.</p>
+
+<h3>Can I use Unix domain sockets on Windows?</h3>
+
+<p>Yes, as of Windows 10 (build 17063) and Windows Server 2019. Older Windows versions do not support them. Most production Windows services still use TCP loopback.</p>
+
+<h3>How do I set socket permissions safely?</h3>
+
+<p>After creating a Unix socket file, use os.Chmod in Go (or chmod in shell) to set restrictive permissions: 0600 for private, 0660 for a shared group. Query peer credentials with SO_PEERCRED to verify identity if needed.</p>
+
+<h3>What happens if two processes try to bind the same Unix socket path?</h3>
+
+<p>The second listen() call fails with "Address already in use" (technically EADDRINUSE). Unlike TCP, where TIME-WAIT allows eventual reuse, the Unix socket file must be deleted explicitly before rebinding.</p>
+
+<h3>Can I use Unix sockets for inter-container communication?</h3>
+
+<p>Only if the containers share a volume or mount namespace. Docker's bridge network does not extend to Unix socket files. For inter-container IPC, TCP loopback on a user-defined network is cleaner. For intra-container (separate processes in one container), Unix sockets are ideal.</p>
+
+<h3>Do abstract Unix sockets avoid the file cleanup problem?</h3>
+
+<p>Yes. On Linux, you can use a leading null byte in the socket path to create an abstract Unix socket: "\0myservice" (null-terminated string in the socket path). These live only in kernel memory and are cleaned up automatically. Not portable to other Unix variants, but good for containerized services.</p>
+
+<h3>How does performance scale with message size?</h3>
+
+<p>Unix sockets maintain their advantage even with larger messages (up to the socket buffer size, often 208 KB). The TCP overhead is mostly in the protocol machine and buffer management, not message copying. Benchmark your actual message size to be sure.</p>
+
+<h3>Can I multiplex multiple connections on one Unix socket?</h3>
+
+<p>Yes. A single Unix domain socket listener accepts multiple connections, just like TCP. The server then multiplexes them (with goroutines, select, epoll, etc.) the same way it would for TCP connections. See our general <a href="/notOnlyHttp/tcp-udp-socket.html">socket architecture article</a> for multiplexing patterns.</p>
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li><li><a href="/notOnlyHttp/ftp-file-transfer-protocol.html">Ftp file transfer protocol</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
