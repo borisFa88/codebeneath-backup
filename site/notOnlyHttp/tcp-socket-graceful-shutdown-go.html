@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss | Code Beneath</title>
+<meta name="description" content="Learn golang TCP socket graceful shutdown example with runnable code. Handle connection draining, context cancellation, and timeout management to prevent data loss." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss | Code Beneath" />
+<meta property="og:description" content="Learn golang TCP socket graceful shutdown example with runnable code. Handle connection draining, context cancellation, and timeout management to prevent data loss." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss | Code Beneath" />
+<meta name="twitter:description" content="Learn golang TCP socket graceful shutdown example with runnable code. Handle connection draining, context cancellation, and timeout management to prevent data loss." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss", "name": "TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss", "description": "Learn golang TCP socket graceful shutdown example with runnable code. Handle connection draining, context cancellation, and timeout management to prevent data loss.", "url": "https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html", "inLanguage": "en-US", "dateModified": "2026-10-16", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss", "item": "https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">TCP Socket Graceful Shutdown in Go: Closing Connections Without Data Loss</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-16">October 16, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you shut down a network service, you cannot simply close the listening socket and exit. Clients might have in-flight requests, half-written buffers, or active reads waiting for your response. A golang TCP socket graceful shutdown example requires coordinating context cancellation, draining pending connections, and enforcing timeouts so no data disappears. This is not theoretical: lose proper shutdown and you will drop customer transactions, corrupt state, and make debugging hell.
+</p>
+
+<h2>The Problem: Why Abrupt Shutdown Fails</h2>
+
+<p class="site-block-paragraph">
+A naive shutdown looks like this: close the listener, exit the main function, the OS kills all goroutines, sockets close hard. Any client mid-read gets an EOF. Any server trying to write gets a broken pipe error. Uncommitted state, incomplete transactions, nothing graceful about it.
+</p>
+
+<p class="site-block-paragraph">
+The correct pattern is: stop accepting new connections, give existing connections time to finish, close those connections cleanly, only then exit. <a href="/notOnlyHttp/tcp-udp-socket.html">TCP and UDP sockets have different shutdown semantics</a>, and TCP requires a coordinated close where both sides send FIN. Go's context package and sync.WaitGroup are the tools to choreograph this.
+</p>
+
+<h2>Architecture: Context, WaitGroup, and Timeouts</h2>
+
+<p class="site-block-paragraph">
+The pattern uses three layers. First, a context tied to the service lifecycle. Second, a WaitGroup that tracks active connection handlers. Third, a shutdown timeout that forces closure if handlers don't finish fast enough. When shutdown is triggered, you close the listener (which unblocks Accept calls), drain remaining handlers by waiting on the WaitGroup, then close sockets with a deadline.
+</p>
+
+<p class="site-block-paragraph">
+Here is a complete server and client demonstrating proper golang TCP socket graceful shutdown:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"io"
+	"log"
+	"net"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+)
+
+// Server holds the listener and connection tracking.
+type Server struct {
+	listener net.Listener
+	wg       sync.WaitGroup
+	ctx      context.Context
+	cancel   context.CancelFunc
+}
+
+// NewServer creates a server bound to addr.
+func NewServer(addr string) (*Server, error) {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Server{
+		listener: listener,
+		ctx:      ctx,
+		cancel:   cancel,
+	}, nil
+}
+
+// Start accepts connections in a goroutine.
+func (s *Server) Start() {
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		for {
+			conn, err := s.listener.Accept()
+			if err != nil {
+				// Listener closed or accept failed.
+				select {
+				case &lt;-s.ctx.Done():
+					// Shutdown in progress, exit cleanly.
+					return
+				default:
+					log.Printf("accept error: %v\n", err)
+					return
+				}
+			}
+			// Handle each connection in its own goroutine.
+			s.wg.Add(1)
+			go s.handleConnection(conn)
+		}
+	}()
+}
+
+// handleConnection reads a message, processes it, and sends a response.
+func (s *Server) handleConnection(conn net.Conn) {
+	defer s.wg.Done()
+	defer conn.Close()
+
+	// Wrap the connection with a reader and writer.
+	reader := bufio.NewReader(conn)
+	writer := bufio.NewWriter(conn)
+
+	for {
+		// Set read deadline using context or a fixed timeout.
+		// This prevents reads from blocking forever during shutdown.
+		deadline, ok := s.ctx.Deadline()
+		if !ok {
+			// No deadline on context, use a reasonable read timeout.
+			deadline = time.Now().Add(10 * time.Second)
+		}
+		conn.SetReadDeadline(deadline)
+
+		// Read a line from the client.
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				// Client closed cleanly.
+				return
+			}
+			// Check if this is a deadline exceeded error during shutdown.
+			if netErr, ok := err.(net.Error); ok &amp;&amp; netErr.Timeout() {
+				select {
+				case &lt;-s.ctx.Done():
+					// Context canceled, shutdown in progress.
+					return
+				default:
+					log.Printf("read timeout: %v\n", err)
+					return
+				}
+			}
+			log.Printf("read error: %v\n", err)
+			return
+		}
+
+		// Check if shutdown was initiated.
+		select {
+		case &lt;-s.ctx.Done():
+			// Write a goodbye message and close.
+			fmt.Fprintf(writer, "Server shutting down\n")
+			writer.Flush()
+			return
+		default:
+		}
+
+		// Echo the message back with a timestamp.
+		response := fmt.Sprintf("Echo: %s received at %s\n", line[:len(line)-1], time.Now().Format(time.RFC3339))
+		if _, err := fmt.Fprint(writer, response); err != nil {
+			log.Printf("write error: %v\n", err)
+			return
+		}
+		if err := writer.Flush(); err != nil {
+			log.Printf("flush error: %v\n", err)
+			return
+		}
+	}
+}
+
+// Shutdown gracefully closes the server.
+// It stops accepting connections, waits for existing handlers to finish,
+// and enforces a timeout to prevent indefinite hangs.
+func (s *Server) Shutdown(timeout time.Duration) error {
+	log.Println("initiating graceful shutdown...")
+
+	// Close the listener. This unblocks Accept() calls.
+	if err := s.listener.Close(); err != nil {
+		log.Printf("listener close error: %v\n", err)
+	}
+
+	// Signal all handlers that shutdown is in progress.
+	s.cancel()
+
+	// Wait for all handlers to finish, with a timeout.
+	done := make(chan struct{})
+	go func() {
+		s.wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case &lt;-done:
+		log.Println("all connections closed")
+		return nil
+	case &lt;-time.After(timeout):
+		log.Printf("shutdown timeout after %v\n", timeout)
+		return fmt.Errorf("shutdown timeout")
+	}
+}
+
+// Client connects to the server and sends messages.
+func runClient(addr string, messages []string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	writer := bufio.NewWriter(conn)
+	reader := bufio.NewReader(conn)
+
+	for _, msg := range messages {
+		// Send message.
+		if _, err := fmt.Fprintf(writer, "%s\n", msg); err != nil {
+			return err
+		}
+		if err := writer.Flush(); err != nil {
+			return err
+		}
+
+		// Read response with a timeout.
+		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		fmt.Print(response)
+
+		time.Sleep(500 * time.Millisecond)
+	}
+	return nil
+}
+
+func main() {
+	// Start server.
+	server, err := NewServer("127.0.0.1:9999")
+	if err != nil {
+		log.Fatalf("failed to create server: %v\n", err)
+	}
+	server.Start()
+	log.Println("server listening on 127.0.0.1:9999")
+
+	// If an argument is passed, run as client. Otherwise run as server.
+	if len(os.Args) &gt; 1 &amp;&amp; os.Args[1] == "client" {
+		time.Sleep(1 * time.Second) // Give server time to start.
+		err := runClient("127.0.0.1:9999", []string{"hello", "world", "test"})
+		if err != nil {
+			log.Fatalf("client error: %v\n", err)
+		}
+		return
+	}
+
+	// Server: wait for interrupt signal.
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	&lt;-sigChan
+
+	// Shutdown with a 10-second timeout.
+	if err := server.Shutdown(10 * time.Second); err != nil {
+		log.Printf("shutdown error: %v\n", err)
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+To run this code:
+</p>
+
+<pre><code class="language-bash">go run main.go &amp;
+sleep 0.5
+go run main.go client
+kill %1
+</code></pre>
+
+<p class="site-block-paragraph">
+In another terminal, press Ctrl+C to trigger the graceful shutdown. The server closes the listener, prevents new accepts, waits for the current connection handler to finish reading and writing, then exits cleanly.
+</p>
+
+<h2>Why This Works: The Three Phases</h2>
+
+<p class="site-block-paragraph">
+Phase 1: Stop accepting. Close the listener. The Accept loop receives an error and exits if the context is already canceled, or it checks the context on the next iteration.
+</p>
+
+<p class="site-block-paragraph">
+Phase 2: Signal handlers. Call cancel() on the context. Every goroutine listening on the context exits cleanly. Handlers that are mid-read will eventually see the context done, then they break the read loop and defer close the connection.
+</p>
+
+<p class="site-block-paragraph">
+Phase 3: Wait with timeout. Use a WaitGroup to block until all handlers are done. If they are not done after the timeout, the shutdown returns an error and the process exits anyway (because main exits), but at least we gave handlers a chance.
+</p>
+
+<h2>Key Details and Edge Cases</h2>
+
+<p class="site-block-paragraph">
+Use SetReadDeadline and SetWriteDeadline on the connection. If you leave reads and writes undeadlined, a handler can hang forever waiting for a client, and your shutdown will block forever waiting for that handler. The deadline forces the read to unblock, you check the context, and you exit if shutdown is in progress.
+</p>
+
+<p class="site-block-paragraph">
+Check the context immediately after returning from a blocking I/O call. A read might timeout naturally (not due to shutdown). You need to distinguish: did the timeout happen because shutdown was signaled, or did the client just go silent? If the context is done, exit. If not, it might be a transient issue; log and return.
+</p>
+
+<p class="site-block-paragraph">
+Use sync.WaitGroup carefully. Add to the group before starting a goroutine, not after. Use defer Done() so the count decreases even if a goroutine panics. Forget to Add or Done and you will have goroutine leaks or a panic in Wait.
+</p>
+
+<p class="site-block-paragraph">
+Buffered I/O (bufio.Writer) requires explicit Flush before the connection closes. A writer might hold data in a 4096-byte buffer. If you close the connection without flushing, the last chunk of the response is lost. Always defer Flush or call it after the final Write in critical sections.
+</p>
+
+<p class="site-block-paragraph">
+<a href="/nonJava/go-lang.html">Go's goroutine model makes this pattern clean</a> because goroutines are cheap and the select statement is built for multiplexing context. In languages without goroutines (Java threads are heavier, C requires manual event loops), this requires more infrastructure.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+Mistake 1: Closing the listener but not canceling the context. The Accept loop exits because Accept fails, but handlers still run. You wait on a WaitGroup that never decrements because no handler checks for shutdown. Result: deadlock on Shutdown.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 2: Not setting read/write deadlines. A handler blocked on a read never sees the context. The WaitGroup.Wait() call hangs forever. You hit the shutdown timeout and kill the process, dropping the in-flight data from that handler.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 3: Forgetting to flush buffered writers before closing. The response is never sent. The client sees EOF mid-response and logs an error. The data is lost even though the handler thought it succeeded.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 4: Too short a shutdown timeout. If you set timeout to 1 millisecond, a handler doing any non-trivial work (database query, file I/O) cannot finish. You force-close and lose data. Start with 10-30 seconds and tune based on your handler latency.
+</p>
+
+<h2>Comparing Approaches</h2>
+
+<table style="width:100%; border-collapse:collapse; margin:1em 0;">
+<tr style="border-bottom:2px solid #ccc;">
+<th style="text-align:left; padding:8px;">Approach</th>
+<th style="text-align:left; padding:8px;">Pros</th>
+<th style="text-align:left; padding:8px;">Cons</th>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">Abrupt close (no shutdown)</td>
+<td style="padding:8px;">Simple, no coordination needed</td>
+<td style="padding:8px;">Data loss, client errors, no cleanup</td>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">Close listener, immediate exit</td>
+<td style="padding:8px;">Faster than waiting, some handlers finish naturally</td>
+<td style="padding:8px;">Pending handlers still run but may be interrupted</td>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">Context cancel with WaitGroup and timeout (recommended)</td>
+<td style="padding:8px;">Clean signal, handlers have time to finish, timeout prevents hangs</td>
+<td style="padding:8px;">More code, requires discipline on deadlines</td>
+</tr>
+<tr style="border-bottom:1px solid #eee;">
+<td style="padding:8px;">HTTP server with Server.Shutdown()</td>
+<td style="padding:8px;">Built-in, handles connection draining, request context automatically canceled</td>
+<td style="padding:8px;">Limited to HTTP, abstracts the mechanics</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+For raw TCP services, you implement the pattern yourself. For HTTP, use the standard library's Server.Shutdown() method, which does all this under the hood.
+</p>
+
+<h2>Testing Graceful Shutdown</h2>
+
+<p class="site-block-paragraph">
+Write a test that connects to the server, starts a slow operation (sleep for a second), then sends a shutdown signal. Verify the slow operation completes (no data loss). Then test with a very short timeout: verify the shutdown function returns a timeout error but the process exits.
+</p>
+
+<pre><code class="language-go">func TestGracefulShutdown(t *testing.T) {
+	server, err := NewServer("127.0.0.1:0") // Port 0 = OS chooses
+	if err != nil {
+		t.Fatalf("failed to create server: %v", err)
+	}
+	server.Start()
+	addr := server.listener.Addr().String()
+
+	// Connect and send a message.
+	go func() {
+		conn, _ := net.Dial("tcp", addr)
+		defer conn.Close()
+		fmt.Fprintf(conn, "test\n")
+		io.ReadAll(conn) // Read until EOF
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Shutdown should complete without timeout.
+	err = server.Shutdown(5 * time.Second)
+	if err != nil {
+		t.Errorf("shutdown failed: %v", err)
+	}
+}
+</code></pre>
+
+<h2>FAQ</h2>
+
+<h3>What if a handler is stuck in an infinite loop and never checks the context?</h3>
+<p class="site-block-paragraph">
+The shutdown timeout expires and you force-exit. This is a bug in your handler code, not the shutdown mechanism. Every handler must have checkpoints where it checks the context or has a deadline. Handlers doing long-running compute (no I/O) should explicitly check the context periodically using select &lt;-ctx.Done().
+</p>
+
+<h3>Can I use context.WithTimeout instead of context.WithCancel?</h3>
+<p class="site-block-paragraph">
+Yes, if you know exactly how long the service should run. But WithCancel is cleaner for shutdown because the timeout is not about the service lifetime, it is about the shutdown grace period. Use WithCancel for the service, then pass a separate timeout to the Shutdown function.
+</p>
+
+<h3>Do I need a WaitGroup if I am not spawning many goroutines?</h3>
+<p class="site-block-paragraph">
+No, but do not skip it. Even if you think your service only handles a few connections, adding WaitGroup costs nothing and prevents bugs when load increases. It is defensive programming.
+</p>
+
+<h3>What happens if a client reconnects after I close the listener?</h3>
+<p class="site-block-paragraph">
+If the listener is closed, new connection attempts will fail with "connection refused". Existing connections are not affected until you close them. This is correct behavior: you stop accepting new work but let current work finish.
+</p>
+
+<h3>Should I set deadlines on the server side or let the client timeout?</h3>
+<p class="site-block-paragraph">
+Set them on both. Server-side deadlines prevent handlers from hanging indefinitely, especially during shutdown. Client-side timeouts are for client resilience. If either one fires, the connection is closed and resources are freed.
+</p>
+
+<h3>Does this pattern work for UDP?</h3>
+<p class="site-block-paragraph">
+UDP is connectionless, so there is no connection to gracefully close. You close the socket and any pending receives return an error immediately. The pattern is simpler: just cancel the context and exit the receive loop.
+</p>
+
+<h3>How do I know if my shutdown was successful?</h3>
+<p class="site-block-paragraph">
+Check the error return from Shutdown. If it is nil, all handlers finished before the timeout. If it is a timeout error, handlers were force-closed. Log this and monitor it in production. A persistent timeout error might indicate handlers are not checking the context properly.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/go-lang.html">Go lang</a></li><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

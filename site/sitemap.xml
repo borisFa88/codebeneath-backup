@@ -162,4 +162,8 @@
     <loc>https://codebeneath.com/notOnlyHttp/unix-domain-sockets-vs-tcp.html</loc>
     <lastmod>2026-10-14</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html</loc>
+    <lastmod>2026-10-16</lastmod>
+  </url>
 </urlset>
