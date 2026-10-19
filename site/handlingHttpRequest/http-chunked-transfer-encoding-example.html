@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice | Code Beneath</title>
+<meta name="description" content="HTTP transfer encoding chunked example implementation: send streaming responses without Content-Length. Working code in Go and Python with manual chunk writes." />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice | Code Beneath" />
+<meta property="og:description" content="HTTP transfer encoding chunked example implementation: send streaming responses without Content-Length. Working code in Go and Python with manual chunk writes." />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice | Code Beneath" />
+<meta name="twitter:description" content="HTTP transfer encoding chunked example implementation: send streaming responses without Content-Length. Working code in Go and Python with manual chunk writes." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice", "name": "HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice", "description": "HTTP transfer encoding chunked example implementation: send streaming responses without Content-Length. Working code in Go and Python with manual chunk writes.", "url": "https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html", "inLanguage": "en-US", "dateModified": "2026-10-19", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice", "item": "https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-19">October 19, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When you need to send an HTTP response but do not know the total size in advance, the chunked transfer encoding is your tool. Instead of buffering everything or setting Content-Length, you declare Transfer-Encoding: chunked and send data in discrete chunks. This is how live streams, real-time logs, and server-sent events work beneath the framework abstractions. An HTTP transfer encoding chunked example implementation shows the real wire format: chunk size in hex, the data, a CRLF pair, repeat, then a final zero-sized chunk with optional trailers. This article walks through working code that does exactly this, why size selection matters, and the gotchas that trap most engineers the first time.
+</p>
+
+<h2>Why Chunked Transfer Encoding</h2>
+
+<p class="site-block-paragraph">
+In HTTP/1.1, a response must tell the client how many bytes are coming. You either set Content-Length (which means you must know the size before you start sending headers) or you close the connection (HTTP/1.0 style, wasteful). Chunked encoding lets you send headers immediately, start streaming data, and signal the end later. The server never waits to buffer the entire body.
+</p>
+
+<p class="site-block-paragraph">
+This is critical for:
+</p>
+
+<ul>
+<li>Long-running computations that produce output incrementally</li>
+<li>Large files served from disk without precomputing size</li>
+<li>Real-time data feeds (stock tickers, log tail, metrics)</li>
+<li>Server-sent events (SSE), which relies on chunked encoding by default</li>
+<li>Proxies that do not know downstream content length</li>
+</ul>
+
+<p class="site-block-paragraph">
+The HTTP/1.1 spec (RFC 7230, Section 4.1) defines the wire format precisely. You send each chunk as: a line with the chunk size in hexadecimal, a CRLF pair (carriage return, line feed: "\r\n"), the chunk data itself, another CRLF pair, and repeat. The stream ends with a chunk of size 0 followed by optional trailer headers and a final CRLF.
+</p>
+
+<h2>The Wire Format in Detail</h2>
+
+<p class="site-block-paragraph">
+Let me show you exactly what travels over the socket:
+</p>
+
+<pre><code class="language-bash">5\r\n
+Hello\r\n
+6\r\n
+ World\r\n
+0\r\n
+\r\n
+</code></pre>
+
+<p class="site-block-paragraph">
+The "5" is hex for 5 bytes. Then 5 bytes of data ("Hello"). Then "6" for 6 bytes ("space World"). Then "0" signals the end, followed by a blank line (the final CRLF). The client reads the hex size, reads exactly that many bytes, discards the trailing CRLF, and repeats until it sees a zero chunk. Simple, but easy to get wrong when writing raw sockets.
+</p>
+
+<h2>Go Implementation: Manual Chunk Writing</h2>
+
+<p class="site-block-paragraph">
+Go's http.ResponseWriter detects when you do not set Content-Length and automatically uses chunked encoding. But let us do it manually first to show what really happens:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"bufio"
+	"fmt"
+	"net"
+	"time"
+)
+
+func main() {
+	listener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		panic(err)
+	}
+	defer listener.Close()
+
+	fmt.Println("Listening on :8080")
+
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			panic(err)
+		}
+		go handleConnection(conn)
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+	// Read the HTTP request line
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return
+	}
+
+	// Consume the rest of the headers
+	for {
+		hline, err := reader.ReadString('\n')
+		if err != nil {
+			return
+		}
+		if hline == "\r\n" {
+			break
+		}
+	}
+
+	// Send HTTP response headers with chunked encoding
+	response := "HTTP/1.1 200 OK\r\n"
+	response += "Transfer-Encoding: chunked\r\n"
+	response += "Content-Type: text/plain\r\n"
+	response += "\r\n"
+
+	conn.Write([]byte(response))
+
+	writer := bufio.NewWriter(conn)
+
+	// Send chunks manually
+	chunks := []string{"Hello", " ", "World", "!", "\n", "Streaming ", "data."}
+
+	for _, data := range chunks {
+		// Write chunk size in hex
+		chunkSize := fmt.Sprintf("%x\r\n", len(data))
+		writer.WriteString(chunkSize)
+
+		// Write chunk data
+		writer.WriteString(data)
+
+		// Write CRLF after data
+		writer.WriteString("\r\n")
+
+		writer.Flush()
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	// Send final zero-sized chunk (terminator)
+	writer.WriteString("0\r\n")
+	writer.WriteString("\r\n")
+	writer.Flush()
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this with `go run main.go` and connect with `curl -v http://localhost:8080`. You will see each chunk arrive as a separate write over the socket. curl will buffer and reassemble them transparently. The key lines:
+</p>
+
+<ul>
+<li>`fmt.Sprintf("%x\r\n", len(data))` converts the byte count to hex and adds a CRLF</li>
+<li>Every chunk has data and a trailing CRLF</li>
+<li>The terminator "0\r\n\r\n" signals the end (chunk size 0, then blank line for optional trailers)</li>
+<li>`writer.Flush()` forces the data onto the socket immediately, simulating streaming</li>
+</ul>
+
+<h2>Python Implementation with Real-Time Output</h2>
+
+<p class="site-block-paragraph">
+Python's http.server.BaseHTTPRequestHandler hides chunking by default. Here is a low-level socket version:
+</p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+
+import socket
+import time
+
+def handle_client(client_socket, addr):
+    # Read request
+    request = client_socket.recv(4096).decode('utf-8')
+    if not request:
+        client_socket.close()
+        return
+
+    # Send HTTP headers
+    response_headers = (
+        "HTTP/1.1 200 OK\r\n"
+        "Transfer-Encoding: chunked\r\n"
+        "Content-Type: text/plain\r\n"
+        "\r\n"
+    )
+    client_socket.sendall(response_headers.encode('utf-8'))
+
+    # Generator that yields chunks
+    def stream_chunks():
+        yield "Line 1: Processing started\n"
+        time.sleep(0.5)
+        yield "Line 2: Still working\n"
+        time.sleep(0.5)
+        yield "Line 3: Almost done\n"
+        time.sleep(0.5)
+        yield "Line 4: Complete\n"
+
+    # Send each chunk
+    for data in stream_chunks():
+        # Chunk size in hex
+        chunk_size = hex(len(data))[2:]  # Remove '0x' prefix
+        
+        # Format: size\r\ndata\r\n
+        chunk_line = f"{chunk_size}\r\n"
+        client_socket.sendall(chunk_line.encode('utf-8'))
+        client_socket.sendall(data.encode('utf-8'))
+        client_socket.sendall(b"\r\n")
+
+    # Send terminating chunk
+    client_socket.sendall(b"0\r\n\r\n")
+    client_socket.close()
+
+def main():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(('127.0.0.1', 8081))
+    server_socket.listen(5)
+    
+    print("Server listening on 127.0.0.1:8081")
+    
+    try:
+        while True:
+            client_socket, addr = server_socket.accept()
+            print(f"Connection from {addr}")
+            handle_client(client_socket, addr)
+    except KeyboardInterrupt:
+        print("Shutting down")
+    finally:
+        server_socket.close()
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this with `python3 main.py` and curl it:
+</p>
+
+<pre><code class="language-bash">curl -v http://127.0.0.1:8081
+</code></pre>
+
+<p class="site-block-paragraph">
+You will see the response arrive in real time, 500ms apart, with each chunk size printed by curl. The hex conversion (`hex(len(data))[2:]`) is the Python equivalent of Go's `fmt.Sprintf("%x", ...)`.
+</p>
+
+<h2>Chunk Size Selection</h2>
+
+<p class="site-block-paragraph">
+How big should each chunk be? There is no magic number. Common strategies:
+</p>
+
+<table style="width:100%; border-collapse: collapse;">
+<tr style="border: 1px solid #ccc;">
+<th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Strategy</th>
+<th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Size</th>
+<th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Use Case</th>
+</tr>
+<tr style="border: 1px solid #ccc;">
+<td style="border: 1px solid #ccc; padding: 8px;">Line-based</td>
+<td style="border: 1px solid #ccc; padding: 8px;">Variable (each line)</td>
+<td style="border: 1px solid #ccc; padding: 8px;">Logs, line-delimited JSON, text streams</td>
+</tr>
+<tr style="border: 1px solid #ccc;">
+<td style="border: 1px solid #ccc; padding: 8px;">Fixed size</td>
+<td style="border: 1px solid #ccc; padding: 8px;">4KB, 8KB, 64KB</td>
+<td style="border: 1px solid #ccc; padding: 8px;">File streaming, general-purpose</td>
+</tr>
+<tr style="border: 1px solid #ccc;">
+<td style="border: 1px solid #ccc; padding: 8px;">Semantic unit</td>
+<td style="border: 1px solid #ccc; padding: 8px;">1 JSON object, 1 frame</td>
+<td style="border: 1px solid #ccc; padding: 8px;">SSE, protocol buffers, video frames</td>
+</tr>
+<tr style="border: 1px solid #ccc;">
+<td style="border: 1px solid #ccc; padding: 8px;">Flush on timeout</td>
+<td style="border: 1px solid #ccc; padding: 8px;">Buffered + 100ms</td>
+<td style="border: 1px solid #ccc; padding: 8px;">Interactive streams (avoid latency)</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+Smaller chunks mean lower latency (client sees data sooner) but more overhead (more CRLF pairs, more writes). Larger chunks mean better throughput but higher latency. For interactive streams, prefer smaller chunks or flush on timeout. For bulk file transfer, 64KB chunks are standard.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<h3>Forgetting the trailing CRLF after data</h3>
+
+<p class="site-block-paragraph">
+Every chunk must have a CRLF after the data itself, not just after the size line. Missing this breaks the format and hangs the client.
+</p>
+
+<h3>Not flushing to the socket</h3>
+
+<p class="site-block-paragraph">
+Buffering all your chunks and sending them at once defeats the purpose of chunked encoding. Call `flush()` (Python) or `Flush()` (Go bufio) after each chunk if you want streaming behavior.
+</p>
+
+<h3>Mixing chunked with Content-Length</h3>
+
+<p class="site-block-paragraph">
+Set Transfer-Encoding: chunked OR Content-Length, never both (HTTP/1.1 forbids it). If both are present, Transfer-Encoding takes precedence and Content-Length is ignored, leading to confusion.
+</p>
+
+<h3>Forgetting the terminating zero chunk</h3>
+
+<p class="site-block-paragraph">
+The client waits for "0\r\n\r\n" to know the response is complete. Without it, the client hangs. Always send it, even if you send nothing else.
+</p>
+
+<h3>Sending non-hex chunk sizes</h3>
+
+<p class="site-block-paragraph">
+The size must be in hexadecimal, lowercase or uppercase (RFC says lowercase is preferred). Sending decimal sizes (e.g., "10" for 10 bytes instead of "a") creates a protocol violation.
+</p>
+
+<h2>Trailers: Sending Headers After Data</h2>
+
+<p class="site-block-paragraph">
+Chunked encoding allows optional trailer headers after the final chunk. This is useful for checksums, signatures, or metadata computed during streaming:
+</p>
+
+<pre><code class="language-go">// In Go, after the last chunk:
+writer.WriteString("0\r\n")
+writer.WriteString("X-Checksum: abc123\r\n")
+writer.WriteString("X-Rows-Processed: 1000\r\n")
+writer.WriteString("\r\n")
+writer.Flush()
+</code></pre>
+
+<p class="site-block-paragraph">
+The format is: zero chunk size, then trailer headers in the same format as response headers, then a final CRLF. Not all clients support trailers (trailers were poorly supported in HTTP/1.1 and are better in HTTP/2), so test thoroughly. For <a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">dynamic HTTP response types</a>, trailers can signal computed metadata.
+</p>
+
+<h2>Browser and Client Behavior</h2>
+
+<p class="site-block-paragraph">
+Browsers handle chunked responses transparently. curl, wget, and httpx all reassemble chunks into the full body before the application sees it. This is why developers often forget chunking exists: the abstraction hides it. The real test is watching with tcpdump or Wireshark to confirm chunks arrive separately on the wire.
+</p>
+
+<p class="site-block-paragraph">
+Some differences:
+</p>
+
+<ul>
+<li>Browsers do not display partial content incrementally by default (though they do for SSE with text/event-stream)</li>
+<li>CLI tools like curl buffer everything before printing</li>
+<li>JavaScript fetch() receives events as chunks arrive if you use a ReadableStream</li>
+<li>HTTP/2 and HTTP/3 do not use chunked encoding at all (they have native streaming), so Transfer-Encoding: chunked is HTTP/1.1 specific</li>
+</ul>
+
+<p class="site-block-paragraph">
+See <a href="/category/http/">HTTP basics</a> for more on protocol versions.
+</p>
+
+<h2>Testing and Debugging</h2>
+
+<p class="site-block-paragraph">
+To see the raw bytes on the wire:
+</p>
+
+<pre><code class="language-bash">curl --raw http://localhost:8080 | od -c
+</code></pre>
+
+<p class="site-block-paragraph">
+Or with netcat:
+</p>
+
+<pre><code class="language-bash">echo -e "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc localhost 8080 | od -c
+</code></pre>
+
+<p class="site-block-paragraph">
+You will see the hex chunk sizes, the data, and the CRLF sequences clearly. Wireshark is also invaluable: capture port 8080, filter by "http.transfer_encoding == chunked", and inspect the frames.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Do I have to use chunked encoding if I don't know Content-Length?</h3>
+
+<p>No. You can close the connection after the body (Connection: close), and HTTP/1.0 clients will work. But chunked encoding is cleaner for HTTP/1.1 because it allows Connection: keep-alive and pipelining.</p>
+
+<h3>What happens if I send a chunk size larger than the actual data?</h3>
+
+<p>The client reads that many bytes and hangs waiting for more. You have created a protocol violation. The client times out, confused. Always send the exact number of bytes you declare in the chunk size.</p>
+
+<h3>Can I send chunks in different orders or out of sequence?</h3>
+
+<p>No. The HTTP/1.1 specification requires chunks to arrive in order and to be processed sequentially. Reordering them breaks the protocol.</p>
+
+<h3>Does HTTP/2 support chunked encoding?</h3>
+
+<p>No. HTTP/2 uses frames instead, with native streaming support. The Transfer-Encoding header is not sent over HTTP/2 connections. The proxy or server translates chunked to frames transparently.</p>
+
+<h3>What is the maximum chunk size?</h3>
+
+<p>Theoretically, the chunk size hex can be as large as your system's integer can represent. Practically, most servers and clients limit it to 2GB or less. Stick to reasonable sizes (4KB to 1MB) unless you have a specific reason not to.</p>
+
+<h3>Should I compress chunked responses?</h3>
+
+<p>Yes. You can send Transfer-Encoding: chunked and Content-Encoding: gzip together. Many servers (nginx, Apache) do this automatically. Write your data to a gzip compressor, then chunk the compressed output.</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to read dynamic http type</a></li><li><a href="/category/http/">Http</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

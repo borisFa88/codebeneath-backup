@@ -166,4 +166,8 @@
     <loc>https://codebeneath.com/notOnlyHttp/tcp-socket-graceful-shutdown-go.html</loc>
     <lastmod>2026-10-16</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html</loc>
+    <lastmod>2026-10-19</lastmod>
+  </url>
 </urlset>
