@@ -368,8 +368,9 @@
         "/category/languages/"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Understand golang defer execution order multiple defer statements: LIFO stack unwinding, panic handling, and resource cleanup patterns with runnable code examples."
     },
     {
       "id": "java-x509-certificate-parsing-validation",

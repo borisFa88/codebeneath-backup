@@ -170,4 +170,8 @@
     <loc>https://codebeneath.com/handlingHttpRequest/http-chunked-transfer-encoding-example.html</loc>
     <lastmod>2026-10-19</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/nonJava/go-defer-order-stack-unwinding.html</loc>
+    <lastmod>2026-10-21</lastmod>
+  </url>
 </urlset>
