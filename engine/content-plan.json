@@ -389,8 +389,9 @@
         "/category/security/"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries."
     },
     {
       "id": "udp-datagram-size-fragmentation-example",

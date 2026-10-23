@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation | Code Beneath</title>
+<meta name="description" content="Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries." />
+<link rel="canonical" href="https://codebeneath.com/programmerStories/java-x509-certificate-parsing-validation.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation | Code Beneath" />
+<meta property="og:description" content="Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries." />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/java-x509-certificate-parsing-validation.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation | Code Beneath" />
+<meta name="twitter:description" content="Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation", "name": "Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation", "description": "Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries.", "url": "https://codebeneath.com/programmerStories/java-x509-certificate-parsing-validation.html", "inLanguage": "en-US", "dateModified": "2026-10-23", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/java-x509-certificate-parsing-validation.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation", "item": "https://codebeneath.com/programmerStories/java-x509-certificate-parsing-validation.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/security/">Security and Linux</a></nav>
+<h1 class="site-block-post-title">Reading and Parsing X.509 Certificates in Java: Certificate Chain Validation</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-23">October 23, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<<<META>>>
+Java read X.509 certificate parsing with CertificateFactory, chain validation, DN extraction, and self-signed cert handling without external libraries.
+<<<END META>>>
+<<<ARTICLE>>>
+<p class="site-block-paragraph">
+Extracting certificate details and validating certificate chains in Java requires understanding the X.509 standard and the built-in APIs available since Java 1.4. Many engineers reach for Apache Commons or Bouncy Castle before trying the standard library, but the standard APIs are sufficient for most real-world tasks: reading PEM and DER files, extracting distinguished names, validating chains, and checking self-signed certificates. This guide shows you how to java read x509 certificate parse chain example code that works in production, with no external dependencies.
+</p>
+
+<h2>Why You Need Certificate Chain Validation</h2>
+
+<p class="site-block-paragraph">
+When your application receives a certificate from a client (in mutual TLS, for example) or validates a server certificate, you need to ensure the chain is complete and each certificate was signed by the next one in the chain. This is not just an optional security measure: it is the foundation of trust. A self-signed certificate with an incomplete chain or an expired intermediate will cause authentication to fail. Understanding how to validate this yourself, rather than delegating it to a framework, gives you visibility into what is actually happening during the handshake.
+</p>
+
+<p class="site-block-paragraph">
+The <code>java.security.cert</code> package provides <code>CertificateFactory</code>, <code>X509Certificate</code>, and <code>CertPathValidator</code> for this purpose. Together they let you parse certificates, extract public keys, validate chains, and inspect the distinguished names (DNs) that identify the certificate owner.
+</p>
+
+<h2>Loading and Parsing X.509 Certificates</h2>
+
+<p class="site-block-paragraph">
+The first step is to load a certificate from a file or stream. X.509 certificates come in two formats: DER (binary) and PEM (Base64-encoded text). Java's <code>CertificateFactory</code> handles both.
+</p>
+
+<pre><code class="language-java">import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.cert.Certificate;
+import java.util.*;
+
+public class CertificateParser {
+
+    public static X509Certificate parsePemCertificate(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+        fis.close();
+        return cert;
+    }
+
+    public static X509Certificate parseDerCertificate(String filePath) throws Exception {
+        byte[] derBytes = Files.readAllBytes(Paths.get(filePath));
+        ByteArrayInputStream bais = new ByteArrayInputStream(derBytes);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(bais);
+        bais.close();
+        return cert;
+    }
+
+    public static List&lt;X509Certificate&gt; parseCertificateChain(String filePath) throws Exception {
+        FileInputStream fis = new FileInputStream(filePath);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        Collection&lt;? extends Certificate&gt; certs = cf.generateCertificates(fis);
+        fis.close();
+        
+        List&lt;X509Certificate&gt; chain = new ArrayList&lt;&gt;();
+        for (Certificate c : certs) {
+            chain.add((X509Certificate) c);
+        }
+        return chain;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String pemPath = "server.pem";
+        X509Certificate cert = parsePemCertificate(pemPath);
+        
+        System.out.println("Subject: " + cert.getSubjectDN());
+        System.out.println("Issuer: " + cert.getIssuerDN());
+        System.out.println("Serial: " + cert.getSerialNumber());
+        System.out.println("Not Before: " + cert.getNotBefore());
+        System.out.println("Not After: " + cert.getNotAfter());
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The key difference: use <code>generateCertificate()</code> for a single certificate and <code>generateCertificates()</code> (plural) for a chain. The factory automatically handles PEM Base64 decoding or raw DER bytes. No Base64 decoding on your side is needed; the factory does it.
+</p>
+
+<h2>Extracting and Parsing Distinguished Names</h2>
+
+<p class="site-block-paragraph">
+The subject DN contains the identity of the certificate owner. It is a structured name with fields like CN (Common Name), O (Organization), C (Country), and others. The <code>getSubjectDN()</code> method returns a <code>Principal</code>, but to extract individual fields, you need to parse the X.500 format string or use an X500Principal.
+</p>
+
+<pre><code class="language-java">import javax.security.auth.x500.X500Principal;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class DNParser {
+
+    public static void printDN(X509Certificate cert) {
+        X500Principal principal = cert.getSubjectX500Principal();
+        String dn = principal.getName(X500Principal.RFC2253);
+        System.out.println("DN (RFC2253): " + dn);
+        
+        Map&lt;String, String&gt; dnMap = parseDN(dn);
+        for (String key : dnMap.keySet()) {
+            System.out.println(key + " = " + dnMap.get(key));
+        }
+    }
+
+    public static Map&lt;String, String&gt; parseDN(String dn) {
+        Map&lt;String, String&gt; map = new LinkedHashMap&lt;&gt;();
+        
+        String[] parts = dn.split(",(?=(?:[^\\\\]*\\\\\\\\)*[^\\\\]*$)");
+        
+        for (String part : parts) {
+            part = part.trim();
+            int eqIndex = part.indexOf('=');
+            if (eqIndex &gt; 0) {
+                String key = part.substring(0, eqIndex).trim();
+                String value = part.substring(eqIndex + 1).trim();
+                map.put(key, value);
+            }
+        }
+        
+        return map;
+    }
+
+    public static String extractCommonName(X509Certificate cert) {
+        Map&lt;String, String&gt; dnMap = parseDN(
+            cert.getSubjectX500Principal().getName(X500Principal.RFC2253)
+        );
+        return dnMap.get("CN");
+    }
+
+    public static void main(String[] args) throws Exception {
+        FileInputStream fis = new FileInputStream("server.pem");
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+        fis.close();
+        
+        printDN(cert);
+        System.out.println("\nCommon Name: " + extractCommonName(cert));
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The RFC2253 format uses commas to separate RDNs (Relative Distinguished Names), but commas can also appear inside escaped values. The regex split with a lookahead handles this case correctly. This parser extracts the key-value pairs into a Map so you can look up CN, O, C, or any other field.
+</p>
+
+<h2>Validating Certificate Chains</h2>
+
+<p class="site-block-paragraph">
+A certificate chain is valid if each certificate was signed by the next one in the chain, and the final certificate (the root) is trusted. Java provides <code>CertPathValidator</code> to automate this. You need to supply the chain, a trust anchor (the root certificate or a KeyStore), and validation parameters.
+</p>
+
+<pre><code class="language-java">import java.security.KeyStore;
+import java.security.cert.*;
+import java.util.*;
+
+public class ChainValidator {
+
+    public static boolean validateChain(List&lt;X509Certificate&gt; chain, 
+                                        X509Certificate rootCert) throws Exception {
+        if (chain == null || chain.isEmpty()) {
+            System.out.println("Chain is empty");
+            return false;
+        }
+
+        PKIXParameters params = new PKIXParameters(
+            Collections.singleton(new TrustAnchor(rootCert, null))
+        );
+        
+        params.setRevocationEnabled(false);
+        
+        CertPath path = CertificateFactory.getInstance("X.509")
+            .generateCertPath(chain);
+        
+        CertPathValidator validator = CertPathValidator.getInstance("PKIX");
+        
+        try {
+            validator.validate(path, params);
+            System.out.println("Chain validation succeeded");
+            return true;
+        } catch (CertPathValidatorException e) {
+            System.out.println("Chain validation failed: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean validateChainWithKeyStore(List&lt;X509Certificate&gt; chain,
+                                                    String keyStorePath,
+                                                    String keyStorePassword) throws Exception {
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream(keyStorePath), keyStorePassword.toCharArray());
+        
+        PKIXParameters params = new PKIXParameters(ks);
+        params.setRevocationEnabled(false);
+        
+        CertPath path = CertificateFactory.getInstance("X.509")
+            .generateCertPath(chain);
+        
+        CertPathValidator validator = CertPathValidator.getInstance("PKIX");
+        
+        try {
+            validator.validate(path, params);
+            System.out.println("Chain validation with KeyStore succeeded");
+            return true;
+        } catch (CertPathValidatorException e) {
+            System.out.println("Chain validation failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        List&lt;X509Certificate&gt; chain = new ArrayList&lt;&gt;();
+        
+        FileInputStream fis1 = new FileInputStream("server.pem");
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        chain.add((X509Certificate) cf.generateCertificate(fis1));
+        fis1.close();
+        
+        FileInputStream fis2 = new FileInputStream("intermediate.pem");
+        chain.add((X509Certificate) cf.generateCertificate(fis2));
+        fis2.close();
+        
+        FileInputStream fis3 = new FileInputStream("root.pem");
+        X509Certificate rootCert = (X509Certificate) cf.generateCertificate(fis3);
+        fis3.close();
+        
+        validateChain(chain, rootCert);
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The order matters: the chain must start with the leaf (server) certificate and end with an intermediate or the root. The trust anchor is the root certificate or a KeyStore that contains trusted roots. The <code>setRevocationEnabled(false)</code> call disables CRL and OCSP checks, which is fine for offline validation; if you need revocation checking, you must supply a CertStore with CRL or OCSP responder URLs.
+</p>
+
+<h2>Handling Self-Signed Certificates</h2>
+
+<p class="site-block-paragraph">
+A self-signed certificate is one where the issuer and subject are the same, and it was signed by its own private key. These are common in testing and for internal CAs. Validating a self-signed certificate means treating it as its own trust anchor.
+</p>
+
+<pre><code class="language-java">import java.security.PublicKey;
+
+public class SelfSignedValidator {
+
+    public static boolean isSelfSigned(X509Certificate cert) {
+        return cert.getSubjectDN().equals(cert.getIssuerDN());
+    }
+
+    public static boolean validateSelfSigned(X509Certificate cert) {
+        try {
+            PublicKey publicKey = cert.getPublicKey();
+            cert.verify(publicKey);
+            System.out.println("Self-signed certificate signature is valid");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Self-signed certificate signature verification failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean validateSelfSignedWithExpiry(X509Certificate cert) {
+        if (!isSelfSigned(cert)) {
+            System.out.println("Certificate is not self-signed");
+            return false;
+        }
+        
+        try {
+            cert.verify(cert.getPublicKey());
+            System.out.println("Signature is valid");
+        } catch (Exception e) {
+            System.out.println("Signature verification failed: " + e.getMessage());
+            return false;
+        }
+        
+        try {
+            cert.checkValidity();
+            System.out.println("Certificate is within validity period");
+            return true;
+        } catch (CertificateExpiredException e) {
+            System.out.println("Certificate has expired");
+            return false;
+        } catch (CertificateNotYetValidException e) {
+            System.out.println("Certificate is not yet valid");
+            return false;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        FileInputStream fis = new FileInputStream("selfsigned.pem");
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+        fis.close();
+        
+        if (isSelfSigned(cert)) {
+            System.out.println("Certificate is self-signed");
+            validateSelfSignedWithExpiry(cert);
+        }
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The <code>verify()</code> method uses the public key to verify the signature. For a self-signed cert, the public key comes from the certificate itself. The <code>checkValidity()</code> method checks the notBefore and notAfter dates against the current system time. Call both to fully validate a self-signed certificate.
+</p>
+
+<h2>Extracting Public Keys and Certificate Extensions</h2>
+
+<p class="site-block-paragraph">
+Beyond the basic DN and validity, certificates contain extensions like Subject Alternative Name (SAN), Key Usage, Extended Key Usage, and Authority Key Identifier. These extensions are crucial for modern PKI.
+</p>
+
+<pre><code class="language-java">import java.security.PublicKey;
+import java.util.*;
+
+public class ExtensionExtractor {
+
+    public static void extractPublicKey(X509Certificate cert) {
+        PublicKey pk = cert.getPublicKey();
+        System.out.println("Algorithm: " + pk.getAlgorithm());
+        System.out.println("Format: " + pk.getFormat());
+        System.out.println("Encoded length: " + pk.getEncoded().length + " bytes");
+    }
+
+    public static void extractExtensions(X509Certificate cert) {
+        Set&lt;String&gt; criticalOids = cert.getCriticalExtensionOIDs();
+        Set&lt;String&gt; nonCriticalOids = cert.getNonCriticalExtensionOIDs();
+        
+        if (criticalOids != null) {
+            System.out.println("Critical extensions:");
+            for (String oid : criticalOids) {
+                byte[] extValue = cert.getExtensionValue(oid);
+                System.out.println("  OID: " + oid + ", length: " + extValue.length);
+            }
+        }
+        
+        if (nonCriticalOids != null) {
+            System.out.println("Non-critical extensions:");
+            for (String oid : nonCriticalOids) {
+                byte[] extValue = cert.getExtensionValue(oid);
+                System.out.println("  OID: " + oid + ", length: " + extValue.length);
+            }
+        }
+    }
+
+    public static List&lt;String&gt; extractSubjectAlternativeNames(X509Certificate cert) {
+        List&lt;String&gt; sans = new ArrayList&lt;&gt;();
+        
+        try {
+            Collection&lt;List&lt;?&gt;&gt; altNames = cert.getSubjectAlternativeNames();
+            
+            if (altNames == null) {
+                System.out.println("No Subject Alternative Names");
+                return sans;
+            }
+            
+            for (List&lt;?&gt; altName : altNames) {
+                Integer type = (Integer) altName.get(0);
+                Object name = altName.get(1);
+                
+                if (type == 2) {
+                    sans.add("DNS: " + name.toString());
+                } else if (type == 7) {
+                    sans.add("IP: " + name.toString());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error extracting SANs: " + e.getMessage());
+        }
+        
+        return sans;
+    }
+
+    public static void main(String[] args) throws Exception {
+        FileInputStream fis = new FileInputStream("server.pem");
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+        fis.close();
+        
+        System.out.println("=== Public Key ===");
+        extractPublicKey(cert);
+        
+        System.out.println("\n=== Extensions ===");
+        extractExtensions(cert);
+        
+        System.out.println("\n=== Subject Alternative Names ===");
+        List&lt;String&gt; sans = extractSubjectAlternativeNames(cert);
+        for (String san : sans) {
+            System.out.println(san);
+        }
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The SAN extension is stored as a GeneralNames structure inside the extension value. The list contains tuples of (type, value). Type 2 is DNS name, type 7 is IP address. This is why browsers use SANs to match hostnames: it is more flexible than the CN field. Your TLS stack probably does this automatically, but if you are building a custom validator, you need to extract and check these yourself.
+</p>
+
+<h2>Complete Integration Example with mTLS Context</h2>
+
+<p class="site-block-paragraph">
+In a real mutual TLS scenario, as described in <a href="/programmerStories/tls-mtls-handshake-explained.html">the TLS handshake guide</a>, your server receives a client certificate and must validate it. Here is a complete example that reads a client cert, extracts identity, validates the chain, and checks expiry.
+</p>
+
+<pre><code class="language-java">import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.cert.*;
+import java.util.*;
+import javax.security.auth.x500.X500Principal;
+
+public class ClientCertValidator {
+
+    public static void validateClientCertificate(String clientCertPath, 
+                                                 String trustedCAPath) throws Exception {
+        FileInputStream clientFis = new FileInputStream(clientCertPath);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate clientCert = (X509Certificate) cf.generateCertificate(clientFis);
+        clientFis.close();
+        
+        FileInputStream caFis = new FileInputStream(trustedCAPath);
+        X509Certificate caCert = (X509Certificate) cf.generateCertificate(caFis);
+        caFis.close();
+        
+        System.out.println("Client Certificate Details:");
+        System.out.println("Subject: " + clientCert.getSubjectDN());
+        System.out.println("Issuer: " + clientCert.getIssuerDN());
+        System.out.println("Serial: " + clientCert.getSerialNumber());
+        
+        try {
+            clientCert.checkValidity();
+            System.out.println("Validity: OK");
+        } catch (Exception e) {
+            System.out.println("Validity: FAILED - " + e.getMessage());
+            return;
+        }
+        
+        try {
+            clientCert.verify(caCert.getPublicKey());
+            System.out.println("Signature: VALID (signed by trusted CA)");
+        } catch (Exception e) {
+            System.out.println("Signature: INVALID - " + e.getMessage());
+            return;
+        }
+        
+        X500Principal subjectPrincipal = clientCert.getSubjectX500Principal();
+        String dn = subjectPrincipal.getName(X500Principal.RFC2253);
+        System.out.println("Distinguished Name: " + dn);
+        
+        System.out.println("\nClient certificate validation PASSED");
+    }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length &lt; 2) {
+            System.out.println("Usage: java ClientCertValidator &lt;clientCertPath&gt; &lt;trustedCAPath&gt;");
+            return;
+        }
+        
+        validateClientCertificate(args[0], args[1]);
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this with: <code>java ClientCertValidator client.pem ca.pem</code>. This validates that the client certificate was issued by the CA, has not expired, and is properly signed. In a real server, you would store the trusted CA certificate in a KeyStore or load it once at startup.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Not checking expiry:</strong> A valid signature does not guarantee the certificate is current. Always call <code>checkValidity()</code>.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Assuming a chain starts with the root:</strong> Certificate chains are ordered leaf-to-root, not root-to-leaf. If you reverse the order, validation will fail.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Forgetting that CertificateFactory.generateCertificates() includes the root:</strong> If you load a chain file that contains all certs including the root, and then use that list as your chain and the root as a separate trust anchor, you will have duplication. Keep the chain separate from the trust anchor.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Not handling escaped commas in DNs:</strong> A simple <code>split(",")</code> on a DN string will break if a field value contains an escaped comma. Use a regex lookahead or an X500Name parser.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Enabling revocation checking without a CertStore:</strong> If you set <code>setRevocationEnabled(true)</code> but do not provide a CertStore, validation will fail. Either disable it or supply a working CRL or OCSP source.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I validate a certificate chain from a PKCS12 or JKS KeyStore?</h3>
+<p>
+Yes. Use <code>KeyStore.getCertificateChain(alias)</code> to retrieve the chain as an array of Certificates, convert to a List of X509Certificate, and pass to CertPathValidator with the KeyStore itself as the trust anchor source (via PKIXParameters).
+</p>
+
+<h3>What is the difference between PEM and DER?</h3>
+<p>
+DER is binary; PEM is Base64-encoded DER wrapped in BEGIN/END markers. CertificateFactory handles both automatically when you pass an InputStream.
+</p>
+
+<h3>How do I extract the public key from a certificate for use in encryption?</h3>
+<p>
+Call <code>cert.getPublicKey()</code>. This returns a PublicKey interface. You can cast it to RSAPublicKey or ECPublicKey if you know the algorithm. For general use, pass it directly to Cipher or Signature objects.
+</p>
+
+<h3>Can I validate a certificate without the full chain?</h3>
+<p>
+If you have the leaf and the root, you can validate the signature of the leaf with the root's public key using <code>cert.verify(rootCert.getPublicKey())</code>. However, CertPathValidator requires the full chain and is stricter about validity dates and extensions.
+</p>
+
+<h3>What happens if the trust anchor is itself expired?</h3>
+<p>
+CertPathValidator will still validate the chain as long as the trust anchor is properly configured. The root certificate expiry does not matter for signature verification; it matters only if the root is being validated as part of a larger chain. Roots typically have very long validity periods (20+ years).
+</p>
+
+<h3>How do I get the fingerprint of a certificate?</h3>
+<p>
+Use <code>cert.getEncoded()</code> to get the DER bytes, then compute a hash (SHA-256 is common): <code>MessageDigest.getInstance("SHA-256").digest(cert.getEncoded())</code>. Convert to hex for display.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/programmerStories/tls-mtls-handshake-explained.html">TLS and mTLS Handshake Explained With a Runnable Example</a></li><li><a href="/category/security/">Security</a></li></ul><p><a href="/category/security/">More in Security and Linux</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
