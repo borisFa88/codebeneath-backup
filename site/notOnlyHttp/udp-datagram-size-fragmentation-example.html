@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>UDP Datagram Size Limits and Fragmentation: When Packets Break | Code Beneath</title>
+<meta name="description" content="UDP maximum datagram size fragmentation example: test limits, trigger IP fragmentation, measure loss, and recover datagrams across networks." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/udp-datagram-size-fragmentation-example.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="UDP Datagram Size Limits and Fragmentation: When Packets Break | Code Beneath" />
+<meta property="og:description" content="UDP maximum datagram size fragmentation example: test limits, trigger IP fragmentation, measure loss, and recover datagrams across networks." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/udp-datagram-size-fragmentation-example.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="UDP Datagram Size Limits and Fragmentation: When Packets Break | Code Beneath" />
+<meta name="twitter:description" content="UDP maximum datagram size fragmentation example: test limits, trigger IP fragmentation, measure loss, and recover datagrams across networks." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "UDP Datagram Size Limits and Fragmentation: When Packets Break", "name": "UDP Datagram Size Limits and Fragmentation: When Packets Break", "description": "UDP maximum datagram size fragmentation example: test limits, trigger IP fragmentation, measure loss, and recover datagrams across networks.", "url": "https://codebeneath.com/notOnlyHttp/udp-datagram-size-fragmentation-example.html", "inLanguage": "en-US", "dateModified": "2026-10-26", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/udp-datagram-size-fragmentation-example.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "UDP Datagram Size Limits and Fragmentation: When Packets Break", "item": "https://codebeneath.com/notOnlyHttp/udp-datagram-size-fragmentation-example.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">UDP Datagram Size Limits and Fragmentation: When Packets Break</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-26">October 26, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+UDP has no built-in stream reassembly like TCP. When you send a datagram larger than the network can carry in one frame, the kernel fragments it at the IP layer, and any single lost fragment kills the entire message. Understanding UDP maximum datagram size fragmentation example scenarios is critical because they fail silently, often at scale or under bad network conditions, and most developers encounter this only after production incidents. This article walks you through exactly where the limits come from, how fragmentation breaks, and how to measure it with working code.
+</p>
+
+<h2>The Hard Limits</h2>
+
+<p class="site-block-paragraph">
+UDP has a theoretical maximum payload of 65,535 bytes (the 16-bit length field in the UDP header). But that is not the practical limit. The real constraint is the Maximum Transmission Unit (MTU), typically 1500 bytes on Ethernet. Your datagram must fit in one IP packet. If it does not, the IP layer fragments it into multiple packets, each with its own header. If any fragment is lost in transit, the entire datagram is lost. There is no retransmission like TCP. Gone.
+</p>
+
+<p class="site-block-paragraph">
+On a 1500-byte MTU network:
+</p>
+
+<ul>
+<li>IP header: 20 bytes (minimum, IPv4)</li>
+<li>UDP header: 8 bytes</li>
+<li>Usable UDP payload per packet: 1500 - 20 - 8 = 1472 bytes</li>
+</ul>
+
+<p class="site-block-paragraph">
+If you send 1500 bytes of UDP payload, the kernel must split it. Packet 1 carries 1472 bytes, packet 2 carries 28 bytes. Both must arrive or the receiver gets nothing. Loss probability scales with fragment count. This is not a theoretical risk: it is why DNS uses TCP for responses larger than 512 bytes, why NTP limits payloads to 152 bytes, and why your game server likely hard-caps message size.
+</p>
+
+<p class="site-block-paragraph">
+The situation worsens if you traverse tunnels (VPN, MPLS) or go over wireless. Those layers add overhead, shrinking the effective MTU further. On some paths, it can drop to 1280 or even lower.
+</p>
+
+<h2>Measuring MTU with Path MTU Discovery</h2>
+
+<p class="site-block-paragraph">
+Path MTU Discovery (PMTUD) is supposed to help. The sender sets the DF (Don't Fragment) bit on outgoing IP packets. If a router finds a packet too large for its next hop, it discards the packet and sends back an ICMP "Fragmentation Needed" message containing the maximum size that path can handle. The sender then reduces its transmission size. This works in theory and often fails in practice: many networks filter ICMP for "security," leaving the sender waiting forever or silently dropping traffic.
+</p>
+
+<p class="site-block-paragraph">
+You can probe the path MTU yourself using a binary search. Start with a guess (say 1472 bytes), increment until you get nothing back, then narrow the range. Here is a working Java example:
+</p>
+
+<pre><code class="language-java">import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class MTUProbe {
+  public static void main(String[] args) throws Exception {
+    String host = args.length > 0 ? args[0] : "8.8.8.8";
+    int port = 53; // DNS
+    int timeout = 2000;
+
+    InetAddress addr = InetAddress.getByName(host);
+    int low = 100, high = 1472, discovered = 0;
+
+    System.out.println("Probing path MTU to " + host + ":" + port);
+
+    while (low <= high) {
+      int mid = (low + high) / 2;
+      boolean reached = probeSize(addr, port, mid, timeout);
+
+      System.out.printf("Size %d: %s\n", mid, reached ? "OK" : "FAIL");
+
+      if (reached) {
+        discovered = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    int payloadMTU = discovered - 28; // 20 bytes IP + 8 bytes UDP
+    System.out.printf("\nPath MTU: %d bytes, safe UDP payload: %d bytes\n",
+        discovered, payloadMTU);
+  }
+
+  static boolean probeSize(InetAddress addr, int port, int payloadSize,
+      int timeout) throws Exception {
+    try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setSoTimeout(timeout);
+      byte[] data = new byte[payloadSize];
+      java.util.Arrays.fill(data, (byte) 0x42);
+      DatagramPacket packet = new DatagramPacket(data, data.length, addr,
+          port);
+      socket.send(packet);
+
+      try {
+        DatagramPacket response = new DatagramPacket(new byte[1500], 1500);
+        socket.receive(response);
+        return true;
+      } catch (java.net.SocketTimeoutException e) {
+        return false;
+      }
+    }
+  }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run against a DNS server or any UDP responder:
+</p>
+
+<pre><code class="language-bash">javac MTUProbe.java
+java MTUProbe 8.8.8.8
+</code></pre>
+
+<p class="site-block-paragraph">
+On most commodity networks, this will discover 1472 bytes for IPv4. On IPv6 or behind certain proxies, you may see 1452 or lower. Save that number and use it as your hard cap for UDP payload size.
+</p>
+
+<h2>Fragmentation in Action: A Loss Experiment</h2>
+
+<p class="site-block-paragraph">
+Now let us demonstrate the cost of fragmentation. I will build a server that accepts a size parameter, sends back a UDP datagram of that size, and we will measure losses at different payload sizes. We will use two languages to show the pattern is universal.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Java Server:</strong>
+</p>
+
+<pre><code class="language-java">import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+
+public class FragmentationTestServer {
+  public static void main(String[] args) throws Exception {
+    int port = 9999;
+    DatagramSocket socket = new DatagramSocket(new InetSocketAddress(port));
+    System.out.println("UDP Fragmentation Test Server listening on port "
+        + port);
+    System.out.println("Send a message with format: SIZE");
+    System.out.println("Example: echo 'SIZE:2000' | nc -u localhost 9999");
+
+    byte[] buffer = new byte[8192];
+    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+
+    while (true) {
+      socket.receive(request);
+      String msg = new String(request.getData(), 0, request.getLength())
+          .trim();
+
+      try {
+        int size = Integer.parseInt(msg.replace("SIZE:", ""));
+        size = Math.min(size, 65507); // 65535 - 28 for headers
+
+        byte[] response = new byte[size];
+        ByteBuffer bb = ByteBuffer.wrap(response);
+        bb.putLong(System.nanoTime());
+        for (int i = 8; i < response.length; i++) {
+          response[i] = (byte) ((i + 1) % 256);
+        }
+
+        DatagramPacket reply = new DatagramPacket(response, response.length,
+            request.getSocketAddress());
+        socket.send(reply);
+
+        System.out.printf(
+            "Sent %d bytes to %s (fragments: %d)\n",
+            size, request.getAddress().getHostAddress(),
+            (size + 1471) / 1472);
+      } catch (NumberFormatException e) {
+        System.out.println("Invalid format: " + msg);
+      }
+    }
+  }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+<strong>Java Client:</strong>
+</p>
+
+<pre><code class="language-java">import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class FragmentationTestClient {
+  public static void main(String[] args) throws Exception {
+    String host = args.length > 0 ? args[0] : "127.0.0.1";
+    int port = 9999;
+    int trials = 5;
+
+    System.out.println("Testing UDP fragmentation to " + host + ":" + port);
+    System.out.println("Size\tFragments\tRecv\tLoss%");
+
+    for (int size = 100; size <= 8000; size += 500) {
+      int received = 0;
+      for (int trial = 0; trial < trials; trial++) {
+        if (sendAndWait(host, port, size)) {
+          received++;
+        }
+      }
+
+      int fragments = (size + 1471) / 1472;
+      double loss = 100.0 * (trials - received) / trials;
+
+      System.out.printf("%d\t%d\t\t%d\t%.0f%%\n", size, fragments, received,
+          loss);
+
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+
+  static boolean sendAndWait(String host, int port, int size)
+      throws Exception {
+    try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setSoTimeout(1000);
+      InetAddress addr = InetAddress.getByName(host);
+
+      byte[] request = ("SIZE:" + size).getBytes();
+      socket.send(new DatagramPacket(request, request.length, addr, port));
+
+      byte[] response = new byte[size];
+      try {
+        socket.receive(new DatagramPacket(response, response.length));
+        return true;
+      } catch (java.net.SocketTimeoutException e) {
+        return false;
+      }
+    }
+  }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+In another terminal, start the server:
+</p>
+
+<pre><code class="language-bash">javac FragmentationTestServer.java FragmentationTestClient.java
+java FragmentationTestServer
+</code></pre>
+
+<p class="site-block-paragraph">
+Then run the client (on the same machine, so no real loss):
+</p>
+
+<pre><code class="language-bash">java FragmentationTestClient localhost
+</code></pre>
+
+<p class="site-block-paragraph">
+On a LAN without packet loss, all messages succeed. But introduce artificial packet loss (using `tc` on Linux) or run this over a real network, and you will see the loss rate rise sharply once you exceed one MTU. Here is the equivalent in Go:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"strconv"
+	"time"
+)
+
+func main() {
+	host := "127.0.0.1"
+	if len(os.Args) > 1 {
+		host = os.Args[1]
+	}
+	port := 9999
+
+	fmt.Printf("Testing UDP fragmentation to %s:%d\n", host, port)
+	fmt.Println("Size\tFragments\tRecv\tLoss%%")
+
+	for size := 100; size <= 8000; size += 500 {
+		received := 0
+		trials := 5
+
+		for trial := 0; trial < trials; trial++ {
+			if sendAndWait(host, port, size) {
+				received++
+			}
+		}
+
+		fragments := (size + 1471) / 1472
+		loss := 100.0 * float64(trials-received) / float64(trials)
+
+		fmt.Printf("%d\t%d\t\t%d\t%.0f%%\n", size, fragments, received, loss)
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func sendAndWait(host string, port int, size int) bool {
+	addr := net.UDPAddr{
+		Port: port,
+		IP:   net.ParseIP(host),
+	}
+
+	conn, err := net.DialUDP("udp", nil, &addr)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+
+	conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+
+	request := fmt.Sprintf("SIZE:%d", size)
+	_, err = conn.Write([]byte(request))
+	if err != nil {
+		return false
+	}
+
+	response := make([]byte, size)
+	_, err = conn.Read(response)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run the Go version:
+</p>
+
+<pre><code class="language-bash">go run main.go localhost
+</code></pre>
+
+<p class="site-block-paragraph">
+Both behave identically. On a clean link, both see 0% loss even at 8KB. But watch what happens if you simulate packet loss. On Linux:
+</p>
+
+<pre><code class="language-bash">sudo tc qdisc add dev lo root netem loss 1%
+</code></pre>
+
+<p class="site-block-paragraph">
+Now rerun the client. A 1% per-packet loss rate becomes devastating for fragmented datagrams. A single 5000-byte message fragments into 4 packets. The probability all 4 arrive is 0.99^4 = 0.96, so you lose 4% of 5000-byte messages. At 7000 bytes (5 fragments), you drop 5% of messages. This is not linear; it is exponential against fragment count.
+</p>
+
+<p class="site-block-paragraph">
+Clean up the test:
+</p>
+
+<pre><code class="language-bash">sudo tc qdisc del dev lo root
+</code></pre>
+
+<h2>Safe Limits and Best Practices</h2>
+
+<p class="site-block-paragraph">
+You have three options:
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Max Payload</th>
+<th>Fragmentation</th>
+<th>Tradeoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conservative (DNS, NTP)</td>
+<td>512 bytes</td>
+<td>None (fits in ~1 packet)</td>
+<td>Safe on any network; limits throughput</td>
+</tr>
+<tr>
+<td>Standard Ethernet</td>
+<td>1472 bytes</td>
+<td>Single packet on local MTU 1500</td>
+<td>Works on most LANs; fragmented over internet</td>
+</tr>
+<tr>
+<td>Probe and adapt</td>
+<td>Path MTU - 28</td>
+<td>None on that path</td>
+<td>Best throughput; requires PMTUD or manual discovery</td>
+</tr>
+</tbody>
+</tbody>
+</table>
+
+<p class="site-block-paragraph">
+For a production service, I recommend this pattern: send payloads under 512 bytes by default, expose a configuration knob for operators to set a larger limit (up to 1472) if they control the network, and implement application-level fragmentation if you need larger messages. That means you split the data yourself, send multiple small UDP packets, and reassemble on the receive side. This trades simplicity for reliability, but you control the retransmission strategy. You can retry failed fragments without waiting for the entire message to timeout.
+</p>
+
+<h2>Application-Level Fragmentation Example</h2>
+
+<p class="site-block-paragraph">
+Here is a simple message splitter in Java. The sender fragments a large message and sends each chunk with a sequence number. The receiver collects chunks and reassembles.
+</p>
+
+<pre><code class="language-java">import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ReliableUDPMessage {
+
+  // Header format: 4 bytes magic + 2 bytes message ID + 2 bytes chunk index
+  // + 2 bytes total chunks + payload
+  static final int MAGIC = 0xDEADBEEF;
+  static final int HEADER_SIZE = 10;
+  static final int MAX_CHUNK_PAYLOAD = 1400; // Leave room for header
+
+  static class MessageChunk {
+    int messageId;
+    int chunkIndex;
+    int totalChunks;
+    byte[] payload;
+  }
+
+  static class ReassemblyBuffer {
+    byte[][] chunks;
+    int totalChunks;
+    int received = 0;
+
+    ReassemblyBuffer(int totalChunks) {
+      this.totalChunks = totalChunks;
+      this.chunks = new byte[totalChunks][];
+    }
+
+    boolean add(int chunkIndex, byte[] payload) {
+      if (chunks[chunkIndex] != null) {
+        return false; // Already have this chunk
+      }
+      chunks[chunkIndex] = payload;
+      received++;
+      return received == totalChunks;
+    }
+
+    byte[] reassemble() {
+      int totalSize = 0;
+      for (byte[] chunk : chunks) {
+        totalSize += chunk.length;
+      }
+      byte[] result = new byte[totalSize];
+      int offset = 0;
+      for (byte[] chunk : chunks) {
+        System.arraycopy(chunk, 0, result, offset, chunk.length);
+        offset += chunk.length;
+      }
+      return result;
+    }
+  }
+
+  static MessageChunk decodeChunk(byte[] packet, int len) throws Exception {
+    if (len < HEADER_SIZE) {
+      throw new Exception("Packet too small");
+    }
+
+    ByteBuffer bb = ByteBuffer.wrap(packet, 0, len);
+    int magic = bb.getInt();
+    if (magic != MAGIC) {
+      throw new Exception("Bad magic");
+    }
+
+    short messageId = bb.getShort();
+    short chunkIndex = bb.getShort();
+    short totalChunks = bb.getShort();
+
+    int payloadLen = len - HEADER_SIZE;
+    byte[] payload = new byte[payloadLen];
+    bb.get(payload);
+
+    MessageChunk chunk = new MessageChunk();
+    chunk.messageId = messageId & 0xFFFF;
+    chunk.chunkIndex = chunkIndex & 0xFFFF;
+    chunk.totalChunks = totalChunks & 0xFFFF;
+    chunk.payload = payload;
+    return chunk;
+  }
+
+  static byte[] encodeChunk(int messageId, int chunkIndex, int totalChunks,
+      byte[] payload) {
+    byte[] packet = new byte[HEADER_SIZE + payload.length];
+    ByteBuffer bb = ByteBuffer.wrap(packet);
+    bb.putInt(MAGIC);
+    bb.putShort((short) messageId);
+    bb.putShort((short) chunkIndex);
+    bb.putShort((short) totalChunks);
+    bb.put(payload);
+    return packet;
+  }
+
+  static class Sender {
+    DatagramSocket socket;
+    InetAddress targetAddr;
+    int targetPort;
+    int nextMessageId = 1;
+
+    Sender(InetAddress addr, int port) throws Exception {
+      this.socket = new DatagramSocket();
+      this.targetAddr = addr;
+      this.targetPort = port;
+    }
+
+    void sendMessage(byte[] message) throws Exception {
+      int totalChunks = (message.length + MAX_CHUNK_PAYLOAD - 1)
+          / MAX_CHUNK_PAYLOAD;
+      int messageId = nextMessageId++;
+
+      System.out.printf("Sending message %d (%d bytes in %d chunks)\n",
+          messageId, message.length, totalChunks);
+
+      for (int chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        int offset = chunkIndex * MAX_CHUNK_PAYLOAD;
+        int len = Math.min(MAX_CHUNK_PAYLOAD, message.length - offset);
+        byte[] payload = new byte[len];
+        System.arraycopy(message, offset, payload, 0, len);
+
+        byte[] packet = encodeChunk(messageId, chunkIndex, totalChunks,
+            payload);
+        DatagramPacket dp = new DatagramPacket(packet, packet.length,
+            targetAddr, targetPort);
+        socket.send(dp);
+        System.out.printf("  Chunk %d/%d sent (%d bytes)\n", chunkIndex + 1,
+            totalChunks, packet.length);
+      }
+    }
+
+    void close() {
+      socket.close();
+    }
+  }
+
+  static class Receiver {
+    DatagramSocket socket;
+    Map<Integer, ReassemblyBuffer> buffers = new HashMap<>();
+
+    Receiver(int port) throws Exception {
+      this.socket = new DatagramSocket(port);
+    }
+
+    byte[] receiveMessage(int timeoutMs) throws Exception {
+      socket.setSoTimeout(timeoutMs);
+      byte[] buffer = new byte[2048];
+      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
+      while (true) {
+        try {
+          socket.receive(packet);
+          MessageChunk chunk = decodeChunk(packet.getData(),
+              packet.getLength());
+
+          ReassemblyBuffer rb = buffers.computeIfAbsent(chunk.messageId,
+              id -> new ReassemblyBuffer(chunk.totalChunks));
+
+          if (rb.add(chunk.chunkIndex, chunk.payload)) {
+            System.out.printf(
+                "Message %d complete (%d chunks received)\n",
+                chunk.messageId, chunk.totalChunks);
+            buffers.remove(chunk.messageId);
+            return rb.reassemble();
+          }
+
+          System.out.printf("Message %d chunk %d/%d received\n",
+              chunk.messageId, chunk.chunkIndex + 1, chunk.totalChunks);
+        } catch (java.net.SocketTimeoutException e) {
+          throw new Exception("Timeout waiting for complete message");
+        }
+      }
+    }
+
+    void close() {
+      socket.close();
+    }
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length == 0 || args[0].equals("server")) {
+      // Server mode
+      Receiver server = new Receiver(9998);
+      System.out.println("Reliable UDP server on port 9998");
+      while (true) {
+        try {
+          byte[] msg = server.receiveMessage(10000);
+          System.out.printf("Received message: %s\n",
+              new String(msg, 0, Math.min(msg.length, 100)));
+        } catch (Exception e) {
+          System.out.println("Error: " + e.getMessage());
+        }
+      }
+    } else {
+      // Client mode
+      Sender client = new Sender(InetAddress.getByName("127.0.0.1"), 9998);
+
+      // Test with a message larger than one MTU
+      byte[] testMessage = new byte[5000];
+      for (int i = 0; i < testMessage.length; i++) {
+        testMessage[i] = (byte) ('A' + (i % 26));
+      }
+
+      client.sendMessage(testMessage);
+      client.close();
+    }
+  }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run the server in one terminal:
+</p>
+
+<pre><code class="language-bash">javac ReliableUDPMessage.java
+java ReliableUDPMessage server
+</code></pre>
+
+<p class="site-block-paragraph">
+And send a message from another:
+</p>
+
+<pre><code class="language-bash">java ReliableUDPMessage client
+</code></pre>
+
+<p class="site-block-paragraph">
+This approach guarantees delivery of large messages because you control retransmission. If you know a chunk is missing, you can ask the sender to resend only that chunk, not the entire message. This is closer to how real protocols like QUIC handle it.
+</p>
+
+<h2>Observing Fragmentation with tcpdump</h2>
+
+<p class="site-block-paragraph">
+To see fragmentation in action, run tcpdump while sending large datagrams. On Linux:
+</p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo -n 'udp port 9998' -X
+</code></pre>
+
+<p class="site-block-paragraph">
+Then send a 5000-byte message. You will see multiple IP packets, each with the same source/destination but different fragment offsets in the IP header. The More Fragments (MF) bit is set on all but the last, and the Fragment Offset field shows where each piece belongs in the original 5000-byte message.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Assuming IPv6 helps:</strong> IPv6 has a minimum MTU of 1280 bytes. That is worse, not better, in many scenarios. The effective payload is 1252 bytes (1280 - 20 for IPv6 header - 8 for UDP).
+</p>
+
+<p class="site-block-paragraph">
+<strong>Ignoring the operating system send buffer:</strong> Many OSes apply a hard limit to UDP sends. On Linux, it is often 128 KB by default, but you can hit practical limits much sooner if fragmentation causes queueing. Check your SO_SNDBUF and SO_RCVBUF settings.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Testing only on localhost:</strong> Localhost does not fragment. It is a virtual interface. Always test over a real network or use a network simulator. The code examples above work on localhost, but real losses only show up under real conditions.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Trusting PMTUD in production:</strong> ICMP filtering is common in corporate environments. If you see sudden, inexplicable packet loss at certain sizes, PMTUD is likely broken. Hard-code a conservative limit (512 or 1472 bytes) and move on.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>What is the actual maximum UDP datagram size?</h3>
+
+<p class="site-block-paragraph">
+Theoretically 65,535 bytes (the UDP length field is 16 bits). Practically, 1472 bytes on most Ethernet links without fragmentation, and often lower on paths with tunnels or wireless. Anything beyond the path MTU minus 28 bytes (IP + UDP headers) will be fragmented. If any fragment is lost, the entire datagram is discarded.
+</p>
+
+<h3>Does TCP avoid this problem?</h3>
+
+<p class="site-block-paragraph">
+TCP uses stream segmentation, not fragmentation. The sender controls segment size (the MSS, Maximum Segment Size, negotiated during handshake). Both sides agree not to fragment. TCP also implements retransmission, so if one segment is lost, only that segment is resent, not the entire stream. UDP has neither luxury.
+</p>
+
+<h3>Is application-level fragmentation worth it?</h3>
+
+<p class="site-block-paragraph">
+Only if you need it. If your average message fits in 512 bytes, do not add it. If you are building a game server or media streaming protocol and messages routinely exceed 1472 bytes, yes, implement it or use a protocol that already does (QUIC, SCTP). The overhead is small: a 10-byte header per chunk plus the complexity of a reassembly buffer.
+</p>
+
+<h3>What if I set DF on all outgoing packets?</h3>
+
+<p class="site-block-paragraph">
+Good idea. Setting the Do-Not-Fragment bit forces the kernel to return an error rather than fragment silently. You can then catch that error and reduce the message size. In Java, this is not directly exposed in the DatagramSocket API, but you can do it via raw sockets or JNI. In Go, it is available as syscall options.
+</p>
+
+<h3>How do I measure packet loss in my UDP application?</h3>
+
+<p class="site-block-paragraph">
+Sequence numbers. Include a sequence number in every packet, and on the receive side, check for gaps. If you sent packets 1 through 100 and only received 1 through 95 and 97 through 100, you know packet 96 was lost. Log it, alert on it, or trigger a resend request. This is standard practice in real-time protocols.
+</p>
+
+<h3>Why does localhost not fragment?</h3>
+
+<p class="site-block-paragraph">
+The loopback device (lo) does not have a real MTU constraint. The kernel copies data directly into the receiver's buffer without going through a network interface. So fragmentation never happens. Always test UDP size limits on a real interface or use a network simulator like `netem`.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li><li><a href="/category/not-only-http/">Not only http</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

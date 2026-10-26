@@ -411,8 +411,9 @@
         "/category/not-only-http/"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "UDP maximum datagram size fragmentation example: test limits, trigger IP fragmentation, measure loss, and recover datagrams across networks."
     },
     {
       "id": "spring-boot-deferredresult-async-timeout",
