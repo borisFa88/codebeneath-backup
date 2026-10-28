@@ -434,8 +434,9 @@
         "/articles.html"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Learn Spring Boot DeferredResult timeout exception handling with practical examples for async request handling, error management, and callback strategies."
     },
     {
       "id": "linux-strace-debug-system-call-errors",
@@ -554,6 +555,247 @@
       "internal_links": [
         "/notOnlyHttp/web-socket.html",
         "/category/not-only-http/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "tcp-nagle-algorithm-tcp-nodelay-example",
+      "cluster": "sockets",
+      "title": "TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters",
+      "slug": "tcp-nagle-algorithm-tcp-nodelay-example",
+      "target_keyword": "tcp nagle algorithm tcp nodelay example golang python",
+      "intent": "Understand when TCP batching hurts latency and how to disable it with runnable examples",
+      "competitors": [
+        "stackoverflow.com",
+        "man7.org",
+        "medium.com/tcp-articles"
+      ],
+      "beat_strategy": "Full runnable code in Go and Python showing latency difference with and without TCP_NODELAY, benchmark output, common gotcha about delayed ACKs, comparison table for use cases",
+      "internal_links": [
+        "/notOnlyHttp/tcp-udp-socket.html",
+        "/nonJava/go-lang.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "udp-receive-buffer-overflow-packet-loss",
+      "cluster": "sockets",
+      "title": "UDP Receive Buffer Overflow: Dropping Packets at the OS Level",
+      "slug": "udp-receive-buffer-overflow-packet-loss",
+      "target_keyword": "udp receive buffer overflow packet loss example SO_RCVBUF",
+      "intent": "Debug why UDP packets vanish silently and tune OS buffers",
+      "competitors": [
+        "unix.stackexchange.com",
+        "kernel.org documentation"
+      ],
+      "beat_strategy": "Runnable UDP server showing packet drops with small buffer, strace output proving drops, SO_RCVBUF tuning example, netstat commands to monitor, edge case around ENOBUFS on read",
+      "internal_links": [
+        "/notOnlyHttp/udp-datagram-size-fragmentation-example.html",
+        "/programmerStories/linux-processes-and-syscalls.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "http-100-continue-expect-header-example",
+      "cluster": "http",
+      "title": "HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body",
+      "slug": "http-100-continue-expect-header-example",
+      "target_keyword": "http 100 continue expect header example implementation",
+      "intent": "Implement proper Expect: 100-continue handling in servers and clients",
+      "competitors": [
+        "rfc7231.org",
+        "medium.com/http-tutorials"
+      ],
+      "beat_strategy": "Runnable Go/Python server showing 100-Continue accept/reject flow, client code that sends Expect header, common bug when servers ignore header, timing diagram and FAQ on when to use it",
+      "internal_links": [
+        "/handlingHttpRequest/how-to-read-dynamic-http-type.html",
+        "/handlingHttpRequest/rest-vs-grpc.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "http-trailer-headers-chunked-encoding",
+      "cluster": "http",
+      "title": "HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body",
+      "slug": "http-trailer-headers-chunked-encoding",
+      "target_keyword": "http trailer headers chunked encoding example implementation",
+      "intent": "Use HTTP trailers for checksums or post-body metadata in streaming responses",
+      "competitors": [
+        "datatracker.ietf.org",
+        "stackoverflow.com/q/trailers"
+      ],
+      "beat_strategy": "Complete Go server streaming response with trailer (e.g., content digest), client code reading trailers, gotcha about chunked encoding requirement, comparison with other metadata approaches, runnable test code",
+      "internal_links": [
+        "/handlingHttpRequest/http-chunked-transfer-encoding-example.html",
+        "/category/http/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "go-sync-pool-object-reuse-gc-pressure",
+      "cluster": "languages",
+      "title": "Go sync.Pool and Object Reuse: Reducing GC Pressure in High-Throughput Services",
+      "slug": "go-sync-pool-object-reuse-gc-pressure",
+      "target_keyword": "golang sync.pool example high throughput garbage collection",
+      "intent": "Use sync.Pool to cache allocations and measure GC impact reduction",
+      "competitors": [
+        "dave.cheney.net",
+        "medium.com/go-patterns"
+      ],
+      "beat_strategy": "Runnable Go code with sync.Pool for buffer pooling in HTTP handler, before/after GC stats and timing output, common bug of storing pointers with external refs, benchmark showing latency improvement, when NOT to use Pool",
+      "internal_links": [
+        "/nonJava/go-lang.html",
+        "/nonJava/goroutines-vs-os-threads.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "python-descriptor-property-lazy-evaluation",
+      "cluster": "languages",
+      "title": "Python Descriptor Protocol and Property Caching: Lazy Evaluation Pattern",
+      "slug": "python-descriptor-property-lazy-evaluation",
+      "target_keyword": "python descriptor protocol example lazy evaluation caching",
+      "intent": "Build reusable descriptor-based property wrappers for lazy loading",
+      "competitors": [
+        "docs.python.org",
+        "realpython.com"
+      ],
+      "beat_strategy": "Runnable Python descriptor example caching expensive computation, comparison with @property decorator, gotcha about descriptor protocol binding, use case in ORM-like code, test suite included",
+      "internal_links": [
+        "/nonJava/python-is-not-real-programming-language.html",
+        "/category/languages/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "linux-seccomp-system-call-filtering-sandbox",
+      "cluster": "security",
+      "title": "Linux Seccomp and System Call Filtering: Sandboxing With Runnable Policy",
+      "slug": "linux-seccomp-system-call-filtering-sandbox",
+      "target_keyword": "linux seccomp filter example syscall blocking sandbox",
+      "intent": "Use seccomp to restrict what system calls an unprivileged process can make",
+      "competitors": [
+        "kernel.org seccomp",
+        "man pages"
+      ],
+      "beat_strategy": "Runnable C program with seccomp filter denying execve, libseccomp example in Python/Go, strace output showing EPERM, gotcha about ordering allow/deny rules, comparison with pledge/pledge-like approaches",
+      "internal_links": [
+        "/programmerStories/linux-processes-and-syscalls.html",
+        "/category/security/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "tls-session-resumption-ids-vs-tickets",
+      "cluster": "security",
+      "title": "TLS Session Resumption: Session IDs vs Session Tickets Explained",
+      "slug": "tls-session-resumption-ids-vs-tickets",
+      "target_keyword": "tls session resumption session id session ticket example",
+      "intent": "Reduce TLS handshake overhead by resuming sessions with full runnable setup",
+      "competitors": [
+        "ssl.com",
+        "cloudflare.com/tls-articles"
+      ],
+      "beat_strategy": "Go TLS server with session resumption enabled, client code showing session reuse, wireshark-like output showing abbreviated handshake, gotcha about ticket encryption and rotation, when servers refuse resumption",
+      "internal_links": [
+        "/programmerStories/tls-mtls-handshake-explained.html",
+        "/handlingHttpRequest/token-based-security-in-web-applications.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "spring-webflux-backpressure-subscriber-request",
+      "cluster": "spring",
+      "title": "Spring WebFlux Backpressure Handling: Implementing Subscriber.request() Strategy",
+      "slug": "spring-webflux-backpressure-subscriber-request",
+      "target_keyword": "spring webflux backpressure example subscriber request strategy",
+      "intent": "Properly handle slow consumers in reactive streams with runnable example",
+      "competitors": [
+        "spring.io/docs",
+        "baeldung.com"
+      ],
+      "beat_strategy": "Runnable Spring WebFlux endpoint with custom backpressure strategy, slow subscriber causing buffering, metrics showing dropped items, edge case of unbounded request(), comparison with Spring MVC async",
+      "internal_links": [
+        "/category/spring-alternatives/",
+        "/handlingHttpRequest/rest-vs-grpc.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "netstat-ss-socket-leak-detection-established",
+      "cluster": "tools",
+      "title": "Using netstat and ss to Find Socket Leaks: Comparing ESTABLISHED States",
+      "slug": "netstat-ss-socket-leak-detection-established",
+      "target_keyword": "netstat ss socket leak detection established connections example",
+      "intent": "Diagnose stuck connections and file descriptor leaks in production",
+      "competitors": [
+        "man pages",
+        "nixos wiki"
+      ],
+      "beat_strategy": "Runnable Go server with intentional socket leak, netstat and ss commands tracking growth, parsing output with awk/grep, before/after /proc/sys/fs/file-max tuning, FAQ on transient vs leaked connections",
+      "internal_links": [
+        "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html",
+        "/programmerStories/linux-processes-and-syscalls.html"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "postgresql-query-plan-caching-prepared-statements",
+      "cluster": "tools",
+      "title": "PostgreSQL Query Plan Caching and Prepared Statements: When Plans Go Stale",
+      "slug": "postgresql-query-plan-caching-prepared-statements",
+      "target_keyword": "postgresql prepared statement query plan caching example custom plan",
+      "intent": "Understand when generic plans are chosen and how to debug plan reuse",
+      "competitors": [
+        "postgresql.org/docs",
+        "depesz.com"
+      ],
+      "beat_strategy": "Runnable psql session showing plan cache misses with EXPLAIN ANALYZE, Go client with prepared statement hitting generic plan, pg_prepared_statements view queries, explain analyze output with plan caching annotations, when to DEALLOCATE",
+      "internal_links": [
+        "/recommendedTools/sql-query-performance-explain.html",
+        "/category/tools/"
+      ],
+      "priority": 5,
+      "status": "queued",
+      "auto": true
+    },
+    {
+      "id": "tcp-out-of-order-packets-resequencing-socket",
+      "cluster": "sockets",
+      "title": "TCP Out-of-Order Packets and Reordering at the Socket Layer",
+      "slug": "tcp-out-of-order-packets-resequencing-socket",
+      "target_keyword": "tcp out of order packets resequencing example golang windows",
+      "intent": "Debug why read() may return data in unexpected order despite TCP guarantees",
+      "competitors": [
+        "stackoverflow.com",
+        "man7.org"
+      ],
+      "beat_strategy": "Runnable Go TCP client/server with artificial packet reordering simulation, tcpdump output showing sequence numbers, gotcha about read() returning less than expected, buffering strategy to preserve order, test code with Go's os.Pipe vs TCP comparison",
+      "internal_links": [
+        "/notOnlyHttp/tcp-socket-graceful-shutdown-go.html",
+        "/nonJava/go-lang.html"
       ],
       "priority": 5,
       "status": "queued",

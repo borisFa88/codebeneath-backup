@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors | Code Beneath</title>
+<meta name="description" content="Learn Spring Boot DeferredResult timeout exception handling with practical examples for async request handling, error management, and callback strategies." />
+<link rel="canonical" href="https://codebeneath.com/springAlternatives/spring-boot-deferredresult-async-timeout.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors | Code Beneath" />
+<meta property="og:description" content="Learn Spring Boot DeferredResult timeout exception handling with practical examples for async request handling, error management, and callback strategies." />
+<meta property="og:url" content="https://codebeneath.com/springAlternatives/spring-boot-deferredresult-async-timeout.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors | Code Beneath" />
+<meta name="twitter:description" content="Learn Spring Boot DeferredResult timeout exception handling with practical examples for async request handling, error management, and callback strategies." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors", "name": "Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors", "description": "Learn Spring Boot DeferredResult timeout exception handling with practical examples for async request handling, error management, and callback strategies.", "url": "https://codebeneath.com/springAlternatives/spring-boot-deferredresult-async-timeout.html", "inLanguage": "en-US", "dateModified": "2026-10-28", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/springAlternatives/spring-boot-deferredresult-async-timeout.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors", "item": "https://codebeneath.com/springAlternatives/spring-boot-deferredresult-async-timeout.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/spring-alternatives/">Spring Framework</a></nav>
+<h1 class="site-block-post-title">Spring Boot Async Request Handling with DeferredResult: Timeouts and Errors</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-28">October 28, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+When a Spring Boot controller method needs to handle long-running operations without blocking the servlet thread, DeferredResult is your tool. Unlike blocking requests that tie up resources for seconds or minutes, a spring boot deferredresult timeout exception handling example shows how to offload work to a background thread pool and let the HTTP request suspend until that work finishes or times out. This approach keeps your servlet container responsive while still returning a response on the original HTTP connection. The challenge is managing timeouts, exceptions, and error callbacks correctly so that clients always receive an answer, whether success or failure.
+</p>
+
+<h2>Understanding DeferredResult Basics</h2>
+
+<p class="site-block-paragraph">
+DeferredResult is a Spring MVC abstraction that allows a controller to return a response asynchronously. When you return a DeferredResult from a controller method, Spring immediately releases the servlet thread. Your code runs elsewhere (typically in a thread pool) and calls setResult() or setErrorResult() on the DeferredResult object to complete the HTTP response later. The browser never knows the difference: it sends a request and waits for a response, but the server can use that wait time to process other requests.
+</p>
+
+<p class="site-block-paragraph">
+The critical difference from traditional servlet blocking is that a single servlet thread can handle many concurrent requests instead of being pinned to one request for its entire duration. If you have 20 concurrent slow requests and only 10 servlet threads, a blocking app would queue the last 10. An async app using DeferredResult can suspend all 20 and process them in parallel on a smaller number of worker threads.
+</p>
+
+<h2>Complete Working Controller with DeferredResult</h2>
+
+<p class="site-block-paragraph">
+Below is a fully functional Spring Boot controller that demonstrates DeferredResult with timeout handling, error callback, and background task completion:
+</p>
+
+<pre><code class="language-java">
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.Random;
+
+@RestController
+@EnableAsync
+public class AsyncController {
+
+    private final LongRunningService service;
+
+    public AsyncController(LongRunningService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/async-result")
+    public DeferredResult&lt;String&gt; handleAsync() {
+        // Create a DeferredResult with 5 second timeout
+        DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;&gt;(5000L);
+
+        // Set timeout handler: called if result not set within 5 seconds
+        deferredResult.onTimeout(() -&gt; {
+            deferredResult.setErrorResult(new TimeoutException("Request timed out after 5 seconds"));
+        });
+
+        // Set completion handler: called when result is finally set (success or error)
+        deferredResult.onCompletion(() -&gt; {
+            System.out.println("Request completed");
+        });
+
+        // Execute long-running task asynchronously
+        service.processLongTask(deferredResult);
+
+        // Return immediately, servlet thread released
+        return deferredResult;
+    }
+
+    @GetMapping("/async-with-error")
+    public DeferredResult&lt;String&gt; handleAsyncWithError() {
+        DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;&gt;(3000L);
+
+        deferredResult.onTimeout(() -&gt; {
+            System.err.println("Timeout occurred");
+            deferredResult.setErrorResult("Request exceeded 3 second timeout");
+        });
+
+        deferredResult.onError(throwable -&gt; {
+            System.err.println("Error in async processing: " + throwable.getMessage());
+        });
+
+        service.processWithPotentialError(deferredResult);
+
+        return deferredResult;
+    }
+}
+
+@Service
+class LongRunningService {
+
+    private ExecutorService executor = Executors.newFixedThreadPool(4);
+
+    public void processLongTask(DeferredResult&lt;String&gt; deferredResult) {
+        executor.submit(() -&gt; {
+            try {
+                // Simulate work
+                Thread.sleep(2000);
+                deferredResult.setResult("Task completed successfully");
+            } catch (InterruptedException e) {
+                deferredResult.setErrorResult("Task interrupted: " + e.getMessage());
+            }
+        });
+    }
+
+    public void processWithPotentialError(DeferredResult&lt;String&gt; deferredResult) {
+        executor.submit(() -&gt; {
+            try {
+                // Simulate variable work duration
+                long delay = new Random().nextInt(5000);
+                Thread.sleep(delay);
+
+                if (delay &gt; 3500) {
+                    // Simulate failure after most of timeout has elapsed
+                    deferredResult.setErrorResult("Task failed: processing exceeded time limit");
+                } else {
+                    deferredResult.setResult("Completed in " + delay + "ms");
+                }
+            } catch (Exception e) {
+                deferredResult.setErrorResult(e.getMessage());
+            }
+        });
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+This example creates a DeferredResult with a 5-second timeout. When a request arrives at /async-result, Spring immediately returns the DeferredResult object, releasing the servlet thread. The background task runs in a separate thread pool, sleeps for 2 seconds, then calls setResult() to complete the HTTP response. The onTimeout() callback fires if setResult() or setErrorResult() are never called within 5 seconds. The onCompletion() callback always fires when the response is finally sent to the client.
+</p>
+
+<h2>Handling Errors and Exceptions</h2>
+
+<p class="site-block-paragraph">
+Error handling in DeferredResult requires careful coordination. There are three ways for a DeferredResult to finish: setResult() with a success value, setErrorResult() with an error object, or a timeout. The onError() callback is invoked if an exception escapes the async processing thread (not caught and wrapped in setErrorResult()). The onTimeout() callback is your chance to provide a meaningful timeout response instead of leaving the client hanging.
+</p>
+
+<p class="site-block-paragraph">
+A common mistake is assuming setErrorResult() accepts only exceptions. It can accept any object: an error message string, an error response object, or an exception. Spring will serialize whatever you pass and return it with an HTTP 200 status (unless you configure an error view resolver). If you want HTTP 4xx or 5xx status codes, use a ResponseEntity instead:
+</p>
+
+<pre><code class="language-java">
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class AsyncErrorController {
+
+    private final LongRunningService service;
+
+    public AsyncErrorController(LongRunningService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/async-status-codes")
+    public DeferredResult&lt;ResponseEntity&lt;String&gt;&gt; handleAsyncWithStatus() {
+        DeferredResult&lt;ResponseEntity&lt;String&gt;&gt; deferredResult = 
+            new DeferredResult&lt;&gt;(5000L);
+
+        deferredResult.onTimeout(() -&gt; {
+            ResponseEntity&lt;String&gt; errorResponse = 
+                ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                    .body("Request timed out after 5 seconds");
+            deferredResult.setErrorResult(errorResponse);
+        });
+
+        deferredResult.onError(throwable -&gt; {
+            ResponseEntity&lt;String&gt; errorResponse = 
+                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + throwable.getMessage());
+            deferredResult.setErrorResult(errorResponse);
+        });
+
+        service.processLongTask(result -&gt; {
+            deferredResult.setResult(ResponseEntity.ok(result));
+        });
+
+        return deferredResult;
+    }
+}
+</code></pre>
+
+<h2>DeferredResult vs CompletableFuture</h2>
+
+<p class="site-block-paragraph">
+Spring 5+ also supports returning CompletableFuture directly from controller methods. This is often cleaner than DeferredResult because you can chain operations with thenAccept(), thenApply(), and other functional methods. However, DeferredResult gives you more explicit control over timeout and error callbacks.
+</p>
+
+<table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+<tr style="background-color: #f5f5f5;">
+<th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Feature</th>
+<th style="border: 1px solid #ddd; padding: 12px; text-align: left;">DeferredResult</th>
+<th style="border: 1px solid #ddd; padding: 12px; text-align: left;">CompletableFuture</th>
+</tr>
+<tr>
+<td style="border: 1px solid #ddd; padding: 12px;">Timeout handling</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Explicit onTimeout() callback</td>
+<td style="border: 1px solid #ddd; padding: 12px;">completeOnTimeout() method</td>
+</tr>
+<tr>
+<td style="border: 1px solid #ddd; padding: 12px;">Error callback</td>
+<td style="border: 1px solid #ddd; padding: 12px;">onError() for uncaught exceptions</td>
+<td style="border: 1px solid #ddd; padding: 12px;">exceptionally() chain</td>
+</tr>
+<tr>
+<td style="border: 1px solid #ddd; padding: 12px;">Threading model</td>
+<td style="border: 1px solid #ddd; padding: 12px;">You manage the thread pool</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Uses ForkJoinPool by default</td>
+</tr>
+<tr>
+<td style="border: 1px solid #ddd; padding: 12px;">Chaining operations</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Manual, imperative style</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Functional, fluent API</td>
+</tr>
+<tr>
+<td style="border: 1px solid #ddd; padding: 12px;">Compatibility</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Spring 3+</td>
+<td style="border: 1px solid #ddd; padding: 12px;">Spring 5+ recommended</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">
+Here is the same endpoint using CompletableFuture:
+</p>
+
+<pre><code class="language-java">
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+@RestController
+public class AsyncCompletableFutureController {
+
+    private final LongRunningService service;
+
+    public AsyncCompletableFutureController(LongRunningService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/async-completable")
+    public CompletableFuture&lt;String&gt; handleAsyncCompletable() {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            try {
+                Thread.sleep(2000);
+                return "Task completed successfully";
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Task interrupted", e);
+            }
+        })
+        .orTimeout(5, TimeUnit.SECONDS)
+        .exceptionally(throwable -&gt; {
+            if (throwable.getCause() instanceof java.util.concurrent.TimeoutException) {
+                return "Request timed out after 5 seconds";
+            }
+            return "Error: " + throwable.getMessage();
+        });
+    }
+
+    @GetMapping("/async-completable-status")
+    public CompletableFuture&lt;ResponseEntity&lt;String&gt;&gt; handleAsyncCompletableWithStatus() {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            try {
+                Thread.sleep(2000);
+                return ResponseEntity.ok("Task completed successfully");
+            } catch (InterruptedException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Task interrupted: " + e.getMessage());
+            }
+        })
+        .orTimeout(5, TimeUnit.SECONDS)
+        .exceptionally(throwable -&gt; {
+            if (throwable.getCause() instanceof java.util.concurrent.TimeoutException) {
+                return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                    .body("Request timed out after 5 seconds");
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + throwable.getMessage());
+        });
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+CompletableFuture is less boilerplate when chaining operations, but it runs on the ForkJoinPool by default, which may not be optimal if you need fine-grained control over thread pool size or isolation. DeferredResult forces you to manage your own ExecutorService, which is more explicit and often better for production workloads.
+</p>
+
+<h2>Thread Pool Configuration and Resource Management</h2>
+
+<p class="site-block-paragraph">
+A subtle gotcha: DeferredResult releases the servlet thread, but you must manage the background thread pool carefully. If you create a new thread for every request without limits, you will exhaust memory. Always use a bounded ExecutorService with a fixed thread pool or a queue-based rejection policy.
+</p>
+
+<pre><code class="language-java">
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ArrayBlockingQueue;
+
+@Configuration
+public class AsyncThreadPoolConfig {
+
+    @Bean
+    public ExecutorService asyncExecutor() {
+        // Bounded thread pool: 10 threads, queue up to 100 tasks
+        return new ThreadPoolExecutor(
+            10,                           // core threads
+            10,                           // max threads
+            60,                           // keep-alive time
+            java.util.concurrent.TimeUnit.SECONDS,
+            new ArrayBlockingQueue&lt;&gt;(100)  // bounded queue
+        );
+    }
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+When the queue is full and all threads are busy, the ThreadPoolExecutor will throw RejectedExecutionException. You must catch this and return an error response immediately (before the servlet thread exits), or the client will receive no response at all.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+One frequent error: forgetting to call setResult() or setErrorResult() on every code path. If your async task completes but never calls one of these methods, the HTTP request will eventually timeout and the client will see a timeout error, even though the backend task succeeded. This happens easily in exception handlers that catch and log but do not re-set the DeferredResult.
+</p>
+
+<p class="site-block-paragraph">
+Another mistake: assuming onTimeout() runs on the background thread. It actually runs on the Spring async dispatch thread. If you call setResult() inside onTimeout(), it will have no effect because the result has already timed out. The onTimeout() callback is your last chance to produce an error response.
+</p>
+
+<p class="site-block-paragraph">
+A third gotcha: setting the timeout too low. If your timeout is 1 second but your task genuinely takes 3 seconds, you will always timeout. Measure your actual task latency and set the timeout to a value higher than the 99th percentile, plus a safety margin.
+</p>
+
+<h2>Integration with Security Frameworks</h2>
+
+<p class="site-block-paragraph">
+Async request handling in Spring plays well with security. Spring Security automatically propagates the SecurityContext to async threads if you configure it correctly. For token-based authentication, you may want to reference our guide on <a href="/handlingHttpRequest/token-based-security-in-web-applications.html">token-based security in web applications</a> to understand how to validate authorization headers before returning the DeferredResult. The key is that the authentication must complete before you spawn the background task, because the background thread will not have access to the servlet request context.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>What is the default timeout for DeferredResult if I do not specify one?</h3>
+
+<p class="site-block-paragraph">
+If you do not provide a timeout value in the constructor, DeferredResult uses the servlet async timeout, which is typically 30 seconds but varies by application server. Always specify a timeout explicitly in your code to avoid surprises in production.
+</p>
+
+<h3>Can I use DeferredResult with reactive frameworks like Project Reactor or RxJava?</h3>
+
+<p class="site-block-paragraph">
+Technically yes, but it defeats the purpose. If you are already using a reactive framework, return the Mono or Flux directly from your controller. DeferredResult is designed for traditional thread-per-request architectures. For a comprehensive look at alternatives to DeferredResult, see our article on <a href="/category/spring-alternatives/">Spring alternatives</a>.
+</p>
+
+<h3>Does onTimeout() prevent the response from being sent?</h3>
+
+<p class="site-block-paragraph">
+No, onTimeout() is called when the timeout expires, but the response is not automatically sent at that point. Inside onTimeout(), you must call setErrorResult() or setResult() to actually send the response. If you do not call one of these methods inside onTimeout(), the request will hang indefinitely.
+</p>
+
+<h3>Can I reuse the same DeferredResult object for multiple requests?</h3>
+
+<p class="site-block-paragraph">
+No, each HTTP request must have its own DeferredResult instance. Once you call setResult() or setErrorResult(), that DeferredResult is exhausted and cannot be reused.
+</p>
+
+<h3>How do I test a controller that returns DeferredResult?</h3>
+
+<p class="site-block-paragraph">
+Use MockMvc with asyncDispatch(). Call the endpoint, then call asyncDispatch() on the result to simulate the async processing completing. Example: mockMvc.perform(get("/async-result")).andExpect(request().asyncStarted()).andDo(print()).andReturn(); then MvcResult result = ... ; mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk());
+</p>
+
+<h3>What happens if I call setResult() twice?</h3>
+
+<p class="site-block-paragraph">
+The first call wins. Subsequent calls are ignored and may produce a warning in logs, depending on your Spring version. Always guard against this with a flag or by wrapping your background work in a try-catch that ensures setErrorResult() is called in the catch block.
+</p>
+
+<h3>Is DeferredResult the same as async servlet processing in vanilla Java?</h3>
+
+<p class="site-block-paragraph">
+DeferredResult is Spring's abstraction layer on top of servlet 3.0+ async request handling. Under the hood, Spring calls startAsync() on the servlet request when you return a DeferredResult. Using DeferredResult instead of raw servlet APIs gives you Spring's lifecycle callbacks and error handling, which is usually worth the small abstraction overhead.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token based security in web applications</a></li><li><a href="/category/spring-alternatives/">Spring alternatives</a></li><li><a href="/articles.html">Articles</a></li></ul><p><a href="/category/spring-alternatives/">More in Spring Framework</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
