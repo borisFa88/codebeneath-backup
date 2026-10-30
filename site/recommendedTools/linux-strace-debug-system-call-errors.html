@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE | Code Beneath</title>
+<meta name="description" content="Debug why Linux processes fail with strace. See exact system calls behind permission denied and EADDRINUSE errors with runnable examples and output." />
+<link rel="canonical" href="https://codebeneath.com/recommendedTools/linux-strace-debug-system-call-errors.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE | Code Beneath" />
+<meta property="og:description" content="Debug why Linux processes fail with strace. See exact system calls behind permission denied and EADDRINUSE errors with runnable examples and output." />
+<meta property="og:url" content="https://codebeneath.com/recommendedTools/linux-strace-debug-system-call-errors.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE | Code Beneath" />
+<meta name="twitter:description" content="Debug why Linux processes fail with strace. See exact system calls behind permission denied and EADDRINUSE errors with runnable examples and output." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE", "name": "Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE", "description": "Debug why Linux processes fail with strace. See exact system calls behind permission denied and EADDRINUSE errors with runnable examples and output.", "url": "https://codebeneath.com/recommendedTools/linux-strace-debug-system-call-errors.html", "inLanguage": "en-US", "dateModified": "2026-10-30", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/recommendedTools/linux-strace-debug-system-call-errors.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE", "item": "https://codebeneath.com/recommendedTools/linux-strace-debug-system-call-errors.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/tools/">Development Tools</a></nav>
+<h1 class="site-block-post-title">Using strace to Debug Linux System Call Errors: Permission Denied and EADDRINUSE</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-10-30">October 30, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">When a Linux process fails silently or crashes with a cryptic error, your first instinct should be to reach for strace. This system call tracer shows every interaction between your program and the kernel, making it invaluable for diagnosing linux strace permission denied eaddrinuse debugging example scenarios that would otherwise leave you guessing. Rather than installing debug symbols, rebuilding with verbose logging, or squinting at error codes in documentation, strace lets you watch the actual system calls in real time. In this article we trace real failures: a web server unable to bind to port 8080, a file utility hitting permission walls, and a process leaking file descriptors.</p>
+
+<h2>What strace Does and Why It Matters</h2>
+
+<p class="site-block-paragraph">strace intercepts and logs every system call your program makes, along with its arguments and return values. When bind() fails with EADDRINUSE, strace shows you the exact socket state and address. When open() returns permission denied, you see the exact flags and mode bits attempted. This is the lowest level you can observe without kernel source or a debugger, and it requires no application code changes.</p>
+
+<p class="site-block-paragraph">The kernel boundary is where most real failures live. A Java application might report "cannot listen on port 8080," but that's a wrapper around a failed bind() syscall. Go's net package might say "address already in use," but the underlying error comes from the kernel returning EADDRINUSE. strace strips the abstraction layer.</p>
+
+<h2>Getting Started: Basic strace Usage</h2>
+
+<p class="site-block-paragraph">Install strace on Debian/Ubuntu with apt-get install strace. On RHEL/CentOS use yum install strace. Then run any command prefixed with strace:</p>
+
+<pre><code class="language-bash">strace -o trace.log ls /tmp
+</code></pre>
+
+<p class="site-block-paragraph">The -o flag writes output to a file instead of stderr. For a running process, attach with:</p>
+
+<pre><code class="language-bash">strace -p 1234 -o trace.log
+</code></pre>
+
+<p class="site-block-paragraph">You will see hundreds of lines. To reduce noise, filter by syscall type with -e:</p>
+
+<pre><code class="language-bash">strace -e openat,open,read,write ls /tmp
+</code></pre>
+
+<p class="site-block-paragraph">The -e flag accepts a comma-separated list of syscall names (no spaces). Some syscalls changed names across kernel versions. On modern Linux, file operations use openat instead of open.</p>
+
+<h2>Case Study 1: EADDRINUSE on Port Binding</h2>
+
+<p class="site-block-paragraph">A Go service binds to port 8080. On restart, it crashes with "address already in use." Let's trace it:</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"log"
+	"net"
+)
+
+func main() {
+	listener, err := net.Listen("tcp", "127.0.0.1:8080")
+	if err != nil {
+		log.Fatalf("Listen failed: %v", err)
+	}
+	defer listener.Close()
+	fmt.Println("Listening on port 8080")
+	select {}
+}
+</code></pre>
+
+<p class="site-block-paragraph">Run the program:</p>
+
+<pre><code class="language-bash">go run server.go &amp;
+sleep 1
+kill %1
+sleep 1
+strace -e socket,bind,listen go run server.go
+</code></pre>
+
+<p class="site-block-paragraph">The output shows:</p>
+
+<pre><code class="language-bash">socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+bind(3, {sin_family=AF_INET, sin_port=htons(8080), sin_addr=inet_aton("127.0.0.1")}, 16) = -1 EADDRINUSE (Address already in use)
+</code></pre>
+
+<p class="site-block-paragraph">The socket file descriptor is 3. The bind syscall receives the port in network byte order (htons converts it). The return value -1 and errno EADDRINUSE tell you the port is held by another process.</p>
+
+<p class="site-block-paragraph">To find which process owns it:</p>
+
+<pre><code class="language-bash">netstat -tulnp | grep 8080
+ss -tulnp | grep 8080
+</code></pre>
+
+<p class="site-block-paragraph">Or trace the entire system with sudo lsof -i :8080. But strace told you exactly which syscall failed and why. If the error had been EACCES (permission denied), you would know the port number is below 1024 and requires root.</p>
+
+<p class="site-block-paragraph">To see TCP state transitions, add -e trace=network:</p>
+
+<pre><code class="language-bash">strace -e trace=network,desc go run server.go
+</code></pre>
+
+<p class="site-block-paragraph">This shows socket, bind, listen, accept, shutdown, close, and file descriptor operations all in one trace. The desc group includes dup, dup2, dup3, fcntl, and close, which are critical for finding file descriptor leaks.</p>
+
+<h2>Case Study 2: Permission Denied on File Access</h2>
+
+<p class="site-block-paragraph">A C program tries to read /etc/shadow and fails. Let's trace the error:</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+int main(void) {
+    FILE *f = fopen("/etc/shadow", "r");
+    if (!f) {
+        perror("fopen");
+        return 1;
+    }
+    char buf[256];
+    if (fgets(buf, sizeof(buf), f)) {
+        printf("%s\n", buf);
+    }
+    fclose(f);
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">Compile and trace:</p>
+
+<pre><code class="language-bash">gcc -o shadow shadow.c
+strace -e openat ./shadow
+</code></pre>
+
+<p class="site-block-paragraph">Output:</p>
+
+<pre><code class="language-bash">openat(AT_FDCWD, "/etc/shadow", O_RDONLY) = -1 EACCES (Permission denied)
+</code></pre>
+
+<p class="site-block-paragraph">The openat syscall has three arguments: AT_FDCWD means "use the current working directory as the base," the path string, and the flags (O_RDONLY). The return value -1 with errno EACCES tells you the file exists but you lack read permission.</p>
+
+<p class="site-block-paragraph">Check the file permissions:</p>
+
+<pre><code class="language-bash">ls -la /etc/shadow
+</code></pre>
+
+<p class="site-block-paragraph">Typically it is -rw-r----- (mode 640) owned by root:shadow. If you run as a regular user, you get EACCES. If you run with sudo, strace shows:</p>
+
+<pre><code class="language-bash">sudo strace -e openat ./shadow
+</code></pre>
+
+<p class="site-block-paragraph">Now openat returns a valid file descriptor (usually 3 or 4). The syscall succeeded. Then read and mmap or read calls follow to pull data into memory.</p>
+
+<p class="site-block-paragraph">This is where strace beats guessing. You do not need to check permissions with ls beforehand. strace shows the exact syscall, the exact flags, and the exact errno returned by the kernel. It eliminates the gap between your code's error message and the kernel's decision.</p>
+
+<h2>Case Study 3: File Descriptor Leaks</h2>
+
+<p class="site-block-paragraph">A Python script reads files in a loop and never closes them properly. After many iterations, it crashes with "too many open files." Let's detect the leak:</p>
+
+<pre><code class="language-python">import os
+import sys
+
+def read_file(path):
+    f = open(path, 'r')
+    data = f.read()
+    return data
+
+for i in range(1000):
+    try:
+        read_file('/etc/hostname')
+    except Exception as e:
+        print(f"Error at iteration {i}: {e}", file=sys.stderr)
+        break
+</code></pre>
+
+<p class="site-block-paragraph">Run with strace filtering for open and close:</p>
+
+<pre><code class="language-bash">strace -e openat,close python3 leak.py 2&gt;&amp;1 | tail -50
+</code></pre>
+
+<p class="site-block-paragraph">You will see openat calls accumulate without matching close calls. The output will show:</p>
+
+<pre><code class="language-bash">openat(AT_FDCWD, "/etc/hostname", O_RDONLY|O_CLOEXEC) = 3
+openat(AT_FDCWD, "/etc/hostname", O_RDONLY|O_CLOEXEC) = 4
+openat(AT_FDCWD, "/etc/hostname", O_RDONLY|O_CLOEXEC) = 5
+...
+</code></pre>
+
+<p class="site-block-paragraph">The file descriptor numbers increment (3, 4, 5...) but close() is never called. When the limit is reached (usually 1024 by default, tunable with ulimit -n), the next openat fails with EMFILE (too many open files).</p>
+
+<p class="site-block-paragraph">Count the ratio with a simple awk script:</p>
+
+<pre><code class="language-bash">strace -e openat,close python3 leak.py 2&gt;&amp;1 | grep -E '^(openat|close)' | awk '{print $1}' | sort | uniq -c
+</code></pre>
+
+<p class="site-block-paragraph">Output:</p>
+
+<pre><code class="language-bash">     2 close
+  1001 openat
+</code></pre>
+
+<p class="site-block-paragraph">Massive imbalance. The leak is confirmed at the syscall level, before any Python runtime profiler would detect it. Fix it by adding f.close():</p>
+
+<pre><code class="language-python">def read_file(path):
+    f = open(path, 'r')
+    data = f.read()
+    f.close()
+    return data
+</code></pre>
+
+<p class="site-block-paragraph">Re-run strace and you will see close() calls now match openat calls.</p>
+
+<h2>Filtering and Output Control</h2>
+
+<p class="site-block-paragraph">Large traces are overwhelming. Use -e to filter syscalls. Here are common patterns:</p>
+
+<table>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+<tr>
+<td>-e trace=file</td>
+<td>File operations only</td>
+<td>openat, readv, write, stat, unlink</td>
+</tr>
+<tr>
+<td>-e trace=network</td>
+<td>Socket operations only</td>
+<td>socket, bind, listen, accept, send, recv</td>
+</tr>
+<tr>
+<td>-e trace=process</td>
+<td>Process control</td>
+<td>fork, exec, exit, wait</td>
+</tr>
+<tr>
+<td>-e trace=signal</td>
+<td>Signal handlers</td>
+<td>sigaction, sigprocmask, kill</td>
+</tr>
+<tr>
+<td>-e write</td>
+<td>Log syscall arguments and results</td>
+<td>All write syscalls</td>
+</tr>
+<tr>
+<td>-e read</td>
+<td>Log read syscalls</td>
+<td>All read syscalls</td>
+</tr>
+</table>
+
+<p class="site-block-paragraph">To see the raw buffer contents of read and write, use -s (string length, default 32):</p>
+
+<pre><code class="language-bash">strace -e write -s 200 cat file.txt
+</code></pre>
+
+<p class="site-block-paragraph">This shows up to 200 bytes of the string being written. Very useful for HTTP requests or log output.</p>
+
+<p class="site-block-paragraph">To follow child processes (fork, clone), use -f:</p>
+
+<pre><code class="language-bash">strace -f bash -c 'for i in {1..3}; do (sleep 0.1) &amp; done'
+</code></pre>
+
+<p class="site-block-paragraph">Without -f, you only see the parent bash process. With -f, you see fork, execve, and exit for each child.</p>
+
+<p class="site-block-paragraph">To see timing information, use -r (relative time) or -t (absolute time):</p>
+
+<pre><code class="language-bash">strace -r -e socket,bind,listen go run server.go
+</code></pre>
+
+<p class="site-block-paragraph">Each line will show microseconds elapsed since the previous syscall. This reveals performance bottlenecks and synchronization stalls.</p>
+
+<h2>Interpreting Errno Values</h2>
+
+<p class="site-block-paragraph">strace translates errno numbers to names automatically. EADDRINUSE (98), EACCES (13), EMFILE (24), ENOENT (2), EAGAIN (11). But you need to understand what each means:</p>
+
+<table>
+<tr>
+<th>Errno</th>
+<th>Syscall Context</th>
+<th>Common Cause</th>
+</tr>
+<tr>
+<td>EADDRINUSE</td>
+<td>bind</td>
+<td>Port already in use or in TIME_WAIT state</td>
+</tr>
+<tr>
+<td>EACCES</td>
+<td>openat, bind</td>
+<td>Insufficient permissions (file mode, port &lt; 1024)</td>
+</tr>
+<tr>
+<td>ENOENT</td>
+<td>openat, unlink, stat</td>
+<td>File or directory does not exist</td>
+</tr>
+<tr>
+<td>EMFILE</td>
+<td>openat, socket, accept</td>
+<td>Process file descriptor limit reached</td>
+</tr>
+<tr>
+<td>ECONNREFUSED</td>
+<td>connect</td>
+<td>No listener on target address:port</td>
+</tr>
+<tr>
+<td>EAGAIN</td>
+<td>read, write, accept</td>
+<td>Resource temporarily unavailable (non-blocking mode)</td>
+</tr>
+</table>
+
+<h2>Reducing Noise with Output Filtering</h2>
+
+<p class="site-block-paragraph">strace runs your entire program, from startup to exit. Libc initialization alone generates dozens of mmap, mprotect, and brk calls. To focus on your code:</p>
+
+<p class="site-block-paragraph">First, run with -c to get a summary of which syscalls were called and how often:</p>
+
+<pre><code class="language-bash">strace -c go run server.go 2&gt;&amp;1 | head -20
+</code></pre>
+
+<p class="site-block-paragraph">This shows you the top syscalls by call count and time spent. Usually you will see poll, read, or write dominating. If bind and listen appear, your server is binding correctly.</p>
+
+<p class="site-block-paragraph">Second, skip library initialization by using -e to log only syscalls relevant to your problem:</p>
+
+<pre><code class="language-bash">strace -e trace=file,network -o server.log go run server.go
+</code></pre>
+
+<p class="site-block-paragraph">This drops all signal, process, and descriptor manipulation syscalls and focuses on the actual work.</p>
+
+<p class="site-block-paragraph">Third, use grep to search the output file for the failure point:</p>
+
+<pre><code class="language-bash">grep -E '(bind|EADD|EACCES|EMFILE)' server.log
+</code></pre>
+
+<p class="site-block-paragraph">In a 10,000 line trace, this finds the exact line where the failure occurred.</p>
+
+<h2>Attaching to Running Processes</h2>
+
+<p class="site-block-paragraph">You do not have to restart your program. If it is already running and you need to trace it, use -p with the process ID:</p>
+
+<pre><code class="language-bash">strace -p 5432 -e trace=network,desc -o nginx.log
+</code></pre>
+
+<p class="site-block-paragraph">strace will attach and begin logging immediately. Press Ctrl+C to detach without killing the process. This is invaluable for debugging production services without restarting them.</p>
+
+<p class="site-block-paragraph">If you want to trace a process only while it is handling a specific request, attach, generate the request in another terminal, then detach. You will see the entire sequence of syscalls triggered by that one request.</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">Mistake 1: Forgetting to redirect stderr. strace writes to stderr by default. If you use &gt; to redirect stdout, strace output mixes with program output. Use 2&gt; file or -o file.</p>
+
+<p class="site-block-paragraph">Mistake 2: Not filtering syscalls when the output is huge. Running strace with no filters on a web server generates gigabytes of log files within seconds. Always use -e to narrow scope. Start broad (trace=network,file), then narrow to specific calls (socket,bind,accept).</p>
+
+<p class="site-block-paragraph">Mistake 3: Misinterpreting return values. If a syscall returns 0, it succeeded. If it returns -1, it failed and the line will show an errno. If it returns a positive number (for socket or openat), that is a file descriptor. Do not confuse success with failure.</p>
+
+<p class="site-block-paragraph">Mistake 4: Running strace without root when tracing system daemons. Some syscalls require elevated privilege to observe. Use sudo strace or run as root if you get "Operation not permitted."</p>
+
+<p class="site-block-paragraph">Mistake 5: Assuming the exact order of syscalls in the output. Asynchronous operations, threads, and timer callbacks can reorder syscalls. Always look at the full context: which file descriptor, which address, which flags.</p>
+
+<h2>Integration with Security Auditing</h2>
+
+<p class="site-block-paragraph">strace is an essential <a href="/category/security/">security tool</a> for understanding what system calls an untrusted binary actually makes. Rather than reading source code or trusting vendor documentation, you can directly observe every file opened, every socket connected, every signal sent. See <a href="/category/tools/">our tools guide</a> for strace in combination with seccomp and apparmor profiling.</p>
+
+<p class="site-block-paragraph">When sandboxing an application, strace helps you build a minimal seccomp filter. First trace the normal operation to see which syscalls are required. Then write a policy that allows only those syscalls and blocks everything else. This turns permission denied errors into security policies.</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I use strace to debug a segfault?</h3>
+
+<p class="site-block-paragraph">strace will show syscalls up until the segfault. The last few system calls will reveal what the program was doing before it crashed. For example, if it segfaults while writing to a buffer, you may see a series of read or mmap calls that filled memory. For full debugging use gdb instead: gdb --args ./program args, then run and bt for a backtrace.</p>
+
+<h3>How do I trace only failed syscalls?</h3>
+
+<p class="site-block-paragraph">Use -e signal=none to suppress signal output, then use a shell filter: strace -e trace=network go run server.go 2&gt;&amp;1 | grep -E '= -1'. This shows only syscalls that returned -1 (failure).</p>
+
+<h3>Will strace slow down my program significantly?</h3>
+
+<p class="site-block-paragraph">Yes. Each syscall is intercepted, so tracing adds overhead. For interactive debugging this is fine. For production performance testing, strace is not suitable. Use it to diagnose specific failures, then remove it before measuring performance.</p>
+
+<h3>Can I trace a program that reads from stdin?</h3>
+
+<p class="site-block-paragraph">Yes. Use -i (or pipe input). For example: strace -e read echo hello | ./program. Or run strace interactively without -o, and type input after attaching.</p>
+
+<h3>What is the difference between openat and open?</h3>
+
+<p class="site-block-paragraph">On modern Linux kernels (3.6+), open is automatically converted to openat internally. openat takes an additional directory file descriptor parameter (AT_FDCWD for current directory). strace shows you what the kernel sees, so you will see openat even if your code calls open().</p>
+
+<h3>How do I capture the full request and response in a socket trace?</h3>
+
+<p class="site-block-paragraph">Use -e write,read -s 4096 to log the full buffer contents. For HTTP, this will show the entire GET request and HTTP response headers in the trace. Note that -s is the maximum string length; large responses will be truncated. For very large data, combine with grep to extract the relevant syscalls only.</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/category/tools/">Tools</a></li><li><a href="/category/security/">Security</a></li></ul><p><a href="/category/tools/">More in Development Tools</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

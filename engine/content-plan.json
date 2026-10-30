@@ -455,8 +455,9 @@
         "/category/security/"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Debug why Linux processes fail with strace. See exact system calls behind permission denied and EADDRINUSE errors with runnable examples and output."
     },
     {
       "id": "python-asyncio-run-in-executor-threading",
