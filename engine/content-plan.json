@@ -477,8 +477,9 @@
         "/category/languages/"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Learn when to use Python asyncio run_in_executor for blocking I/O. Complete examples, thread pool patterns, and performance measurements for production async code."
     },
     {
       "id": "http-range-requests-206-partial-content",

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Python asyncio Event Loop and Thread Safety: When to Use run_in_executor | Code Beneath</title>
+<meta name="description" content="Learn when to use Python asyncio run_in_executor for blocking I/O. Complete examples, thread pool patterns, and performance measurements for production async code." />
+<link rel="canonical" href="https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Python asyncio Event Loop and Thread Safety: When to Use run_in_executor | Code Beneath" />
+<meta property="og:description" content="Learn when to use Python asyncio run_in_executor for blocking I/O. Complete examples, thread pool patterns, and performance measurements for production async code." />
+<meta property="og:url" content="https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Python asyncio Event Loop and Thread Safety: When to Use run_in_executor | Code Beneath" />
+<meta name="twitter:description" content="Learn when to use Python asyncio run_in_executor for blocking I/O. Complete examples, thread pool patterns, and performance measurements for production async code." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Python asyncio Event Loop and Thread Safety: When to Use run_in_executor", "name": "Python asyncio Event Loop and Thread Safety: When to Use run_in_executor", "description": "Learn when to use Python asyncio run_in_executor for blocking I/O. Complete examples, thread pool patterns, and performance measurements for production async code.", "url": "https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html", "inLanguage": "en-US", "dateModified": "2026-11-02", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Python asyncio Event Loop and Thread Safety: When to Use run_in_executor", "item": "https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/languages/">Programming Languages</a></nav>
+<h1 class="site-block-post-title">Python asyncio Event Loop and Thread Safety: When to Use run_in_executor</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-02">November 2, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">The asyncio event loop is single-threaded. When you call a blocking function inside an async context, you freeze the entire loop, and all other coroutines starve. The standard solution is to push blocking work to a thread pool using <code>run_in_executor</code>, but many engineers misunderstand when to reach for it, how it actually works, and what performance tradeoffs exist. This article walks through a python asyncio run in executor blocking io example and shows you the internals, the gotchas, and when a pure async solution is genuinely better.</p>
+
+<h2>The Problem: Blocking Code in the Event Loop</h2>
+
+<p class="site-block-paragraph">Asyncio's event loop cannot pause a blocking call. If you call <code>time.sleep(1)</code> or perform a synchronous database query inside a coroutine, the loop itself hangs. Every other coroutine waiting for I/O stalls. Here is what this looks like:</p>
+
+<pre><code class="language-python">import asyncio
+import time
+
+async def bad_example():
+    print("Start:", time.time())
+    time.sleep(2)  # Blocks the entire loop
+    print("End:", time.time())
+    return "done"
+
+async def other_work():
+    for i in range(5):
+        print(f"Work {i} at {time.time()}")
+        await asyncio.sleep(0.2)
+
+async def main():
+    # These should run concurrently
+    task1 = asyncio.create_task(bad_example())
+    task2 = asyncio.create_task(other_work())
+    await asyncio.gather(task1, task2)
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">Run this. You will see that <code>other_work</code> does not print until after <code>bad_example</code> completes its 2 second sleep. The loop never yields. Now let's fix it with <code>run_in_executor</code>.</p>
+
+<h2>Understanding run_in_executor</h2>
+
+<p class="site-block-paragraph">The <code>run_in_executor</code> method pushes a blocking function call to a thread pool, allowing the event loop to continue. By default, it uses a <code>ThreadPoolExecutor</code> with a modest number of worker threads (typically equal to the number of CPU cores plus 5). The loop yields, other coroutines run, and when the thread finishes the blocking work, the result bubbles back as an awaitable.</p>
+
+<pre><code class="language-python">import asyncio
+import time
+
+async def blocking_work():
+    # This runs in a thread, not blocking the loop
+    time.sleep(2)
+    return "result from thread"
+
+async def other_work():
+    for i in range(5):
+        print(f"Work {i} at {time.time()}")
+        await asyncio.sleep(0.2)
+
+async def main():
+    loop = asyncio.get_event_loop()
+    
+    # Offload blocking_work to thread pool
+    task1 = asyncio.create_task(
+        loop.run_in_executor(None, blocking_work)
+    )
+    task2 = asyncio.create_task(other_work())
+    
+    results = await asyncio.gather(task1, task2)
+    print("Results:", results)
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">Now <code>other_work</code> runs concurrently with the sleep in the thread. The loop does not block. Print timestamps to confirm timing interleaves.</p>
+
+<h2>Real-World Case: Database Queries</h2>
+
+<p class="site-block-paragraph">A common pattern is synchronous database libraries (psycopg2, pymysql, sqlite3) running inside async code. These are blocking, so they belong in an executor. Here is a realistic example with PostgreSQL:</p>
+
+<pre><code class="language-python">import asyncio
+import psycopg2
+import time
+
+def query_db(query, params=None):
+    """Synchronous database call. Blocks."""
+    conn = psycopg2.connect(
+        host="localhost",
+        database="testdb",
+        user="postgres",
+        password="password"
+    )
+    cursor = conn.cursor()
+    try:
+        cursor.execute(query, params or ())
+        results = cursor.fetchall()
+        return results
+    finally:
+        cursor.close()
+        conn.close()
+
+async def fetch_user(user_id):
+    """Async wrapper around sync DB call."""
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        query_db,
+        "SELECT * FROM users WHERE id = %s",
+        (user_id,)
+    )
+    return result
+
+async def main():
+    start = time.time()
+    
+    # Fetch 5 users concurrently
+    tasks = [fetch_user(i) for i in range(1, 6)]
+    results = await asyncio.gather(*tasks)
+    
+    elapsed = time.time() - start
+    print(f"Fetched {len(results)} users in {elapsed:.2f}s")
+    for i, user in enumerate(results, 1):
+        print(f"User {i}: {user}")
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">Without the executor, each query would block the loop sequentially, taking roughly 5 times as long. With the executor, multiple queries run in parallel threads.</p>
+
+<h2>Providing a Custom Executor</h2>
+
+<p class="site-block-paragraph">The default executor works fine for many cases, but you can configure a custom one to control thread count, naming, or other attributes:</p>
+
+<pre><code class="language-python">import asyncio
+import concurrent.futures
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+def blocking_cpu_work(n):
+    """Simulate CPU-bound work."""
+    total = 0
+    for i in range(n):
+        total += i
+    time.sleep(0.5)  # Simulate I/O
+    return total
+
+async def main():
+    # Create a custom thread pool
+    executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="worker")
+    loop = asyncio.get_event_loop()
+    loop.set_default_executor(executor)
+    
+    # Now all run_in_executor calls use this pool by default
+    tasks = [
+        asyncio.create_task(
+            loop.run_in_executor(None, blocking_cpu_work, 1_000_000)
+        )
+        for _ in range(4)
+    ]
+    
+    results = await asyncio.gather(*tasks)
+    print("Results:", results)
+    
+    executor.shutdown(wait=True)
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">You can also pass a specific executor to a single call, bypassing the default.</p>
+
+<h2>When NOT to Use run_in_executor</h2>
+
+<p class="site-block-paragraph">The real question engineers often miss is: should you use <code>run_in_executor</code> at all, or should you use a truly async library instead? Here's the comparison:</p>
+
+<table style="width:100%; border-collapse:collapse; margin:1.5em 0;">
+<thead>
+<tr style="border-bottom:2px solid #333;">
+<th style="text-align:left; padding:0.75em;">Approach</th>
+<th style="text-align:left; padding:0.75em;">Thread Overhead</th>
+<th style="text-align:left; padding:0.75em;">Code Complexity</th>
+<th style="text-align:left; padding:0.75em;">Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid #ccc;">
+<td style="padding:0.75em;"><code>run_in_executor</code></td>
+<td style="padding:0.75em;">High (threads are expensive)</td>
+<td style="padding:0.75em;">Low (simple wrapping)</td>
+<td style="padding:0.75em;">Legacy sync libs, CPU work</td>
+</tr>
+<tr style="border-bottom:1px solid #ccc;">
+<td style="padding:0.75em;">Async library (aiopg, motor)</td>
+<td style="padding:0.75em;">None (pure async I/O)</td>
+<td style="padding:0.75em;">Medium (new patterns)</td>
+<td style="padding:0.75em;">New code, high concurrency</td>
+</tr>
+<tr style="border-bottom:1px solid #ccc;">
+<td style="padding:0.75em;">Sync library on sync event loop</td>
+<td style="padding:0.75em;">None</td>
+<td style="padding:0.75em;">Low</td>
+<td style="padding:0.75em;">Scripts, CLI tools, non-concurrent code</td>
+</tr>
+</tbody>
+</table>
+
+<p class="site-block-paragraph">If you're building a new system and can control your dependencies, prefer a native async database driver like <code>aiopg</code> or <code>motor</code> (for MongoDB). If you're integrating legacy code or a library that has no async variant, then <code>run_in_executor</code> is the right tool.</p>
+
+<h2>Performance Measurement: Executor vs. Async</h2>
+
+<p class="site-block-paragraph">Let's measure the actual overhead. Here's a test that simulates 100 small I/O operations:</p>
+
+<pre><code class="language-python">import asyncio
+import time
+import random
+
+# Simulated sync I/O
+def sync_io_call(duration):
+    """Blocks for a random short duration."""
+    time.sleep(duration)
+    return f"done in {duration:.3f}s"
+
+# Truly async I/O
+async def async_io_call(duration):
+    """Non-blocking sleep."""
+    await asyncio.sleep(duration)
+    return f"done in {duration:.3f}s"
+
+async def benchmark_executor():
+    """Using run_in_executor."""
+    loop = asyncio.get_event_loop()
+    
+    durations = [random.uniform(0.01, 0.05) for _ in range(100)]
+    tasks = [
+        loop.run_in_executor(None, sync_io_call, d)
+        for d in durations
+    ]
+    
+    start = time.time()
+    await asyncio.gather(*tasks)
+    return time.time() - start
+
+async def benchmark_pure_async():
+    """Using pure async."""
+    durations = [random.uniform(0.01, 0.05) for _ in range(100)]
+    tasks = [async_io_call(d) for d in durations]
+    
+    start = time.time()
+    await asyncio.gather(*tasks)
+    return time.time() - start
+
+async def main():
+    # Warm up
+    await benchmark_executor()
+    await benchmark_pure_async()
+    
+    # Measure
+    executor_time = await benchmark_executor()
+    async_time = await benchmark_pure_async()
+    
+    print(f"Executor time:   {executor_time:.3f}s")
+    print(f"Pure async time: {async_time:.3f}s")
+    print(f"Overhead ratio:  {executor_time / async_time:.2f}x")
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">Run this on your machine. You'll typically see the executor version takes 2-5x longer due to thread creation, context switching, and GIL contention. For a single blocking call, this doesn't matter. For thousands of concurrent I/O operations, it becomes a bottleneck.</p>
+
+<h2>Thread Pool Size and Queue Buildup</h2>
+
+<p class="site-block-paragraph">A subtle trap: if you spam <code>run_in_executor</code> with more tasks than your thread pool can handle, requests queue up in memory. Here's what happens:</p>
+
+<pre><code class="language-python">import asyncio
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+def slow_work(task_id):
+    """Simulates slow blocking work."""
+    print(f"Task {task_id} starting")
+    time.sleep(2)
+    print(f"Task {task_id} done")
+    return task_id
+
+async def main():
+    # Small thread pool
+    executor = ThreadPoolExecutor(max_workers=2)
+    loop = asyncio.get_event_loop()
+    
+    # Submit 10 tasks to a pool of 2 threads
+    tasks = [
+        loop.run_in_executor(executor, slow_work, i)
+        for i in range(10)
+    ]
+    
+    start = time.time()
+    results = await asyncio.gather(*tasks)
+    elapsed = time.time() - start
+    
+    print(f"All done in {elapsed:.1f}s")
+    print(f"Results: {results}")
+    
+    executor.shutdown()
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">This takes roughly 10 seconds (10 tasks x 2s / 2 threads = 10s), even though you submitted them all at once. The first two run immediately, then the queue blocks and waits. If your workload is truly I/O-bound, increase max_workers. If it's CPU-bound, you're limited by the number of cores.</p>
+
+<h2>Exception Handling in Executors</h2>
+
+<p class="site-block-paragraph">Exceptions raised in executor threads propagate to the awaiting coroutine. Handle them like any async operation:</p>
+
+<pre><code class="language-python">import asyncio
+
+def failing_work():
+    raise ValueError("Something went wrong in the thread")
+
+async def main():
+    loop = asyncio.get_event_loop()
+    
+    try:
+        result = await loop.run_in_executor(None, failing_work)
+    except ValueError as e:
+        print(f"Caught exception: {e}")
+
+asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">The exception is wrapped in a Future and unwrapped when you await it. This is identical to exception handling in regular async code.</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">1. Forgetting to pass a callable: <code>run_in_executor(None, query_db(user_id))</code> runs the function immediately in the calling coroutine. Pass <code>query_db</code> and args separately: <code>run_in_executor(None, query_db, user_id)</code>.</p>
+
+<p class="site-block-paragraph">2. Using <code>run_in_executor</code> for CPU-bound work expecting speedup: threads on Python face GIL contention. For true parallelism on CPU tasks, use <code>ProcessPoolExecutor</code> (with caveats) or multiprocessing directly.</p>
+
+<p class="site-block-paragraph">3. Assuming zero overhead: threads have real cost. Context switches, memory per thread, and synchronization all add up. If you can use a native async library, do so.</p>
+
+<p class="site-block-paragraph">4. Not tuning max_workers for your workload: too few threads means queue buildup and poor concurrency. Too many wastes memory and CPU. Profile your specific use case.</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I use run_in_executor with ProcessPoolExecutor for CPU work?</h3>
+
+<p class="site-block-paragraph">Yes, but it's rarely better than alternatives. Process pools have even higher overhead than thread pools (pickling, IPC). For CPU-bound work, consider using a dedicated CPU worker process pool outside asyncio, or use libraries like Ray. For most web backends, you don't need CPU parallelism.</p>
+
+<h3>Does run_in_executor release the GIL?</h3>
+
+<p class="site-block-paragraph">Not fully. Pure Python code in threads still contends for the GIL. Native C extensions (like those in database drivers) release the GIL during I/O, which is why psycopg2 or pymysql in threads works reasonably well. But you don't get true parallelism for Python bytecode.</p>
+
+<h3>What's the difference between run_in_executor and asyncio.to_thread (Python 3.9+)?</h3>
+
+<p class="site-block-paragraph"><code>asyncio.to_thread</code> is a simpler wrapper around <code>run_in_executor</code> with automatic default executor management. Under the hood, it's identical. Use <code>to_thread</code> for new code if you're on 3.9+, it's cleaner.</p>
+
+<h3>Should I use run_in_executor for file I/O?</h3>
+
+<p class="site-block-paragraph">File I/O is slower than network I/O, so offloading to a thread is reasonable for large reads/writes. For small files or logs, the overhead may dominate. Async file libraries like aiofiles exist but are thin wrappers around thread pools internally.</p>
+
+<h3>Can I set a timeout on executor work?</h3>
+
+<p class="site-block-paragraph">Wrap the task in <code>asyncio.wait_for</code>: <code>await asyncio.wait_for(loop.run_in_executor(...), timeout=5.0)</code>. If the timeout fires, the task is cancelled, but the thread keeps running in the background. This is a known limitation.</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/python-is-not-real-programming-language.html">Python is not real programming language</a></li><li><a href="/category/languages/">Languages</a></li></ul><p><a href="/category/languages/">More in Programming Languages</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
