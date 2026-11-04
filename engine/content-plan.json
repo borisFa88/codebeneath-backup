@@ -498,8 +498,9 @@
         "/notOnlyHttp/ftp-file-transfer-protocol.html"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "needs_review",
+      "auto": true,
+      "meta_description": "HTTP range request 206 partial content byte serving example: implement range headers, multipart responses, and resumable downloads for video and large files."
     },
     {
       "id": "linux-file-descriptor-limits-socket-leaks",
