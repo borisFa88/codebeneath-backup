@@ -194,4 +194,8 @@
     <loc>https://codebeneath.com/nonJava/python-asyncio-run-in-executor-threading.html</loc>
     <lastmod>2026-11-02</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html</loc>
+    <lastmod>2026-11-06</lastmod>
+  </url>
 </urlset>

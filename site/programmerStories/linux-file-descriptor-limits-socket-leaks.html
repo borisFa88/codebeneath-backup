@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max | Code Beneath</title>
+<meta name="description" content="Learn how Linux file descriptor limits work, detect socket leaks with ulimit, and fix "too many open files" errors using /proc/sys/fs/file-max configuration." />
+<link rel="canonical" href="https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max | Code Beneath" />
+<meta property="og:description" content="Learn how Linux file descriptor limits work, detect socket leaks with ulimit, and fix "too many open files" errors using /proc/sys/fs/file-max configuration." />
+<meta property="og:url" content="https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max | Code Beneath" />
+<meta name="twitter:description" content="Learn how Linux file descriptor limits work, detect socket leaks with ulimit, and fix "too many open files" errors using /proc/sys/fs/file-max configuration." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max", "name": "Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max", "description": "Learn how Linux file descriptor limits work, detect socket leaks with ulimit, and fix \"too many open files\" errors using /proc/sys/fs/file-max configuration.", "url": "https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html", "inLanguage": "en-US", "dateModified": "2026-11-06", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max", "item": "https://codebeneath.com/programmerStories/linux-file-descriptor-limits-socket-leaks.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/security/">Security and Linux</a></nav>
+<h1 class="site-block-post-title">Linux file Descriptor Limits and Socket Leaks: ulimit and /proc/sys/fs/file-max</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-06">November 6, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+You deploy a service, it runs fine for hours, then crashes with "too many open files." The root cause is almost always a file descriptor socket leak, triggered by improper cleanup or hitting the system ulimit. Understanding the two-tier limit system (per-process and system-wide), how to detect leaks, and how to configure both layers properly is essential for any engineer running network services. This article shows you the exact mechanisms, monitoring commands, and working code to diagnose and fix descriptor exhaustion in production.
+</p>
+
+<h2>Understanding Linux File Descriptors and the ulimit System</h2>
+
+<p class="site-block-paragraph">
+Every open file, socket, pipe, and device in Linux is represented by a file descriptor (FD), a small integer starting at 0. The first three (0, 1, 2) are reserved for stdin, stdout, and stderr. When you open a TCP socket, bind to a port, accept a connection, or even open a regular file, the kernel assigns the next available FD number.
+</p>
+
+<p class="site-block-paragraph">
+There are two limits that matter:
+</p>
+
+<ol>
+<li><strong>Per-process soft and hard limits:</strong> controlled by ulimit -n and configured in /etc/security/limits.conf.</li>
+<li><strong>System-wide limit:</strong> the total number of file descriptors all processes can hold, stored in /proc/sys/fs/file-max.</li>
+</ol>
+
+<p class="site-block-paragraph">
+If your process hits its soft ulimit, open() returns an error and errno is set to EMFILE (24). If the system runs out of global descriptors, open() fails with ENFILE (23). Both are fatal to a production service. The socket leak occurs when you accumulate unclosed file descriptors until you exhaust one of these limits.
+</p>
+
+<h2>Check Your Current File Descriptor Limits</h2>
+
+<p class="site-block-paragraph">
+First, see what your process can do:
+</p>
+
+<pre><code class="language-bash">
+# Check soft limit (what the process sees)
+ulimit -n
+
+# Check hard limit (maximum you can raise to without root)
+ulimit -H -n
+
+# Check system-wide limit
+cat /proc/sys/fs/file-max
+
+# See all limits for current shell
+ulimit -a
+</code></pre>
+
+<p class="site-block-paragraph">
+Most distributions ship with 1024 soft limit and 65536 hard limit per process. The system-wide limit is usually 80% of your RAM in KB divided by 10. On a 16 GB machine, expect around 1.3 million descriptors.
+</p>
+
+<h2>Detect File Descriptor Socket Leaks Through Monitoring</h2>
+
+<p class="site-block-paragraph">
+A leak is when your process opens descriptors but never closes them. Over time, the count climbs until you hit the ulimit. The easiest way to spot this is to watch the count grow:
+</p>
+
+<pre><code class="language-bash">
+# For a running process, count open FDs (replace 12345 with your PID)
+ls -1 /proc/12345/fd | wc -l
+
+# Or use lsof
+lsof -p 12345 | wc -l
+
+# Watch it grow in real time
+watch -n 1 'ls -1 /proc/12345/fd | wc -l'
+
+# See which FDs are open
+ls -la /proc/12345/fd/
+</code></pre>
+
+<p class="site-block-paragraph">
+The /proc filesystem is the most reliable tool here. Each process gets a /proc/[PID]/fd directory with a symlink for every open descriptor. Counting the symlinks tells you exactly how many FDs the process holds right now. This works without installing lsof and is not affected by permission issues that sometimes hide lsof output.
+</p>
+
+<h2>A Runnable Socket Leak Example</h2>
+
+<p class="site-block-paragraph">
+Here is a Go program that leaks TCP sockets intentionally, so you can see the symptoms and how to detect them:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"time"
+)
+
+func main() {
+	if len(os.Args) &lt; 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [leak|clean]\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	mode := os.Args[1]
+
+	if mode == "leak" {
+		// Intentional leak: connect but never close
+		fmt.Println("Opening sockets without closing (leak mode)...")
+		for i := 0; i &lt; 10000; i++ {
+			conn, err := net.Dial("tcp", "127.0.0.1:22")
+			if err != nil {
+				fmt.Printf("Dial failed at iteration %d: %v\n", i, err)
+				break
+			}
+			// BUG: We never call conn.Close()
+			if i%1000 == 0 {
+				fmt.Printf("Opened %d connections (leaking)\n", i)
+			}
+		}
+	} else if mode == "clean" {
+		// Proper cleanup: close every socket
+		fmt.Println("Opening and closing sockets (clean mode)...")
+		for i := 0; i &lt; 10000; i++ {
+			conn, err := net.Dial("tcp", "127.0.0.1:22")
+			if err != nil {
+				fmt.Printf("Dial failed at iteration %d: %v\n", i, err)
+				break
+			}
+			conn.Close()
+			if i%1000 == 0 {
+				fmt.Printf("Opened and closed %d connections\n", i)
+			}
+		}
+	}
+
+	fmt.Println("Sleeping for 60 seconds. Run: watch -n 1 'ls -1 /proc/[PID]/fd | wc -l'")
+	time.Sleep(60 * time.Second)
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run:
+</p>
+
+<pre><code class="language-bash">
+go build -o fd_leak fd_leak.go
+
+# In terminal 1, run leak mode
+./fd_leak leak &gt; /tmp/leak.log &amp;
+PID=$!
+
+# In terminal 2, watch the FD count climb
+watch -n 1 "echo 'FD count:'; ls -1 /proc/$PID/fd 2>/dev/null | wc -l; echo 'Last 5 FDs:'; ls -1 /proc/$PID/fd 2>/dev/null | tail -5"
+
+# Compare with clean mode
+./fd_leak clean &gt; /tmp/clean.log &amp;
+</code></pre>
+
+<p class="site-block-paragraph">
+In leak mode, the FD count will steadily climb to 1024 (the soft limit), then the program will fail with "too many open files." In clean mode, the count stays constant because every socket is closed immediately after use. This is the most obvious diagnostic: a monotonically increasing FD count is a leak.
+</p>
+
+<h2>Proper Resource Cleanup in Production Code</h2>
+
+<p class="site-block-paragraph">
+The fundamental rule: always pair open with close, and do it in a way that survives panics or early returns. Here is a robust pattern in Go, Java, and Python:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"net"
+)
+
+func handleConnection(conn net.Conn) error {
+	// Defer ensures Close runs even if we return early or panic
+	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				return nil // Clean close
+			}
+			return err
+		}
+		fmt.Printf("Received: %s", line)
+	}
+}
+
+func main() {
+	listener, err := net.Listen("tcp", ":9999")
+	if err != nil {
+		panic(err)
+	}
+	defer listener.Close()
+
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			panic(err)
+		}
+		// Spawn goroutine; handleConnection will close the connection
+		go handleConnection(conn)
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The defer statement is your safety net. Even if handleConnection panics, the defer runs and closes the socket. In Java and Python, use try-finally or context managers:
+</p>
+
+<pre><code class="language-java">
+public void handleConnection(Socket socket) throws IOException {
+	try {
+		InputStream input = socket.getInputStream();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+		String line;
+		while ((line = reader.readLine()) != null) {
+			System.out.println("Received: " + line);
+		}
+	} finally {
+		socket.close();
+	}
+}
+</code></pre>
+
+<pre><code class="language-python">
+import socket
+
+def handle_connection(sock):
+	try:
+		while True:
+			data = sock.recv(1024)
+			if not data:
+				break
+			print(f"Received: {data.decode()}")
+	finally:
+		sock.close()
+
+listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+listener.bind(("127.0.0.1", 9999))
+listener.listen(5)
+
+while True:
+	conn, addr = listener.accept()
+	# Spawn thread; handle_connection will close the socket
+	import threading
+	t = threading.Thread(target=handle_connection, args=(conn,))
+	t.daemon = True
+	t.start()
+</code></pre>
+
+<h2>Configuring ulimit Permanently</h2>
+
+<p class="site-block-paragraph">
+Raising the soft limit to the hard limit for your application is essential. There are three ways to configure ulimit settings:
+</p>
+
+<h3>Method 1: /etc/security/limits.conf</h3>
+
+<pre><code class="language-bash">
+# Add this line to /etc/security/limits.conf
+myuser soft nofile 65536
+myuser hard nofile 65536
+
+# Or for all users
+* soft nofile 65536
+* hard nofile 65536
+
+# Restart your shell or log in again for changes to take effect
+</code></pre>
+
+<h3>Method 2: Systemd service file</h3>
+
+<pre><code class="language-bash">
+# In your service file
+[Service]
+LimitNOFILE=65536
+LimitNOFILEHard=65536
+</code></pre>
+
+<h3>Method 3: Raise at startup in your application</h3>
+
+<p class="site-block-paragraph">
+Go example using syscall to configure ulimit programmatically:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"fmt"
+	"syscall"
+)
+
+func main() {
+	// Raise soft limit to hard limit
+	var rlim syscall.Rlimit
+	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &amp;rlim)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Current: soft=%d, hard=%d\n", rlim.Cur, rlim.Max)
+
+	// Set soft to hard
+	rlim.Cur = rlim.Max
+	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &amp;rlim)
+	if err != nil {
+		fmt.Printf("Setrlimit failed: %v (might need CAP_SYS_RESOURCE)\n", err)
+	} else {
+		fmt.Printf("Raised soft limit to %d\n", rlim.Max)
+	}
+}
+</code></pre>
+
+<h2>Monitoring System-Wide File Descriptor Limits</h2>
+
+<p class="site-block-paragraph">
+Even if a single process can open 65536 descriptors, the system might allow only 2 million total. When you hit this, all processes fail to open files. Monitor both:
+</p>
+
+<pre><code class="language-bash">
+# Current system-wide limit
+cat /proc/sys/fs/file-max
+
+# Currently allocated descriptors (sum across all processes)
+cat /proc/sys/fs/file-nr
+
+# Output format: allocated, unused, max
+# Example: 2048    128    262144
+</code></pre>
+
+<p class="site-block-paragraph">
+If allocated is close to max, you have too many processes holding descriptors. Raise file-max:
+</p>
+
+<pre><code class="language-bash">
+# Temporary (lost on reboot)
+echo 2097152 | sudo tee /proc/sys/fs/file-max
+
+# Permanent: add to /etc/sysctl.conf
+echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+</code></pre>
+
+<h2>End-to-End Monitoring Script</h2>
+
+<p class="site-block-paragraph">
+Here is a bash script that monitors both per-process and system-wide limits to catch socket leaks early:
+</p>
+
+<pre><code class="language-bash">
+#!/bin/bash
+# Monitor file descriptor usage
+
+set -e
+
+if [ $# -eq 0 ]; then
+	echo "Usage: $0 [PID]"
+	exit 1
+fi
+
+PID=$1
+INTERVAL=2
+
+echo "Monitoring FD usage for PID $PID (interval ${INTERVAL}s)"
+echo "Press Ctrl+C to stop"
+echo ""
+
+while true; do
+	clear
+	echo "=== System-wide ==="
+	FILE_NR=$(cat /proc/sys/fs/file-nr)
+	FILE_MAX=$(cat /proc/sys/fs/file-max)
+	ALLOCATED=$(echo $FILE_NR | awk '{print $1}')
+	MAX=$FILE_MAX
+	PCT=$((ALLOCATED * 100 / MAX))
+	echo "Allocated: $ALLOCATED / $MAX ($PCT%)"
+	echo ""
+
+	echo "=== Process $PID ==="
+	if [ ! -d "/proc/$PID" ]; then
+		echo "Process not found"
+		exit 1
+	fi
+
+	FD_COUNT=$(ls -1 /proc/$PID/fd 2>/dev/null | wc -l)
+	SOFT_LIMIT=$(cat /proc/$PID/limits 2>/dev/null | grep "open files" | awk '{print $4}')
+	HARD_LIMIT=$(cat /proc/$PID/limits 2>/dev/null | grep "open files" | awk '{print $5}')
+
+	echo "Open FDs: $FD_COUNT"
+	echo "Soft limit: $SOFT_LIMIT"
+	echo "Hard limit: $HARD_LIMIT"
+	echo ""
+
+	if [ $FD_COUNT -gt 0 ]; then
+		echo "Top 10 open FD types:"
+		ls -1 /proc/$PID/fd | xargs -I {} sh -c "readlink /proc/$PID/fd/{} 2>/dev/null || echo '(unknown)'" | sort | uniq -c | sort -rn | head -10
+	fi
+
+	sleep $INTERVAL
+done
+</code></pre>
+
+<h2>Common Mistakes</h2>
+
+<table>
+<thead>
+<tr>
+<th>Mistake</th>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Forgetting to close sockets in a loop</td>
+<td>FD count climbs steadily; crashes at ulimit</td>
+<td>Use defer, finally, or context managers. Always pair open with close.</td>
+</tr>
+<tr>
+<td>Closing in the wrong goroutine/thread</td>
+<td>Leaks or double-close panics</td>
+<td>Close in the same function that opened. Use defer to guarantee it runs.</td>
+</tr>
+<tr>
+<td>Raising only soft limit, not hard limit</td>
+<td>Process still crashes after a while</td>
+<td>Set both soft and hard, or use Setrlimit at startup.</td>
+</tr>
+<tr>
+<td>Not monitoring system-wide limit</td>
+<td>All processes fail suddenly even though individual processes look fine</td>
+<td>Watch /proc/sys/fs/file-nr and file-max. Raise file-max before you need it.</td>
+</tr>
+<tr>
+<td>Checking only lsof, trusting it is complete</td>
+<td>Real leak missed because lsof lost access or was slow</td>
+<td>Use ls /proc/[PID]/fd as the source of truth. It is instant and never lies.</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Integration with Security Best Practices</h2>
+
+<p class="site-block-paragraph">
+For production deployment, file descriptor limits are part of a broader hardening strategy. Use ulimit to constrain processes, isolate services in containers with their own limits, and log any failures. A network service should treat EMFILE (too many open files) as a fatal error and alert on-call immediately, because it means either the application has a leak or the infrastructure is under attack (connection flood).
+</p>
+
+<h2>Testing Under Load</h2>
+
+<p class="site-block-paragraph">
+Before production, stress-test your service to find leaks early. Use tools like Apache Bench, wrk, or custom load generators to hammer your service for 10 to 60 minutes while watching FD count. If it climbs, you have a leak. If it stays constant, you are ready.
+</p>
+
+<pre><code class="language-bash">
+# Example: benchmark while monitoring
+PID=$(pgrep -f "your_app")
+(watch -n 1 "ls -1 /proc/$PID/fd | wc -l") &amp;
+WATCH_PID=$!
+
+# Run load test for 5 minutes
+ab -n 100000 -c 100 http://127.0.0.1:8080/
+
+# Stop monitor
+kill $WATCH_PID
+</code></pre>
+
+<h2>FAQ</h2>
+
+<h3>What is the difference between soft and hard limit?</h3>
+
+<p class="site-block-paragraph">
+The soft limit is what the process actually enforces. The hard limit is the maximum you can raise the soft limit to without root privilege. A non-root process can lower a hard limit but cannot raise it. Root can raise both arbitrarily.
+</p>
+
+<h3>Can I set per-process limits without modifying limits.conf?</h3>
+
+<p class="site-block-paragraph">
+Yes, from inside your application using syscall.Setrlimit (Go), Resource.setRlimit (Java), or resource.setrlimit (Python). This runs at program startup and takes effect immediately. It requires the capability CAP_SYS_RESOURCE (usually available to root or in privileged containers).
+</p>
+
+<h3>Why does my Go server still show EMFILE even after raising ulimit?</h3>
+
+<p class="site-block-paragraph">
+Check two things: First, verify the process actually has the raised limit using cat /proc/[PID]/limits. Second, check if you are also hitting the system-wide limit by reading /proc/sys/fs/file-nr. If the allocated count is near file-max, raise file-max.
+</p>
+
+<h3>Is it safe to set file-max very high?</h3>
+
+<p class="site-block-paragraph">
+Yes. File descriptors are allocated on demand, so a high file-max does not use memory. On a 64-bit system, setting it to 2 to 4 million is common and safe. Avoid extreme values (10+ million) unless you know the workload.
+</p>
+
+<h3>What if /proc/sys/fs/file-nr shows allocated near max but I do not see high process FD counts?</h3>
+
+<p class="site-block-paragraph">
+Some of those descriptors might be held by the kernel itself (inode caches, dentry caches, etc.). Use lsof -p to check individual processes. If totals do not add up, the kernel is likely holding them. This is normal and usually harmless, but if you are running out of descriptors, containers or process isolation helps.
+</p>
+
+<h3>How do I track which FDs are sockets vs files?</h3>
+
+<p class="site-block-paragraph">
+Run readlink /proc/[PID]/fd/[FD_NUM]. Socket FDs show as socket:[inode_number]. Regular files show as /path/to/file. Pipes show as pipe:[inode_number]. This helps identify leaks: if you see thousands of socket:12345 entries, you have leaked sockets.
+</p>
+
+<h3>Can I recover from EMFILE without restarting the process?</h3>
+
+<p class="site-block-paragraph">
+You can attempt to close old sockets or files, but by the time you hit EMFILE, your process is crippled. The safer approach is to fail fast, alert, and restart. Some frameworks offer circuit breaker patterns that reject new connections before hitting the limit, giving you time to gracefully drain and restart.
+</p>
+
+<h3>Should I use a connection pool to avoid opening too many sockets?</h3>
+
+<p class="site-block-paragraph">
+Yes. A connection pool reuses sockets, so you open, say, 50 to 200 persistent connections and keep them alive. This is much more efficient than opening a new socket for every request. See database driver documentation (pgx, mysql, redis) for pool tuning. A well-tuned pool with proper timeouts and health checks will almost never leak.
+</p>
+
+<h3>How does Docker or Kubernetes affect file descriptor limits?</h3>
+
+<p class="site-block-paragraph">
+Containers inherit the host kernel's file-max but can have their own per-container limits set via --ulimit (Docker) or resources.limits (Kubernetes). Set both the host-level file-max and the container-level ulimit to ensure consistent behavior. Check limit inside the container with ulimit -n.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/category/security/">Security</a></li><li><a href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">1 tools which i like and recommend to use</a></li></ul><p><a href="/category/security/">More in Security and Linux</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

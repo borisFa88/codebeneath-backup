@@ -519,8 +519,9 @@
         "/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Learn how Linux file descriptor limits work, detect socket leaks with ulimit, and fix \"too many open files\" errors using /proc/sys/fs/file-max configuration."
     },
     {
       "id": "cpp-move-semantics-rvalue-references",
