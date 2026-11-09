@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies | Code Beneath</title>
+<meta name="description" content="Learn C++ move semantics rvalue reference example std move techniques to eliminate costly object copies and boost performance in modern C++ applications." />
+<link rel="canonical" href="https://codebeneath.com/nonJava/cpp-move-semantics-rvalue-references.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies | Code Beneath" />
+<meta property="og:description" content="Learn C++ move semantics rvalue reference example std move techniques to eliminate costly object copies and boost performance in modern C++ applications." />
+<meta property="og:url" content="https://codebeneath.com/nonJava/cpp-move-semantics-rvalue-references.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies | Code Beneath" />
+<meta name="twitter:description" content="Learn C++ move semantics rvalue reference example std move techniques to eliminate costly object copies and boost performance in modern C++ applications." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies", "name": "C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies", "description": "Learn C++ move semantics rvalue reference example std move techniques to eliminate costly object copies and boost performance in modern C++ applications.", "url": "https://codebeneath.com/nonJava/cpp-move-semantics-rvalue-references.html", "inLanguage": "en-US", "dateModified": "2026-11-09", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/nonJava/cpp-move-semantics-rvalue-references.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies", "item": "https://codebeneath.com/nonJava/cpp-move-semantics-rvalue-references.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/languages/">Programming Languages</a></nav>
+<h1 class="site-block-post-title">C++ Move Semantics and Rvalue References: Avoiding Unnecessary Copies</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-09">November 9, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+C++ copy operations are expensive. When you pass an object to a function or return it from a scope, the compiler traditionally creates a full copy: allocate memory, copy every byte, free the original. For large containers or complex objects, this wastes CPU and memory. C++ move semantics and rvalue reference example std move patterns let you transfer ownership instead of duplicating. Understanding when the compiler moves versus copies, and how to force moves with std::move, is the difference between code that scales and code that stalls. This article shows exactly how move constructors, move assignment operators, and perfect forwarding work, with runnable code you can compile and measure.
+</p>
+
+<h2>What Are Rvalue References and Why They Matter</h2>
+
+<p class="site-block-paragraph">
+An lvalue is an object with a persistent memory address: a variable, an array element, a dereferenced pointer. An rvalue is a temporary: the result of an expression that will not be accessed again after the statement ends. In C++, & binds to lvalues. The new && operator (rvalue reference) binds to rvalues and temporaries.
+</p>
+
+<p class="site-block-paragraph">
+The key insight: if an object is about to be destroyed anyway (it is an rvalue), why copy its internals? Instead, steal its resources. An rvalue reference lets you detect temporaries at compile time and write a move constructor that says "I will take ownership of this temporary's heap buffers, file handles, or other resources."
+</p>
+
+<p class="site-block-paragraph">
+Here is a concrete example. A Vector class that owns a heap array:
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;cstring&gt;
+#include &lt;utility&gt;
+
+class Vector {
+public:
+    int* data;
+    size_t size;
+
+    // Default constructor
+    Vector() : data(nullptr), size(0) {
+        std::cout &lt;&lt; "Default constructor\n";
+    }
+
+    // Constructor from size
+    Vector(size_t n) : data(new int[n]), size(n) {
+        std::cout &lt;&lt; "Constructor(size_t)\n";
+    }
+
+    // Copy constructor: deep copy
+    Vector(const Vector&amp; other) : data(new int[other.size]), size(other.size) {
+        std::cout &lt;&lt; "Copy constructor\n";
+        std::memcpy(data, other.data, size * sizeof(int));
+    }
+
+    // Move constructor: steal the data pointer
+    Vector(Vector&amp;&amp; other) noexcept : data(other.data), size(other.size) {
+        std::cout &lt;&lt; "Move constructor\n";
+        other.data = nullptr;
+        other.size = 0;
+    }
+
+    // Copy assignment
+    Vector&amp; operator=(const Vector&amp; other) {
+        std::cout &lt;&lt; "Copy assignment\n";
+        if (this != &amp;other) {
+            delete[] data;
+            data = new int[other.size];
+            size = other.size;
+            std::memcpy(data, other.data, size * sizeof(int));
+        }
+        return *this;
+    }
+
+    // Move assignment
+    Vector&amp; operator=(Vector&amp;&amp; other) noexcept {
+        std::cout &lt;&lt; "Move assignment\n";
+        if (this != &amp;other) {
+            delete[] data;
+            data = other.data;
+            size = other.size;
+            other.data = nullptr;
+            other.size = 0;
+        }
+        return *this;
+    }
+
+    ~Vector() {
+        std::cout &lt;&lt; "Destructor (size: " &lt;&lt; size &lt;&lt; ")\n";
+        delete[] data;
+    }
+};
+
+Vector create_vector() {
+    Vector v(1000);
+    return v;  // Rvalue: eligible for move
+}
+
+int main() {
+    std::cout &lt;&lt; "--- Creating temp and assigning ---\n";
+    Vector v1 = create_vector();
+    
+    std::cout &lt;&lt; "\n--- Copy assignment ---\n";
+    Vector v2(500);
+    v2 = v1;  // Lvalue: copy assignment
+    
+    std::cout &lt;&lt; "\n--- Move assignment ---\n";
+    Vector v3(500);
+    v3 = create_vector();  // Rvalue: move assignment
+    
+    std::cout &lt;&lt; "\n--- Done ---\n";
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run with:
+</p>
+
+<pre><code class="language-bash">g++ -std=c++17 -fno-elide-constructors -o vector_move vector_move.cpp
+./vector_move
+</code></pre>
+
+<p class="site-block-paragraph">
+The flag -fno-elide-constructors disables copy elision (discussed below) so you see every move and copy. Output shows that create_vector() triggers the move constructor, not a copy. The temporary is detected, and the heap array is transferred without allocation or memcpy.
+</p>
+
+<h2>std::move: Casting Lvalues to Rvalues</h2>
+
+<p class="site-block-paragraph">
+Sometimes you own an object (it is an lvalue) but know you will not use it again. You want to move from it, not copy. The standard library function std::move casts an lvalue to an rvalue reference, signaling to the compiler "treat this as a temporary."
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;utility&gt;
+#include &lt;vector&gt;
+
+class Buffer {
+public:
+    int* ptr;
+    size_t len;
+
+    Buffer(size_t n) : ptr(new int[n]), len(n) {
+        std::cout &lt;&lt; "Buffer constructor\n";
+    }
+
+    Buffer(const Buffer&amp; other) : ptr(new int[other.len]), len(other.len) {
+        std::cout &lt;&lt; "Buffer copy constructor\n";
+        std::copy(other.ptr, other.ptr + other.len, ptr);
+    }
+
+    Buffer(Buffer&amp;&amp; other) noexcept : ptr(other.ptr), len(other.len) {
+        std::cout &lt;&lt; "Buffer move constructor\n";
+        other.ptr = nullptr;
+        other.len = 0;
+    }
+
+    ~Buffer() {
+        delete[] ptr;
+    }
+};
+
+int main() {
+    std::cout &lt;&lt; "--- Without std::move ---\n";
+    Buffer b1(100);
+    Buffer b2 = b1;  // Calls copy constructor (b1 is an lvalue)
+
+    std::cout &lt;&lt; "\n--- With std::move ---\n";
+    Buffer b3(200);
+    Buffer b4 = std::move(b3);  // Calls move constructor (std::move makes b3 an rvalue)
+    
+    std::cout &lt;&lt; "\n--- Push to vector ---\n";
+    std::vector&lt;Buffer&gt; buffers;
+    Buffer b5(300);
+    buffers.push_back(std::move(b5));  // Move into vector, not copy
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run:
+</p>
+
+<pre><code class="language-bash">g++ -std=c++17 -fno-elide-constructors -o move_demo move_demo.cpp
+./move_demo
+</code></pre>
+
+<p class="site-block-paragraph">
+Without std::move, b2 copies b1. With std::move, b4 steals b3's buffer. When pushing into a vector, std::move transfers ownership rather than duplicating a potentially large allocation.
+</p>
+
+<h2>Perfect Forwarding and Parameter Passing</h2>
+
+<p class="site-block-paragraph">
+A function that receives an object should preserve whether that object was an lvalue or rvalue. If the caller passed a temporary, the function should pass it as a temporary to downstream code. This is perfect forwarding.
+</p>
+
+<p class="site-block-paragraph">
+The pattern uses a template parameter with && and std::forward:
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;utility&gt;
+
+class Logger {
+public:
+    Logger(const std::string&amp; msg) {
+        std::cout &lt;&lt; "Logger copy constructor: " &lt;&lt; msg &lt;&lt; "\n";
+    }
+
+    Logger(std::string&amp;&amp; msg) {
+        std::cout &lt;&lt; "Logger move constructor: " &lt;&lt; msg &lt;&lt; "\n";
+    }
+};
+
+// Without perfect forwarding: binds to const Logger&amp; so always calls copy constructor
+void process_without_forwarding(const Logger&amp; log) {
+    // log is const, so Logger copy constructor is called
+}
+
+// With perfect forwarding: preserves lvalue/rvalue-ness
+template &lt;typename T&gt;
+void process_with_forwarding(T&amp;&amp; log) {
+    // If T is Logger, T&amp;&amp; becomes Logger&amp;&amp; (rvalue)
+    // If T is const Logger, T&amp;&amp; becomes const Logger&amp;&amp; (const rvalue)
+    Logger l = std::forward&lt;T&gt;(log);  // Forwards the type exactly
+}
+
+int main() {
+    std::cout &lt;&lt; "--- Calling with lvalue (variable) ---\n";
+    std::string s = "hello";
+    process_with_forwarding(s);
+    
+    std::cout &lt;&lt; "\n--- Calling with rvalue (temporary) ---\n";
+    process_with_forwarding(std::string("world"));
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Compile and run:
+</p>
+
+<pre><code class="language-bash">g++ -std=c++17 -fno-elide-constructors -o forwarding forwarding.cpp
+./forwarding
+</code></pre>
+
+<p class="site-block-paragraph">
+When passed an lvalue (s), the template parameter T deduces as std::string&amp;, so T&amp;&amp; collapses to std::string&amp;. When passed an rvalue (std::string("world")), T deduces as std::string, so T&amp;&amp; is std::string&amp;&amp;. std::forward preserves this distinction and passes it downstream. The Logger move constructor is called for the rvalue.
+</p>
+
+<h2>Copy Elision and Return Value Optimization</h2>
+
+<p class="site-block-paragraph">
+Modern C++ compilers optimize away many copies automatically, even before move semantics. Return Value Optimization (RVO) and Named Return Value Optimization (NRVO) eliminate the temporary object and construct the result directly in the caller's memory.
+</p>
+
+<p class="site-block-paragraph">
+Compile with optimizations enabled (-O2 or -O3) and copy/move operations may be elided entirely. Disable elision with -fno-elide-constructors to see what the code would do without the optimization.
+</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+class Object {
+public:
+    Object() { std::cout &lt;&lt; "Default constructor\n"; }
+    Object(const Object&amp;) { std::cout &lt;&lt; "Copy constructor\n"; }
+    Object(Object&amp;&amp;) noexcept { std::cout &lt;&lt; "Move constructor\n"; }
+    ~Object() { std::cout &lt;&lt; "Destructor\n"; }
+};
+
+// Named Return Value Optimization (NRVO): compiler may eliminate the copy
+Object create_object() {
+    Object obj;
+    return obj;  // Even without std::move, compiler may optimize
+}
+
+// Guaranteed to use move (no NRVO)
+Object create_object_alt() {
+    Object obj;
+    return std::move(obj);  // Explicit move overrides NRVO
+}
+
+int main() {
+    std::cout &lt;&lt; "--- With NRVO (may elide entirely) ---\n";
+    Object a = create_object();
+    
+    std::cout &lt;&lt; "\n--- With explicit std::move ---\n";
+    Object b = create_object_alt();
+    
+    return 0;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run with -O2:
+</p>
+
+<pre><code class="language-bash">g++ -std=c++17 -O2 -o elision elision.cpp
+./elision
+</code></pre>
+
+<p class="site-block-paragraph">
+With -O2, neither constructor nor destructor is called. The object is constructed in place. Remove -O2 and add -fno-elide-constructors, and you see the move constructor fire.
+</p>
+
+<h2>Comparing Copy vs Move Performance</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f0f0f0; border: 1px solid #ccc;">
+      <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Operation</th>
+      <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Time Complexity</th>
+      <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Heap Allocation</th>
+      <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Data Duplication</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border: 1px solid #ccc;">
+      <td style="padding: 10px; border: 1px solid #ccc;">Copy constructor</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">O(n) for n bytes</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">Yes, allocate new</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">Yes, memcpy or loop</td>
+    </tr>
+    <tr style="background-color: #f9f9f9; border: 1px solid #ccc;">
+      <td style="padding: 10px; border: 1px solid #ccc;">Move constructor</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">O(1), pointer swap</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">No, steal existing</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">No, just pointers</td>
+    </tr>
+    <tr style="border: 1px solid #ccc;">
+      <td style="padding: 10px; border: 1px solid #ccc;">Copy assignment</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">O(n)</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">Maybe, reuse if fit</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">Yes</td>
+    </tr>
+    <tr style="background-color: #f9f9f9; border: 1px solid #ccc;">
+      <td style="padding: 10px; border: 1px solid #ccc;">Move assignment</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">O(1)</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">No, swap pointers</td>
+      <td style="padding: 10px; border: 1px solid #ccc;">No</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="site-block-paragraph">
+For a Vector storing 1 million integers (4 MB), a copy constructor allocates 4 MB, then memcpys all data. A move constructor swaps two pointers (16 bytes on 64-bit systems). The speedup is not merely faster: it is a different order of magnitude, and more importantly, it reduces memory fragmentation and garbage collection pressure.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+<strong>Mistake 1: Using std::move on every variable.</strong> You can std::move an lvalue, but the receiving code must have a move constructor or move assignment operator. If it does not, std::move is a no-op cast and you get a copy anyway. Also, after you call std::move on a variable, that variable is in a "moved-from" state: its resources are gone. Do not use it.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 2: Forgetting noexcept on move operations.</strong> Move constructors and move assignment operators should be marked noexcept. If they can throw, containers like std::vector will fall back to copying during reallocation, defeating the purpose.
+</p>
+
+<pre><code class="language-cpp">// WRONG: move can throw, so vector uses copy on resize
+Vector(Vector&amp;&amp; other) {
+    data = new int[other.size];  // Can throw bad_alloc
+}
+
+// RIGHT: move never throws
+Vector(Vector&amp;&amp; other) noexcept : data(other.data), size(other.size) {
+    other.data = nullptr;
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+<strong>Mistake 3: Assuming a temporary is always moved.</strong> With copy elision enabled (default in optimized builds), the compiler may skip the move entirely and construct the object in place. This is correct behavior, but do not rely on move constructors running for profiling or side effects.
+</p>
+
+<p class="site-block-paragraph">
+<strong>Mistake 4: Not providing move semantics in a template utility.</strong> Template code should use std::forward to preserve lvalue/rvalue-ness. Failing to do so forces copies or makes generic code less efficient.
+</p>
+
+<h2>Move Semantics in the Standard Library</h2>
+
+<p class="site-block-paragraph">
+std::unique_ptr, std::string, std::vector, and other standard containers have move constructors and move assignment operators. Code that uses the standard library correctly automatically benefits from moves. When you push_back a temporary into a vector, it moves. When you return a local std::string, it moves or is elided. The standard library enforces that move operations are fast and marked noexcept.
+</p>
+
+<p class="site-block-paragraph">
+For a deeper look at how lower-level memory and pointer operations work, see the article on <a href="/nonJava/native-language.html">native language programming fundamentals</a>.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Do I need to implement both copy and move constructors?</h3>
+
+<p class="site-block-paragraph">
+No, but you should. If you define a move constructor but no copy constructor, the copy constructor is deleted (C++11 and later). If you want to forbid copying, that is fine: delete the copy constructor explicitly. If you want both copy and move, implement both. If you do not implement either, the compiler generates default implementations (shallow copy for move, which is dangerous for pointers).
+</p>
+
+<h3>What is the difference between std::move and std::forward?</h3>
+
+<p class="site-block-paragraph">
+std::move unconditionally casts to rvalue reference. It says "I am done with this object." std::forward is a conditional cast: it casts to rvalue reference only if the original argument was an rvalue. It says "preserve what the caller passed." Use std::move when you know you will not use the variable again. Use std::forward in template code to preserve the caller's intent.
+</p>
+
+<h3>Why mark move operations noexcept?</h3>
+
+<p class="site-block-paragraph">
+Containers like std::vector grow by reallocating. If a move operation can throw, the container cannot safely move elements during reallocation (it might leave the container in an inconsistent state). So it falls back to copying. Marking move operations noexcept tells containers that moves are safe, so they can use them during growth.
+</p>
+
+<h3>Does copy elision mean I should never std::move?</h3>
+
+<p class="site-block-paragraph">
+No. Copy elision is a compiler optimization that happens in specific cases (returning a local variable from a function). For other cases (passing an object to a function, storing in a container), you need explicit std::move or an rvalue argument. Also, some code may be compiled without optimizations, where elision does not happen.
+</p>
+
+<h3>Can I move from a const object?</h3>
+
+<p class="site-block-paragraph">
+No. You cannot bind a const object to an rvalue reference (Vector&amp;&amp;). You can std::move it, but that just casts the const away, and the move constructor receives a const rvalue reference, which must be treated as non-modifying. The move is pointless. Do not do this.
+</p>
+
+<h3>How do I test if my code is using moves?</h3>
+
+<p class="site-block-paragraph">
+Compile with -fno-elide-constructors to disable copy elision, so you see every operation. Add cout statements in constructors and assignment operators. Run the code and observe the log. In production, remove -fno-elide-constructors so the compiler can elide copies.
+</p>
+
+<h3>Does move semantics work with exceptions?</h3>
+
+<p class="site-block-paragraph">
+Move operations should be noexcept if possible. If a move throws (rare, but possible if custom code in the move constructor throws), the exception propagates. Containers rely on move operations being noexcept, so an exception during move is a serious bug. Design move operations to never throw.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/nonJava/native-language.html">Native language</a></li><li><a href="/category/languages/">Languages</a></li></ul><p><a href="/category/languages/">More in Programming Languages</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
