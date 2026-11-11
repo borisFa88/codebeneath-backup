@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors | Code Beneath</title>
+<meta name="description" content="WebSocket sec-websocket-protocol subprotocol negotiation example: propose, select, validate, and handle mismatch errors correctly in Go and Python." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/websocket-subprotocol-negotiation-errors.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors | Code Beneath" />
+<meta property="og:description" content="WebSocket sec-websocket-protocol subprotocol negotiation example: propose, select, validate, and handle mismatch errors correctly in Go and Python." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/websocket-subprotocol-negotiation-errors.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors | Code Beneath" />
+<meta name="twitter:description" content="WebSocket sec-websocket-protocol subprotocol negotiation example: propose, select, validate, and handle mismatch errors correctly in Go and Python." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors", "name": "WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors", "description": "WebSocket sec-websocket-protocol subprotocol negotiation example: propose, select, validate, and handle mismatch errors correctly in Go and Python.", "url": "https://codebeneath.com/notOnlyHttp/websocket-subprotocol-negotiation-errors.html", "inLanguage": "en-US", "dateModified": "2026-11-11", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/websocket-subprotocol-negotiation-errors.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors", "item": "https://codebeneath.com/notOnlyHttp/websocket-subprotocol-negotiation-errors.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">WebSocket Subprotocols and Sec-WebSocket-Protocol: Negotiation and Errors</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-11">November 11, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">The WebSocket protocol allows client and server to agree on a subprotocol before data exchange begins. This negotiation happens via the Sec-WebSocket-Protocol header during the initial HTTP upgrade. Many developers ignore subprotocols entirely, assuming a single protocol is sufficient, then hit interoperability walls when a client expects a specific format (like JSON-RPC) and the server sends raw bytes. This article shows you exactly how websocket sec-websocket-protocol subprotocol negotiation example works, with code that proposes subprotocols, validates them, detects mismatches, and implements fallback strategies. Understanding this mechanism prevents silent protocol violations and broken integrations.</p>
+
+<h2>What Subprotocols Are and Why They Matter</h2>
+
+<p class="site-block-paragraph">A WebSocket subprotocol is an application-level protocol name that signals how the endpoint will interpret messages. Common examples: "chat", "json.rpc", "mqtt", "wamp". It is not part of the core WebSocket spec; rather, it is a convention that lets two endpoints agree on message semantics before they exchange a single frame.</p>
+
+<p class="site-block-paragraph">Without subprotocol negotiation, a client might send `{"method": "ping"}` expecting JSON-RPC parsing, while the server treats it as a plain string. Or a device might send MQTT packets and the server interprets them as raw bytes. Subprotocols prevent this by making the agreement explicit and verifiable.</p>
+
+<p class="site-block-paragraph">The negotiation is simple: the client lists acceptable subprotocols in the Sec-WebSocket-Protocol header (comma-separated). The server picks exactly one, returns it in the response header, or returns nothing if it accepts any or rejects all. If the server picks a subprotocol the client did not propose, the connection fails. This constraint ensures both sides agree before handshake completes.</p>
+
+<h2>The HTTP Handshake: Client Proposal and Server Selection</h2>
+
+<p class="site-block-paragraph">During the WebSocket upgrade, the client sends:</p>
+
+<pre><code class="language-bash">GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Protocol: chat, superchat
+</code></pre>
+
+<p class="site-block-paragraph">The client proposes "chat" and "superchat" in order of preference. The server chooses one or rejects negotiation:</p>
+
+<pre><code class="language-bash">HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat
+</code></pre>
+
+<p class="site-block-paragraph">If the server does not send Sec-WebSocket-Protocol, the connection is established with no subprotocol in effect. If the server sends a subprotocol the client did not list, a conforming client closes the connection. If the server wants to reject all proposals, it should not send the header and let the application layer handle it, or send a 400 Bad Request before upgrade.</p>
+
+<h2>Go Implementation: Client Proposing and Server Selecting</h2>
+
+<p class="site-block-paragraph">Here is a complete Go example showing the client proposing subprotocols and the server selecting one:</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/gorilla/websocket"
+)
+
+// Server accepts connections and selects subprotocols.
+func runServer() {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		// Client proposes subprotocols in the request.
+		clientProposals := r.Header.Get("Sec-WebSocket-Protocol")
+		fmt.Printf("Client proposed: %s\n", clientProposals)
+
+		// Parse proposals (comma-separated, may have spaces).
+		var selected string
+		if clientProposals != "" {
+			proposals := strings.Split(clientProposals, ",")
+			for i := range proposals {
+				proposals[i] = strings.TrimSpace(proposals[i])
+			}
+
+			// Server policy: prefer "json.rpc" if available, else "chat".
+			for _, p := range proposals {
+				if p == "json.rpc" {
+					selected = "json.rpc"
+					break
+				}
+				if p == "chat" {
+					selected = "chat"
+				}
+			}
+		}
+
+		// If no acceptable subprotocol, reject the upgrade.
+		if selected == "" && clientProposals != "" {
+			http.Error(w, "No acceptable subprotocol", http.StatusBadRequest)
+			return
+		}
+
+		// Upgrade, setting the selected subprotocol.
+		// The Sec-WebSocket-Protocol response header is set via the Subprotocols field.
+		upgrader.Subprotocols = []string{selected}
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println("Upgrade error:", err)
+			return
+		}
+		defer conn.Close()
+
+		fmt.Printf("Connection established with subprotocol: %s\n", conn.Subprotocol())
+
+		// Echo messages (subprotocol-aware, in production).
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("Read error:", err)
+				break
+			}
+			fmt.Printf("Received on %s: %s\n", conn.Subprotocol(), string(msg))
+			if err := conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+				log.Println("Write error:", err)
+				break
+			}
+		}
+	})
+
+	log.Println("Server listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+// Client connects, proposing subprotocols.
+func runClient() {
+	url := "ws://localhost:8080/ws"
+	header := http.Header{}
+	header.Add("Sec-WebSocket-Protocol", "json.rpc, chat")
+
+	conn, _, err := websocket.DefaultDialer.Dial(url, header)
+	if err != nil {
+		log.Fatal("Dial error:", err)
+	}
+	defer conn.Close()
+
+	fmt.Printf("Client connected. Server selected subprotocol: %s\n", conn.Subprotocol())
+
+	// Send a message.
+	if err := conn.WriteMessage(websocket.TextMessage, []byte("hello")); err != nil {
+		log.Fatal("Write error:", err)
+	}
+
+	_, msg, err := conn.ReadMessage()
+	if err != nil {
+		log.Fatal("Read error:", err)
+	}
+	fmt.Printf("Client received: %s\n", string(msg))
+}
+
+func main() {
+	// Uncomment one:
+	runServer()
+	// runClient()
+}
+</code></pre>
+
+<p class="site-block-paragraph">Run the server in one terminal, then uncomment `runClient()` and run it in another. The output shows the client proposing "json.rpc" and "chat", the server selecting "json.rpc", and both sides knowing they are using the same subprotocol. The key is the `Subprotocols` field on the upgrader: it tells gorilla/websocket which subprotocol to echo back in the response.</p>
+
+<h2>Python Implementation: Client and Server with Error Handling</h2>
+
+<p class="site-block-paragraph">Here is a Python example using websockets (async) that handles subprotocol negotiation and mismatch errors:</p>
+
+<pre><code class="language-python">import asyncio
+import websockets
+from websockets.server import WebSocketServerProtocol
+from websockets.client import WebSocketClientProtocol
+
+# Server: select subprotocol.
+async def server_handler(websocket: WebSocketServerProtocol, path: str):
+    # websockets library provides request_headers.
+    client_proposals_header = websocket.request_headers.get("sec-websocket-protocol", "")
+    print(f"Server: client proposed: {client_proposals_header}")
+
+    if client_proposals_header:
+        proposals = [p.strip() for p in client_proposals_header.split(",")]
+        selected = None
+
+        # Server preference: json.rpc first, then chat, then mqtt.
+        for preferred in ["json.rpc", "chat", "mqtt"]:
+            if preferred in proposals:
+                selected = preferred
+                break
+
+        if selected:
+            # Set response subprotocol header via websocket.subprotocol.
+            websocket.subprotocol = selected
+            print(f"Server: selected subprotocol: {selected}")
+        else:
+            # No acceptable subprotocol; reject.
+            await websocket.close(code=1002, reason="No acceptable subprotocol")
+            print(f"Server: no acceptable subprotocol, rejected.")
+            return
+    else:
+        print("Server: no subprotocol proposed, proceeding without one.")
+
+    try:
+        async for message in websocket:
+            subproto = websocket.subprotocol or "(none)"
+            print(f"Server: received on {subproto}: {message}")
+            await websocket.send(f"Echo: {message}")
+    except websockets.exceptions.ConnectionClosed:
+        print("Server: connection closed")
+
+
+async def run_server():
+    async with websockets.serve(server_handler, "localhost", 8080):
+        print("Server listening on ws://localhost:8080")
+        await asyncio.Future()  # run forever
+
+
+# Client: propose subprotocols and detect mismatch.
+async def run_client():
+    uri = "ws://localhost:8080"
+    subprotocols = ["json.rpc", "chat"]
+
+    try:
+        async with websockets.connect(
+            uri,
+            subprotocols=subprotocols,
+            max_size=None,
+            ping_interval=None
+        ) as websocket:
+            selected = websocket.subprotocol
+            print(f"Client: connected. Server selected: {selected}")
+
+            # Validate that server picked one we proposed.
+            if selected and selected not in subprotocols:
+                print(f"Client: ERROR - server selected {selected}, but we only proposed {subprotocols}")
+                await websocket.close(code=1002, reason="Subprotocol mismatch")
+                return
+
+            # Send and receive.
+            await websocket.send("hello")
+            response = await websocket.recv()
+            print(f"Client: received: {response}")
+
+    except websockets.exceptions.WebSocketException as e:
+        print(f"Client: WebSocket error: {e}")
+
+
+# Test: run server in background, then client.
+async def main():
+    server_task = asyncio.create_task(run_server())
+    await asyncio.sleep(1)  # Let server start.
+
+    await run_client()
+
+    server_task.cancel()
+    try:
+        await server_task
+    except asyncio.CancelledError:
+        pass
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+</code></pre>
+
+<p class="site-block-paragraph">The Python websockets library handles subprotocol negotiation through the `subprotocols` parameter on the client side and the `websocket.subprotocol` attribute on both sides. Note the validation on the client: after connecting, check that `websocket.subprotocol` is in the list you proposed. If the server picked something unexpected, close the connection immediately with code 1002 (protocol error).</p>
+
+<h2>Handling Subprotocol Mismatches and Fallback Strategies</h2>
+
+<p class="site-block-paragraph">There are several failure modes and ways to recover:</p>
+
+<p class="site-block-paragraph"><strong>Mismatch on server return:</strong> The server sends a Sec-WebSocket-Protocol header with a value the client did not propose. A correct client closes immediately. In your code, validate after connecting: if `conn.Subprotocol()` is not empty and not in your proposed list, close the connection.</p>
+
+<p class="site-block-paragraph"><strong>No agreement at all:</strong> The client proposes subprotocols, but the server does not return one and closes the connection. This usually means the server does not support any of the proposed subprotocols. Fallback: try again with a broader list, or proceed without a subprotocol if the application permits.</p>
+
+<p class="site-block-paragraph"><strong>Client proposes nothing:</strong> If the client sends no Sec-WebSocket-Protocol header, the server can either proceed without a subprotocol or reject the connection. Always be explicit: if your application requires a subprotocol, the server should reject any request without proposals.</p>
+
+<p class="site-block-paragraph">Here is a Go helper function that implements a retry loop with fallback:</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/gorilla/websocket"
+)
+
+// DialWithFallback attempts to connect with subprotocols, retrying with fewer options on failure.
+func DialWithFallback(url string, preferredSubprotocols []string) (*websocket.Conn, string, error) {
+	dialer := websocket.Dialer{}
+
+	// Try each combination, starting with all, then removing each one.
+	combinations := [][]string{
+		preferredSubprotocols,
+	}
+
+	// Generate fallback combinations (remove each subprotocol).
+	for i := 0; i &lt; len(preferredSubprotocols); i++ {
+		fallback := make([]string, 0, len(preferredSubprotocols)-1)
+		for j, sp := range preferredSubprotocols {
+			if i != j {
+				fallback = append(fallback, sp)
+			}
+		}
+		if len(fallback) &gt; 0 {
+			combinations = append(combinations, fallback)
+		}
+	}
+
+	// Try with no subprotocol.
+	combinations = append(combinations, []string{})
+
+	var lastErr error
+	for _, subprocs := range combinations {
+		fmt.Printf("Trying with subprotocols: %v\n", subprocs)
+
+		header := http.Header{}
+		if len(subprocs) &gt; 0 {
+			header.Add("Sec-WebSocket-Protocol", strings.Join(subprocs, ", "))
+		}
+
+		conn, _, err := dialer.Dial(url, header)
+		if err != nil {
+			lastErr = err
+			fmt.Printf("Attempt failed: %v\n", err)
+			continue
+		}
+
+		selected := conn.Subprotocol()
+		if selected != "" &amp;&amp; !contains(subprocs, selected) {
+			fmt.Printf("ERROR: server selected %s, but we proposed %v\n", selected, subprocs)
+			conn.Close()
+			lastErr = fmt.Errorf("subprotocol mismatch: got %s", selected)
+			continue
+		}
+
+		fmt.Printf("Connected with subprotocol: %s\n", selected)
+		return conn, selected, nil
+	}
+
+	return nil, "", lastErr
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
+func main() {
+	// Example usage.
+	conn, selected, err := DialWithFallback(
+		"ws://localhost:8080/ws",
+		[]string{"json.rpc", "chat", "mqtt"},
+	)
+	if err != nil {
+		log.Fatal("Connection failed:", err)
+	}
+	defer conn.Close()
+
+	fmt.Printf("Final connection: subprotocol=%s\n", selected)
+}
+</code></pre>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph"><strong>Ignoring the Sec-WebSocket-Protocol header:</strong> Many developers never set or check subprotocols, then are surprised when a client and server disagree on message format. Always explicitly state subprotocols if your application has protocol requirements.</p>
+
+<p class="site-block-paragraph"><strong>Server echoing an unproposed subprotocol:</strong> If the server receives no proposals or picks one not in the client's list, the client will close the connection. Ensure server logic never invents a subprotocol; it must choose from the client's list or send nothing.</p>
+
+<p class="site-block-paragraph"><strong>Not validating on the client after connect:</strong> Some libraries do validate for you, but not all. Always check that the selected subprotocol matches what you proposed. Do not assume the handshake succeeded correctly.</p>
+
+<p class="site-block-paragraph"><strong>Case sensitivity:</strong> Subprotocol names are case-sensitive. "Chat" and "chat" are different. Be consistent and document your subprotocol names clearly.</p>
+
+<p class="site-block-paragraph"><strong>Forgetting the comma-space in proposals:</strong> The header format is comma-separated, but spaces are allowed. Some parsers trim spaces, others do not. Always trim after splitting.</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I change subprotocol mid-connection?</h3>
+
+<p class="site-block-paragraph">No. Subprotocol negotiation happens only during the HTTP upgrade. Once the WebSocket is open, the subprotocol is fixed. If you need a different subprotocol, you must close and reconnect.</p>
+
+<h3>What if I do not care about subprotocols?</h3>
+
+<p class="site-block-paragraph">If your application has no protocol versioning or variant requirements, you can omit subprotocols entirely. Both client and server proceed with `subprotocol = null` (or empty string). This is valid, but document it clearly so no one later assumes a subprotocol was negotiated.</p>
+
+<h3>Can the server propose subprotocols?</h3>
+
+<p class="site-block-paragraph">No. Only the client proposes. The server responds by selecting one from the client's list or not responding with a subprotocol header. This asymmetry ensures clarity: the client always knows what it is asking for.</p>
+
+<h3>What close code should I use if subprotocol negotiation fails?</h3>
+
+<p class="site-block-paragraph">Use code 1002 (Protocol Error) if there is a mismatch after negotiation, or 1008 (Policy Violation) if the server rejects all proposals before upgrade completes. On the HTTP side, return 400 Bad Request or 426 Upgrade Required before the WebSocket upgrade.</p>
+
+<h3>How do I know if the server returned a subprotocol?</h3>
+
+<p class="site-block-paragraph">Check the Sec-WebSocket-Protocol response header or use your library's accessor (e.g., `conn.Subprotocol()` in gorilla/websocket or `websocket.subprotocol` in Python websockets). If it is empty or null, no subprotocol was selected.</p>
+
+<h3>Are subprotocols the same as message types?</h3>
+
+<p class="site-block-paragraph">No. Subprotocols define the high-level protocol (e.g., MQTT, JSON-RPC, WAMP). Message types are a concept within a protocol (e.g., a JSON-RPC message has a "method" field). A subprotocol is negotiated once; message types are determined by the content of each message.</p>
+
+<p class="site-block-paragraph">For deeper context on WebSocket fundamentals, see our <a href="/notOnlyHttp/web-socket.html">WebSocket protocol guide</a>, which covers framing, masking, and close semantics. Understanding how subprotocol negotiation fits into the broader <a href="/category/not-only-http/">WebSocket ecosystem</a> helps you design robust, interoperable applications.</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/web-socket.html">Web socket</a></li><li><a href="/category/not-only-http/">Not only http</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
