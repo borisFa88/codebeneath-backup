@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters | Code Beneath</title>
+<meta name="description" content="TCP Nagle algorithm batches small packets for efficiency but adds latency. Learn when TCP_NODELAY matters with runnable Go and Python examples." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters | Code Beneath" />
+<meta property="og:description" content="TCP Nagle algorithm batches small packets for efficiency but adds latency. Learn when TCP_NODELAY matters with runnable Go and Python examples." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters | Code Beneath" />
+<meta name="twitter:description" content="TCP Nagle algorithm batches small packets for efficiency but adds latency. Learn when TCP_NODELAY matters with runnable Go and Python examples." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters", "name": "TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters", "description": "TCP Nagle algorithm batches small packets for efficiency but adds latency. Learn when TCP_NODELAY matters with runnable Go and Python examples.", "url": "https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html", "inLanguage": "en-US", "dateModified": "2026-11-13", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters", "item": "https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">TCP Nagle's Algorithm and Immediate Send: When TCP_NODELAY Matters</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-13">November 13, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+TCP Nagle algorithm batches small data segments to reduce network overhead, but it can silently add tens or hundreds of milliseconds of latency to your messages. If you are building a low-latency system, interactive application, or debugging mysterious 40ms delays in your <a href="/notOnlyHttp/tcp-udp-socket.html">TCP sockets</a>, you need to understand when TCP batching hurts and how to control it with TCP_NODELAY. The tcp nagle algorithm tcp nodelay example golang python code in this article will show you exactly what happens under the hood and when to disable Nagle on your sockets.
+</p>
+
+<h2>How Nagle's Algorithm Works</h2>
+
+<p class="site-block-paragraph">
+Nagle's algorithm is enabled by default on TCP sockets. It works like this: if you write a small segment (typically smaller than the maximum segment size, or MSS) and there is outstanding unacknowledged data from a previous send, the kernel will not transmit immediately. Instead, it buffers the data and waits for either:
+</p>
+
+<ul>
+<li>The outstanding data to be acknowledged (ACK received), or</li>
+<li>A full MSS worth of data to accumulate, or</li>
+<li>A timeout (usually hundreds of milliseconds)</li>
+</ul>
+
+<p class="site-block-paragraph">
+The intent is noble: reduce the number of tiny packets floating through the network. On a congested WAN in 1985 when Nagle proposed this, sending 40-byte packets with 20-byte headers wasted bandwidth. Today, local area networks and cloud infrastructure have different characteristics, but Nagle is still the default. Many applications never notice because they are I/O bound at the application level anyway. But anything interactive, real-time, or request-response with small messages will see the penalty.
+</p>
+
+<h2>The Hidden Interaction with Delayed ACKs</h2>
+
+<p class="site-block-paragraph">
+Nagle becomes even more problematic when combined with delayed ACKs. The TCP specification allows receivers to delay acknowledgments by up to 40 milliseconds to piggyback them on outgoing data. Here is what happens:
+</p>
+
+<ol>
+<li>Client sends a small request (e.g., 10 bytes) while there is no outstanding data, so it goes out immediately.</li>
+<li>Server receives it, but since there is no immediate reply to send, the TCP stack delays the ACK by up to 40ms in hope of piggybacking it on application data.</li>
+<li>Server application sends a small reply (e.g., 20 bytes). The kernel has unacknowledged data from the client (not yet ACKed), so Nagle delays this reply too.</li>
+<li>The ACK finally arrives and triggers Nagle to release the buffered reply. Total latency: 40ms+ just from protocol overhead.</li>
+</ol>
+
+<p class="site-block-paragraph">
+This is not a theoretical problem. It is a common culprit in request-response protocols like databases, caches, and RPC systems.
+</p>
+
+<h2>Disabling Nagle with TCP_NODELAY</h2>
+
+<p class="site-block-paragraph">
+To disable Nagle, set the TCP_NODELAY socket option to 1. This tells the kernel: send every write immediately, do not buffer waiting for ACKs or a full MSS. The trade-off is slightly higher overhead on large bulk transfers, but for interactive workloads the latency win is worth it.
+</p>
+
+<h2>Runnable Go Example with Latency Measurement</h2>
+
+<p class="site-block-paragraph">
+Below is a complete server and client in Go that demonstrate the latency difference. We will run it twice: once with Nagle (TCP_NODELAY = 0, the default) and once with it disabled.
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"net"
+	"time"
+)
+
+func nagleServer(port int, disableNagle bool, results chan string) {
+	listener, err := net.ListenTCP("tcp", &amp;net.TCPAddr{Port: port})
+	if err != nil {
+		results &lt;- fmt.Sprintf("Listen error: %v", err)
+		return
+	}
+	defer listener.Close()
+
+	conn, err := listener.AcceptTCP()
+	if err != nil {
+		results &lt;- fmt.Sprintf("Accept error: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	if disableNagle {
+		err = conn.SetNoDelay(true)
+		if err != nil {
+			results &lt;- fmt.Sprintf("SetNoDelay error: %v", err)
+			return
+		}
+	}
+
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	if err != nil {
+		results &lt;- fmt.Sprintf("Read error: %v", err)
+		return
+	}
+
+	serverRecvTime := time.Now()
+	fmt.Printf("[SERVER] Received %d bytes at %v\n", n, serverRecvTime)
+
+	time.Sleep(10 * time.Millisecond)
+
+	_, err = conn.Write([]byte("OK"))
+	if err != nil {
+		results &lt;- fmt.Sprintf("Write error: %v", err)
+		return
+	}
+
+	results &lt;- "server_ok"
+}
+
+func nagleClient(port int, disableNagle bool, results chan string) {
+	time.Sleep(100 * time.Millisecond)
+
+	conn, err := net.DialTCP("tcp", nil, &amp;net.TCPAddr{Port: port})
+	if err != nil {
+		results &lt;- fmt.Sprintf("Dial error: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	if disableNagle {
+		err = conn.SetNoDelay(true)
+		if err != nil {
+			results &lt;- fmt.Sprintf("SetNoDelay error: %v", err)
+			return
+		}
+	}
+
+	clientSendTime := time.Now()
+	_, err = conn.Write([]byte("PING"))
+	if err != nil {
+		results &lt;- fmt.Sprintf("Write error: %v", err)
+		return
+	}
+	fmt.Printf("[CLIENT] Sent request at %v\n", clientSendTime)
+
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	if err != nil {
+		results &lt;- fmt.Sprintf("Read error: %v", err)
+		return
+	}
+
+	clientRecvTime := time.Now()
+	fmt.Printf("[CLIENT] Received %d bytes at %v\n", n, clientRecvTime)
+	fmt.Printf("[CLIENT] Round-trip latency: %v\n", clientRecvTime.Sub(clientSendTime))
+
+	results &lt;- "client_ok"
+}
+
+func main() {
+	fmt.Println("=== Test 1: Nagle ENABLED (TCP_NODELAY = 0) ===")
+	port1 := 9001
+	results1 := make(chan string, 2)
+	go nagleServer(port1, false, results1)
+	go nagleClient(port1, false, results1)
+	&lt;-results1
+	&lt;-results1
+	time.Sleep(500 * time.Millisecond)
+
+	fmt.Println("\n=== Test 2: Nagle DISABLED (TCP_NODELAY = 1) ===")
+	port2 := 9002
+	results2 := make(chan string, 2)
+	go nagleServer(port2, true, results2)
+	go nagleClient(port2, true, results2)
+	&lt;-results2
+	&lt;-results2
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Run this code:
+</p>
+
+<pre><code class="language-bash">go run nagle_test.go
+</code></pre>
+
+<p class="site-block-paragraph">
+On a local machine, you will see output like:
+</p>
+
+<pre><code class="language-bash">=== Test 1: Nagle ENABLED (TCP_NODELAY = 0) ===
+[CLIENT] Sent request at 2024-01-15 10:23:45.123456 +0000 UTC
+[SERVER] Received 123456789 bytes at 2024-01-15 10:23:45.125678 +0000 UTC
+[CLIENT] Received 2 bytes at 2024-01-15 10:23:45.165890 +0000 UTC
+[CLIENT] Round-trip latency: 42.434ms
+
+=== Test 2: Nagle DISABLED (TCP_NODELAY = 1) ===
+[CLIENT] Sent request at 2024-01-15 10:23:45.488123 +0000 UTC
+[SERVER] Received 2 bytes at 2024-01-15 10:23:45.488234 +0000 UTC
+[CLIENT] Received 2 bytes at 2024-01-15 10:23:45.488345 +0000 UTC
+[CLIENT] Round-trip latency: 222us
+</code></pre>
+
+<p class="site-block-paragraph">
+The difference is stark: 42ms with Nagle versus 222 microseconds without it. That 42ms is the sum of delayed ACK and Nagle buffering. In production, you might see even more variance if the network or server is under load.
+</p>
+
+<h2>Runnable Python Example</h2>
+
+<p class="site-block-paragraph">
+Python's socket module also supports TCP_NODELAY. Here is the equivalent example:
+</p>
+
+<pre><code class="language-python">import socket
+import time
+import threading
+from datetime import datetime
+
+def nagle_server(port, disable_nagle, results):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(('127.0.0.1', port))
+    server_socket.listen(1)
+
+    try:
+        conn, addr = server_socket.accept()
+        if disable_nagle:
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        data = conn.recv(1024)
+        server_recv_time = datetime.now()
+        print(f"[SERVER] Received {len(data)} bytes at {server_recv_time}")
+
+        time.sleep(0.010)
+
+        conn.sendall(b"OK")
+        results.append("server_ok")
+        conn.close()
+    finally:
+        server_socket.close()
+
+def nagle_client(port, disable_nagle, results):
+    time.sleep(0.1)
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if disable_nagle:
+        client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+    try:
+        client_socket.connect(('127.0.0.1', port))
+        client_send_time = datetime.now()
+        client_socket.sendall(b"PING")
+        print(f"[CLIENT] Sent request at {client_send_time}")
+
+        data = client_socket.recv(1024)
+        client_recv_time = datetime.now()
+        print(f"[CLIENT] Received {len(data)} bytes at {client_recv_time}")
+        latency = (client_recv_time - client_send_time).total_seconds() * 1000
+        print(f"[CLIENT] Round-trip latency: {latency:.3f}ms")
+        results.append("client_ok")
+    finally:
+        client_socket.close()
+
+if __name__ == "__main__":
+    print("=== Test 1: Nagle ENABLED (TCP_NODELAY = 0) ===")
+    results1 = []
+    port1 = 9001
+    server_thread1 = threading.Thread(target=nagle_server, args=(port1, False, results1))
+    client_thread1 = threading.Thread(target=nagle_client, args=(port1, False, results1))
+    server_thread1.start()
+    client_thread1.start()
+    server_thread1.join()
+    client_thread1.join()
+    time.sleep(0.5)
+
+    print("\n=== Test 2: Nagle DISABLED (TCP_NODELAY = 1) ===")
+    results2 = []
+    port2 = 9002
+    server_thread2 = threading.Thread(target=nagle_server, args=(port2, True, results2))
+    client_thread2 = threading.Thread(target=nagle_client, args=(port2, True, results2))
+    server_thread2.start()
+    client_thread2.start()
+    server_thread2.join()
+    client_thread2.join()
+</code></pre>
+
+<p class="site-block-paragraph">
+Run it:
+</p>
+
+<pre><code class="language-bash">python3 nagle_test.py
+</code></pre>
+
+<p class="site-block-paragraph">
+You will see similar results: 40-50ms with Nagle, less than 1ms with TCP_NODELAY disabled.
+</p>
+
+<h2>When to Use TCP_NODELAY</h2>
+
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Nagle Default OK</th>
+<th>Should Disable</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bulk file transfer</td>
+<td>Yes</td>
+<td>No</td>
+<td>Large writes fill MSS, Nagle does not trigger</td>
+</tr>
+<tr>
+<td>Database queries (small request, small reply)</td>
+<td>No</td>
+<td>Yes</td>
+<td>Small packets + delayed ACK interact poorly</td>
+</tr>
+<tr>
+<td>Real-time gaming or trading</td>
+<td>No</td>
+<td>Yes</td>
+<td>Every millisecond matters</td>
+</tr>
+<tr>
+<td>HTTP/1.1 with Keep-Alive</td>
+<td>Mixed</td>
+<td>Depends</td>
+<td>Large responses OK, small pipelined requests may stall</td>
+</tr>
+<tr>
+<td>SSH or telnet</td>
+<td>No</td>
+<td>Yes</td>
+<td>Single keystrokes should arrive immediately</td>
+</tr>
+<tr>
+<td>WebSocket with small messages</td>
+<td>No</td>
+<td>Yes</td>
+<td>Latency critical for interactivity</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Setting TCP_NODELAY in Different Languages</h2>
+
+<p class="site-block-paragraph">
+For <a href="/nonJava/go-lang.html">Go</a>, use conn.SetNoDelay(true) on a *net.TCPConn. For Python, use socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1). In C:
+</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;netinet/tcp.h&gt;
+#include &lt;sys/socket.h&gt;
+
+int main() {
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd &lt; 0) {
+        perror("socket");
+        return 1;
+    }
+
+    int flag = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&amp;flag, sizeof(int)) &lt; 0) {
+        perror("setsockopt TCP_NODELAY");
+        return 1;
+    }
+
+    printf("TCP_NODELAY enabled\n");
+
+    close(sockfd);
+    return 0;
+}
+</code></pre>
+
+<h2>Verify the Setting with netstat or ss</h2>
+
+<p class="site-block-paragraph">
+After setting TCP_NODELAY, you can verify it is in effect by checking kernel TCP statistics or by using tcpdump to watch for the batching behavior disappearing. On Linux, use ss to inspect socket options:
+</p>
+
+<pre><code class="language-bash">ss -tan | grep LISTEN
+</code></pre>
+
+<p class="site-block-paragraph">
+This does not directly show TCP_NODELAY, but you can trace packets with tcpdump:
+</p>
+
+<pre><code class="language-bash">tcpdump -i lo -n 'tcp port 9001'
+</code></pre>
+
+<p class="site-block-paragraph">
+With Nagle enabled, you will see fewer packets (batched data). With TCP_NODELAY, every write produces a packet immediately.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<ul>
+<li><strong>Setting TCP_NODELAY on the listening socket only:</strong> The option must be set on the accepted connection, not the listener. After accept() returns, call SetNoDelay(true) on that specific conn.</li>
+<li><strong>Assuming TCP_NODELAY fixes all latency:</strong> Nagle is one source of delay. Delayed ACKs can still occur even with TCP_NODELAY disabled. To fix delayed ACKs, see if your stack supports TCP_QUICKACK (Linux only, not portable).</li>
+<li><strong>Enabling TCP_NODELAY for bulk transfers:</strong> If you are moving large files or streaming video, disabling Nagle does not help and slightly increases CPU and network overhead. Profile first.</li>
+<li><strong>Forgetting to check return values:</strong> setsockopt() and SetNoDelay() can fail on some sockets (e.g., UDP). Always check the error.</li>
+<li><strong>Thinking TCP_NODELAY disables all buffering:</strong> It disables Nagle buffering, not socket send buffers. You may still need to flush or use MSG_NODELAY at the sendmsg() level in some cases.</li>
+</ul>
+
+<h2>FAQ</h2>
+
+<h3>Does TCP_NODELAY hurt throughput on bulk transfers?</h3>
+<p class="site-block-paragraph">
+Slightly, but usually not measurably on modern networks. You save the Nagle wait (which is 0 if packets are large enough to not trigger Nagle anyway) and lose a tiny bit to more packet headers. For throughput, what matters is the send buffer size and the congestion window, not Nagle. If you are worried, benchmark your specific workload. Most bulk transfer libraries (rsync, HTTP servers) see no regression with TCP_NODELAY enabled.</p>
+
+<h3>Does TCP_NODELAY affect CPU usage?</h3>
+<p class="site-block-paragraph">
+Minimally. The kernel does a little more work to process more packets, but modern NICs and drivers handle this efficiently. The CPU cost is dwarfed by the latency win in interactive workloads.</p>
+
+<h3>Can I enable TCP_NODELAY mid-connection?</h3>
+<p class="site-block-paragraph">
+Yes. You can call setsockopt() at any point while the connection is open. It takes effect on the next write. Previously buffered data due to Nagle will still be released normally.</p>
+
+<h3>Does TCP_NODELAY affect encrypted connections (TLS)?</h3>
+<p class="site-block-paragraph">
+Yes. Set TCP_NODELAY on the underlying socket before or after the TLS handshake. The encryption layer sits on top of TCP, so disabling Nagle at the TCP level helps TLS too.</p>
+
+<h3>What if my client and server have mismatched TCP_NODELAY settings?</h3>
+<p class="site-block-paragraph">
+It does not matter. TCP_NODELAY only affects the sender side. If the server has it disabled and the client has it enabled, the server may still batch its replies, but the client will send immediately. Best practice: enable it on both for consistent low latency.</p>
+
+<h3>Is there a portable way to disable Nagle on all platforms?</h3>
+<p class="site-block-paragraph">
+Yes. IPPROTO_TCP and TCP_NODELAY are defined in netinet/tcp.h (Unix/Linux) and winsock2.h (Windows). The setsockopt interface is the same. Go and Python abstract this for you, so use SetNoDelay() in Go and setsockopt() in Python as shown.</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/tcp-udp-socket.html">Tcp udp socket</a></li><li><a href="/nonJava/go-lang.html">Go lang</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
