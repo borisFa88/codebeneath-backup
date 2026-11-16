@@ -605,8 +605,9 @@
         "/programmerStories/linux-processes-and-syscalls.html"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Learn how UDP receive buffer overflow causes silent packet loss. Debug with SO_RCVBUF tuning, strace output, and runnable server code showing drops."
     },
     {
       "id": "http-100-continue-expect-header-example",

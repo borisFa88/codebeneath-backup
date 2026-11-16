@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>UDP Receive Buffer Overflow: Dropping Packets at the OS Level | Code Beneath</title>
+<meta name="description" content="Learn how UDP receive buffer overflow causes silent packet loss. Debug with SO_RCVBUF tuning, strace output, and runnable server code showing drops." />
+<link rel="canonical" href="https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="UDP Receive Buffer Overflow: Dropping Packets at the OS Level | Code Beneath" />
+<meta property="og:description" content="Learn how UDP receive buffer overflow causes silent packet loss. Debug with SO_RCVBUF tuning, strace output, and runnable server code showing drops." />
+<meta property="og:url" content="https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="UDP Receive Buffer Overflow: Dropping Packets at the OS Level | Code Beneath" />
+<meta name="twitter:description" content="Learn how UDP receive buffer overflow causes silent packet loss. Debug with SO_RCVBUF tuning, strace output, and runnable server code showing drops." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "UDP Receive Buffer Overflow: Dropping Packets at the OS Level", "name": "UDP Receive Buffer Overflow: Dropping Packets at the OS Level", "description": "Learn how UDP receive buffer overflow causes silent packet loss. Debug with SO_RCVBUF tuning, strace output, and runnable server code showing drops.", "url": "https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html", "inLanguage": "en-US", "dateModified": "2026-11-16", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "UDP Receive Buffer Overflow: Dropping Packets at the OS Level", "item": "https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/not-only-http/">Sockets and File Transfer</a></nav>
+<h1 class="site-block-post-title">UDP Receive Buffer Overflow: Dropping Packets at the OS Level</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-16">November 16, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+UDP packets vanish. Your application never sees them. The sender gets no error. Your monitoring shows traffic arrived on the interface, yet your receive loop pulls nothing from the socket. The culprit is often a UDP receive buffer overflow, where the OS kernel drops incoming datagrams because your application cannot consume them fast enough. Understanding how the kernel manages the UDP receive buffer, how to detect when it overflows, and how to tune SO_RCVBUF will save you hours of debugging and silent data loss. This article shows exactly what happens, with runnable code that demonstrates the problem and strace output that proves packets are being dropped at the OS level.
+</p>
+
+<h2>How UDP Receive Buffering Works</h2>
+
+<p class="site-block-paragraph">
+When a UDP packet arrives at a network interface, the kernel does not deliver it directly to your application. Instead, the packet lands in a socket receive buffer, a fixed-size ring buffer managed by the kernel. Your application calls recvfrom() (or recv()) to extract datagrams from this buffer. If the buffer fills faster than your code drains it, the kernel drops new arrivals silently. This is fundamentally different from TCP, where the sender is notified via congestion control; UDP is fire-and-forget, so the sender has no way to know a packet was discarded.
+</p>
+
+<p class="site-block-paragraph">
+The size of this kernel buffer is controlled by the SO_RCVBUF socket option. On Linux, the default is typically 131,072 bytes (128 KB), but it can be much smaller on constrained systems or overridden per-socket. The actual allocated size is doubled by the kernel (for bookkeeping), so setting SO_RCVBUF to 1 MB means the kernel allocates 2 MB. If you receive many small packets or process them slowly, the buffer exhausts quickly.
+</p>
+
+<p class="site-block-paragraph">
+The kernel tracks buffer usage via the sk_rmem_alloc counter (visible in kernel source). When a new datagram arrives and sk_rmem_alloc plus the new packet size would exceed the socket's receive buffer limit, the kernel increments a drop counter and discards the packet. No exception is thrown in your application; it simply never appears in recvfrom().
+</p>
+
+<h2>Detecting Packet Loss: The netstat Proof</h2>
+
+<p class="site-block-paragraph">
+Before you write code, you need to confirm packets are actually being dropped. Linux provides netstat and ss commands that expose UDP statistics at the system level. Run this on a machine receiving UDP traffic:
+</p>
+
+<pre><code class="language-bash">
+netstat -us
+</code></pre>
+
+<p class="site-block-paragraph">
+Look for lines like:
+</p>
+
+<pre><code class="language-bash">
+Udp:
+    Forwarding: 0
+    16000 packets received
+    0 packets to unknown port received
+    15800 packet receive errors
+</code></pre>
+
+<p class="site-block-paragraph">
+The "packet receive errors" counter includes all drops: buffer exhaustion, checksum failures, and other kernel-level rejections. If this number grows while your application is receiving traffic, packets are being dropped. You can also use ss with per-socket granularity:
+</p>
+
+<pre><code class="language-bash">
+ss -uan
+</code></pre>
+
+<p class="site-block-paragraph">
+This shows all UDP sockets, their receive buffer size, and (on newer kernels with RxQ/TxQ) the current queue depth. If you see RxQ climbing toward the buffer size, you have a bottleneck.
+</p>
+
+<h2>A Runnable Example: UDP Server with Intentional Buffer Starvation</h2>
+
+<p class="site-block-paragraph">
+Here is a complete, working UDP server in Go that deliberately leaves the receive buffer small and processes packets slowly, causing drops:
+</p>
+
+<pre><code class="language-go">
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"syscall"
+	"time"
+)
+
+func main() {
+	addr := net.UDPAddr{
+		Port: 9999,
+		IP:   net.ParseIP("127.0.0.1"),
+	}
+	conn, err := net.ListenUDP("udp", &amp;addr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "listen error: %v\n", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	// Get the underlying socket file descriptor
+	file, err := conn.File()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "file error: %v\n", err)
+		os.Exit(1)
+	}
+	defer file.Close()
+	fd := int(file.Fd())
+
+	// Set SO_RCVBUF to 16 KB, forcing buffer exhaustion with many small packets
+	smallBuffer := 16 * 1024
+	err = syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_RCVBUF, smallBuffer)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "setsockopt error: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Verify the setting
+	actualBuffer, err := syscall.GetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_RCVBUF)
+	if err == nil {
+		fmt.Printf("SO_RCVBUF set to: %d bytes\n", actualBuffer)
+	}
+
+	fmt.Println("UDP server listening on 127.0.0.1:9999")
+	fmt.Println("Processing packets with 10ms delay to cause buffer overflow...")
+
+	buffer := make([]byte, 2048)
+	for {
+		n, remoteAddr, err := conn.ReadFromUDP(buffer)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "read error: %v\n", err)
+			continue
+		}
+		fmt.Printf("Received %d bytes from %s: %s\n", n, remoteAddr, buffer[:n])
+
+		// Simulate slow processing: hold the receive loop for 10ms
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+To generate load and trigger drops, run this Python client in another terminal:
+</p>
+
+<pre><code class="language-python">
+import socket
+import time
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_addr = ("127.0.0.1", 9999)
+
+for i in range(100):
+    message = f"Packet {i}".encode()
+    sock.sendto(message, server_addr)
+    # No delay; send as fast as possible
+    if i % 10 == 0:
+        print(f"Sent {i} packets")
+
+sock.close()
+print("All packets sent")
+</code></pre>
+
+<p class="site-block-paragraph">
+Run the server, then run the client. The server will not print all 100 packets; many are dropped silently by the kernel because the 16 KB buffer fills while the application sleeps.
+</p>
+
+<h2>Using strace to See Kernel-Level Drops</h2>
+
+<p class="site-block-paragraph">
+To prove the kernel is dropping packets, use strace to watch the actual system calls and kernel statistics. Start the server with strace attached:
+</p>
+
+<pre><code class="language-bash">
+strace -e trace=recvfrom,setsockopt -f ./udp_server 2&gt;&amp;1 | head -40
+</code></pre>
+
+<p class="site-block-paragraph">
+Then run the client. You will see recvfrom() syscalls returning with packet sizes, but fewer calls than packets sent. The gap is your drop count. For more precise statistics, check /proc/net/udp while the server is running:
+</p>
+
+<pre><code class="language-bash">
+cat /proc/net/udp | grep 270F
+</code></pre>
+
+<p class="site-block-paragraph">
+The columns are: sl local_address rem_address st tx_queue rx_queue tr tm->when retrnsmt uid timeout inode. The rx_queue column (index 4) shows how many bytes are buffered but not yet read. If this stays high (near your SO_RCVBUF limit), you have congestion. Unfortunately, /proc/net/udp does not directly expose drop counts; for that, you rely on netstat -us or monitoring /proc/net/snmp with the UdpInErrors counter.
+</p>
+
+<p class="site-block-paragraph">
+A cleaner modern approach is to use the ss command with JSON output:
+</p>
+
+<pre><code class="language-bash">
+ss -uan --json | jq '.UDP[] | select(.local_address == "127.0.0.1")'
+</code></pre>
+
+<p class="site-block-paragraph">
+On systems with BPF tracing (bcc tools), you can capture drops in real time:
+</p>
+
+<pre><code class="language-bash">
+sudo python3 /usr/share/bcc/tools/udplife.py
+</code></pre>
+
+<p class="site-block-paragraph">
+This attaches eBPF probes to the kernel's UDP stack and prints every datagram, including drops, with full source/dest details.
+</p>
+
+<h2>Tuning SO_RCVBUF: Best Practices</h2>
+
+<p class="site-block-paragraph">
+Once you confirm drops, the first lever is SO_RCVBUF. How large should you set it? This depends on your packet rate, packet size, and how long your application can afford latency. A rough formula:
+</p>
+
+<pre><code class="language-bash">
+SO_RCVBUF = (packets_per_second) * (average_packet_size) * (max_latency_seconds) * 2
+</code></pre>
+
+<p class="site-block-paragraph">
+For example, if you receive 10,000 packets per second of 500 bytes each, and you can tolerate 100 ms of buffering before drops, you need:
+</p>
+
+<pre><code class="language-bash">
+10,000 * 500 * 0.1 * 2 = 1,000,000 bytes = 1 MB
+</code></pre>
+
+<p class="site-block-paragraph">
+Set SO_RCVBUF early, before calling bind() or connect():
+</p>
+
+<pre><code class="language-go">
+fd, _ := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
+syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_RCVBUF, 10*1024*1024)
+// Then bind or connect
+</code></pre>
+
+<p class="site-block-paragraph">
+On Linux, there is also a system-wide limit: /proc/sys/net/core/rmem_max. SO_RCVBUF cannot exceed this value. Check and raise it if needed:
+</p>
+
+<pre><code class="language-bash">
+cat /proc/sys/net/core/rmem_max
+# Typically 212992 (208 KB) by default
+# Raise it with:
+sudo sysctl -w net.core.rmem_max=134217728  # 128 MB
+</code></pre>
+
+<p class="site-block-paragraph">
+Similarly, the default starting value is controlled by /proc/sys/net/core/rmem_default. For high-traffic UDP services, set this in /etc/sysctl.conf and persist it across reboots.
+</p>
+
+<h2>The ENOBUFS Edge Case</h2>
+
+<p class="site-block-paragraph">
+There is a subtler scenario where you might see ENOBUFS (No buffer space available) returned directly from recvfrom(). This is distinct from silent drops. ENOBUFS indicates a temporary kernel memory allocation failure, not buffer overflow on the socket. It can occur if:
+</p>
+
+<ul>
+<li>The system is under extreme memory pressure.</li>
+<li>The kernel's internal UDP buffer pool is exhausted (rare on modern systems).</li>
+<li>You are running on a system with strict memory limits (containers, VMs).</li>
+</ul>
+
+<p class="site-block-paragraph">
+If your application receives ENOBUFS, it should not treat it as a fatal error. Typically, you sleep briefly and retry the read, giving the kernel time to free memory. However, ENOBUFS is not the same as UDP receive buffer overflow; it is a system-wide resource constraint, not a per-socket tuning issue.
+</p>
+
+<h2>Comparison: UDP vs. TCP Buffer Behavior</h2>
+
+<table border="1" cellpadding="8" cellspacing="0">
+  <tr>
+    <th>Aspect</th>
+    <th>UDP</th>
+    <th>TCP</th>
+  </tr>
+  <tr>
+    <td>Receive buffer overflow behavior</td>
+    <td>Packets dropped silently by kernel; sender unaware</td>
+    <td>Sender blocked or retransmits due to congestion control</td>
+  </tr>
+  <tr>
+    <td>SO_RCVBUF tunability</td>
+    <td>Critical; directly impacts packet loss</td>
+    <td>Important but less critical due to flow control</td>
+  </tr>
+  <tr>
+    <td>System limits</td>
+    <td>rmem_max limits per-socket buffer</td>
+    <td>tcp_rmem limits per-socket buffer</td>
+  </tr>
+  <tr>
+    <td>Visibility of drops</td>
+    <td>Requires netstat -us or /proc/net/snmp inspection</td>
+    <td>Observable via TCP retransmit counters and tcpdump</td>
+  </tr>
+  <tr>
+    <td>Application-level recovery</td>
+    <td>Impossible; packet already lost at OS</td>
+    <td>Built-in retransmission at transport layer</td>
+  </tr>
+</table>
+
+<h2>Real-World Monitoring in Production</h2>
+
+<p class="site-block-paragraph">
+In production, do not rely on manual netstat runs. Automate monitoring with a script that periodically checks /proc/net/snmp and alerts on rising drop counts:
+</p>
+
+<pre><code class="language-bash">
+#!/bin/bash
+# monitor_udp_drops.sh
+
+prev_drops=0
+while true; do
+  current_drops=$(awk '/^Udp:/{getline; print $4}' /proc/net/snmp)
+  if (( current_drops > prev_drops )); then
+    new_drops=$((current_drops - prev_drops))
+    echo "WARNING: $new_drops UDP packets dropped in last interval" | \
+      logger -t udp_monitor
+  fi
+  prev_drops=$current_drops
+  sleep 10
+done
+</code></pre>
+
+<p class="site-block-paragraph">
+Alternatively, use Prometheus node_exporter, which exports UDP metrics. Scrape the node_network_receive_dropped_total metric and set an alert if it increases.
+</p>
+
+<p class="site-block-paragraph">
+For application-level insight, you can use <a href="/programmerStories/linux-processes-and-syscalls.html">syscall tracing tools like bpftrace</a> to correlate drops with application state. Track how many bytes are in the socket receive queue when drops occur:
+</p>
+
+<pre><code class="language-bash">
+sudo bpftrace -e 'tracepoint:skb:kfree_skb { printf("drop: %s\n", str(args->reason)); }'
+</code></pre>
+
+<h2>Interaction with Datagram Size and Fragmentation</h2>
+
+<p class="site-block-paragraph">
+The interaction between UDP receive buffer size and datagram size matters. If you set SO_RCVBUF to 64 KB but receive 1.5 KB packets, you can buffer around 42 packets. However, if you receive 8 KB packets, you fit only 8. More subtly, if packets are fragmented at the IP layer (which happens when they exceed MTU, typically 1500 bytes), the kernel reassembles them before placing them in the UDP receive buffer. This reassembly itself uses kernel memory. For large datagrams, especially those that fragment across multiple IP packets, you need a larger buffer to account for the per-packet overhead. See <a href="/notOnlyHttp/udp-datagram-size-fragmentation-example.html">UDP datagram size and fragmentation</a> for more on this.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+1. Setting SO_RCVBUF after bind(): On some systems, the kernel may ignore the setting if the socket is already bound. Always set socket options immediately after socket creation.
+</p>
+
+<p class="site-block-paragraph">
+2. Forgetting the system-wide limit: You set SO_RCVBUF to 256 MB, but /proc/sys/net/core/rmem_max is only 212 KB. The kernel caps your request silently. Always check and raise rmem_max first.
+</p>
+
+<p class="site-block-paragraph">
+3. Assuming SO_RCVBUF alone solves the problem: If your application's recvfrom() loop is blocked on other I/O or CPU-bound work, a large buffer just delays the inevitable overflow. You must also optimize packet processing speed and consider multi-threading or async I/O.
+</p>
+
+<p class="site-block-paragraph">
+4. Confusing SO_RCVBUF with SO_REUSEADDR: SO_RCVBUF is for the receive buffer. SO_REUSEADDR allows rapid socket rebind. They are orthogonal; you need both for resilient UDP services.
+</p>
+
+<p class="site-block-paragraph">
+5. Ignoring netstat output changes over time: A single netstat run is a snapshot. If packet loss is intermittent (e.g., load spikes), you need continuous monitoring to catch it.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Can I detect dropped packets from inside my application?</h3>
+
+<p class="site-block-paragraph">
+Not reliably. You can count the packets you receive and compare against an external counter, but the kernel does not expose the drop count to your process. You must query /proc/net/snmp or use netstat -us from outside the application. One workaround: have the sender include a sequence number in each datagram, and your receiver logs gaps. This reveals packet loss but does not tell you if it was due to buffer overflow or network loss.
+</p>
+
+<h3>How large should SO_RCVBUF really be?</h3>
+
+<p class="site-block-paragraph">
+There is no one-size-fits-all answer. Start with 10x the amount of data you expect to arrive in one round-trip time (RTT). For local networks with 1 ms RTT and 10 Gbps throughput, that is roughly 1.25 MB. For 10 ms RTT on the same link, 12.5 MB. Monitor drops with netstat and increase SO_RCVBUF until drops stop. Diminishing returns set in quickly; 1 GB buffers on a gigabit link are overkill.
+</p>
+
+<h3>Do I need to tune rmem_default, or only rmem_max?</h3>
+
+<p class="site-block-paragraph">
+rmem_default is the starting size for a new UDP socket if you do not set SO_RCVBUF. rmem_max is the absolute ceiling. For a service that receives high-volume UDP, set rmem_default high (e.g., 8 MB) so default sockets have breathing room, and set rmem_max even higher (e.g., 256 MB) to allow per-socket tuning. If you only raise rmem_max but leave rmem_default low, sockets created without explicit SO_RCVBUF tuning will still drop packets.
+</p>
+
+<h3>What about SO_RCVBUFFORCE on Linux?</h3>
+
+<p class="site-block-paragraph">
+SO_RCVBUFFORCE bypasses the rmem_max limit but requires CAP_NET_ADMIN capability (usually root). Use it with extreme caution; setting an excessively large buffer can starve other processes or destabilize the system. Modern services running in containers or with least-privilege assumptions should avoid it. Instead, ask the operator to raise rmem_max via sysctl if needed.
+</p>
+
+<h3>Why does the kernel double SO_RCVBUF internally?</h3>
+
+<p class="site-block-paragraph">
+The kernel uses the extra space for sk_buff headers, socket structure overhead, and book-keeping. The doubled size is what is actually allocated from kernel memory. When you call getsockopt(SO_RCVBUF), you get the value you set, not the true allocation. This is by design to keep the API simple, but it means a 1 MB SO_RCVBUF consumes 2 MB of kernel RAM.
+</p>
+
+<h3>Can packet loss happen even if my SO_RCVBUF is large?</h3>
+
+<p class="site-block-paragraph">
+Yes. If your application is blocked on recvfrom() but the kernel cannot deliver packets faster than they arrive, or if there are network-level drops (bad checksums, NIC buffer overflow, network congestion), you will lose packets regardless of SO_RCVBUF size. SO_RCVBUF only protects against application-level processing slowness, not network problems. Use tcpdump on the interface to verify packets are actually reaching your machine.
+</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/notOnlyHttp/udp-datagram-size-fragmentation-example.html">UDP Datagram Size Limits and Fragmentation: When Packets Break</a></li><li><a href="/programmerStories/linux-processes-and-syscalls.html">Linux Processes and System Calls, Traced With strace</a></li></ul><p><a href="/category/not-only-http/">More in Sockets and File Transfer</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

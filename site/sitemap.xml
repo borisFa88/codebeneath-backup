@@ -210,4 +210,8 @@
     <loc>https://codebeneath.com/notOnlyHttp/tcp-nagle-algorithm-tcp-nodelay-example.html</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
+  <url>
+    <loc>https://codebeneath.com/notOnlyHttp/udp-receive-buffer-overflow-packet-loss.html</loc>
+    <lastmod>2026-11-16</lastmod>
+  </url>
 </urlset>
