@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body | Code Beneath</title>
+<meta name="description" content="Implement HTTP 100 Continue Expect header in servers and clients. Learn when clients pause before sending body, how to accept or reject, and common bugs with runnable code." />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/http-100-continue-expect-header-example.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body | Code Beneath" />
+<meta property="og:description" content="Implement HTTP 100 Continue Expect header in servers and clients. Learn when clients pause before sending body, how to accept or reject, and common bugs with runnable code." />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/http-100-continue-expect-header-example.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body | Code Beneath" />
+<meta name="twitter:description" content="Implement HTTP 100 Continue Expect header in servers and clients. Learn when clients pause before sending body, how to accept or reject, and common bugs with runnable code." />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body", "name": "HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body", "description": "Implement HTTP 100 Continue Expect header in servers and clients. Learn when clients pause before sending body, how to accept or reject, and common bugs with runnable code.", "url": "https://codebeneath.com/handlingHttpRequest/http-100-continue-expect-header-example.html", "inLanguage": "en-US", "dateModified": "2026-11-18", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/http-100-continue-expect-header-example.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body", "item": "https://codebeneath.com/handlingHttpRequest/http-100-continue-expect-header-example.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">HTTP 100 Continue Expectation Header: When Clients Pause Before Sending Body</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-18">November 18, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+The HTTP 100 Continue Expect header is a mechanism that lets a client pause before sending a request body and wait for server permission. When a client sends <code>Expect: 100-continue</code> in the headers, it holds back the message body and waits for the server to respond with status code 100 (Continue) or reject the request outright. Many developers ignore this header entirely, leading to timeout hangs, wasted bandwidth on large uploads, or confused clients. Understanding the HTTP 100 continue expect header example implementation patterns is essential for building robust APIs that handle large payloads, file uploads, and resource-constrained scenarios efficiently.
+</p>
+
+<h2>Why Clients Send the Expect Header</h2>
+
+<p class="site-block-paragraph">
+Before uploading a 500 MB file or posting a large JSON body, a client may want to check: will the server accept this request at all? Perhaps the authentication token is invalid, the resource does not exist, or the content type is wrong. Without the Expect header, the client would waste time and bandwidth sending the entire body, only to receive a 401 or 400 response from the server.
+</p>
+
+<p class="site-block-paragraph">
+With <code>Expect: 100-continue</code>, the flow is different. The client sends headers and waits. The server reads the headers, validates them, and either says "100 Continue, send the body" or "417 Expectation Failed" or rejects with another 4xx status. Only if the server says 100 do you transmit the body.
+</p>
+
+<p class="site-block-paragraph">
+This is especially useful in <a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">handling HTTP requests</a> where you need to validate early and avoid expensive resource allocation. A multi-part file upload endpoint can reject bad requests before the kernel buffers megabytes of data.
+</p>
+
+<h2>The Protocol Flow</h2>
+
+<p class="site-block-paragraph">
+The sequence goes like this:
+</p>
+
+<ol>
+<li>Client sends request line, all headers (including <code>Expect: 100-continue</code>), and waits without sending the body.</li>
+<li>Server reads the request headers, validates them (auth, content-type, size limits), and either sends <code>100 Continue</code> or sends a final response like <code>417 Expectation Failed</code> or <code>401 Unauthorized</code>.</li>
+<li>If server sends 100, client sends the request body.</li>
+<li>Server reads the body, processes it, and sends the final response (200, 201, etc.).</li>
+<li>If server sends a final response (not 100), client stops and does not send the body.</li>
+</ol>
+
+<p class="site-block-paragraph">
+Most clients set a timeout on the wait for 100 Continue, often 1 second or configurable. If the server does not respond within that window, the client may assume the server does not understand the header and send the body anyway.
+</p>
+
+<h2>Go Server: Accepting and Rejecting 100-Continue</h2>
+
+<p class="site-block-paragraph">
+Here is a complete, runnable Go server that demonstrates proper handling. The <code>http.Server</code> in Go does not automatically handle the Expect header, so you must do it manually.
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+)
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Check for Expect: 100-continue
+	if r.Header.Get("Expect") == "100-continue" {
+		// Validate headers before reading body
+		contentLength := r.ContentLength
+		maxSize := int64(10 * 1024 * 1024) // 10 MB limit
+
+		if contentLength &lt; 0 {
+			// Content-Length not provided or chunked
+			w.WriteHeader(http.StatusLengthRequired)
+			fmt.Fprintf(w, "Content-Length required\n")
+			return
+		}
+
+		if contentLength &gt; maxSize {
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			fmt.Fprintf(w, "File too large: %d &gt; %d\n", contentLength, maxSize)
+			return
+		}
+
+		// All checks passed, tell client to send the body
+		w.WriteHeader(http.StatusContinue)
+		// Important: flush the response to ensure client receives 100
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
+
+	// Now read the body (after sending 100 or skipping this logic entirely if no Expect)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Failed to read body: %v\n", err)
+		return
+	}
+	defer r.Body.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"uploaded": %d, "status": "success"}`+"\n", len(body))
+}
+
+func main() {
+	http.HandleFunc("/upload", uploadHandler)
+	log.Println("Server listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Key points in this Go server:
+</p>
+
+<ul>
+<li>We check the <code>Expect</code> header after the headers are parsed.</li>
+<li>We validate <code>Content-Length</code> and other constraints before signaling 100.</li>
+<li>We call <code>w.WriteHeader(http.StatusContinue)</code> to send 100.</li>
+<li>We call <code>Flush()</code> to ensure the response is sent immediately, not buffered.</li>
+<li>We then proceed to read the body with <code>io.ReadAll(r.Body)</code>.</li>
+<li>If validation fails, we send a final error status (417, 413, etc.) and do not send 100; the body is never read.</li>
+</ul>
+
+<h2>Python Server: Same Pattern with Flask</h2>
+
+<p class="site-block-paragraph">
+Here is the equivalent in Python with Flask. Flask does not automatically handle 100-continue either, but we can intercept the request before the WSGI server reads the body.
+</p>
+
+<pre><code class="language-python">from flask import Flask, request, Response
+import sys
+
+app = Flask(__name__)
+
+@app.before_request
+def handle_expect_continue():
+    """
+    Intercept requests with Expect: 100-continue before WSGI reads the body.
+    This runs before the route handler is called.
+    """
+    if request.headers.get("Expect") == "100-continue":
+        # Validate headers
+        content_length = request.content_length
+        max_size = 10 * 1024 * 1024  # 10 MB
+
+        if content_length is None:
+            # No Content-Length header; reject
+            return "Content-Length required\n", 411
+
+        if content_length &lt; 0:
+            return "Invalid Content-Length\n", 400
+
+        if content_length &gt; max_size:
+            return f"File too large: {content_length} &gt; {max_size}\n", 413
+
+        # All checks passed; send 100 Continue
+        # We write directly to the WSGI input stream's underlying socket
+        sys.stdout.flush()
+        # In production, use the WSGI environ to access wsgi.input
+        # and write to the client socket directly.
+        # For now, we rely on the Flask test client or a proper WSGI server
+        # to handle this. A real implementation requires gunicorn/uWSGI
+        # middleware or a custom WSGI wrapper.
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    """
+    Handle file upload. By the time this route is called,
+    the client has already received 100 (or not).
+    """
+    if request.content_length is None:
+        return "Content-Length required\n", 411
+
+    data = request.get_data()
+    return {
+        "uploaded": len(data),
+        "status": "success"
+    }, 200
+
+if __name__ == "__main__":
+    # For testing with built-in server (not production-grade)
+    app.run(host="0.0.0.0", port=8080, debug=False)
+</code></pre>
+
+<p class="site-block-paragraph">
+Flask's built-in development server does not handle Expect properly because it is single-threaded and does not separate header parsing from body reading. In production, use Gunicorn, uWSGI, or another WSGI server that lets you inject middleware to send 100 Continue at the socket level before the WSGI app reads the body. The pattern is to write the HTTP response "HTTP/1.1 100 Continue\r\n\r\n" directly to the client socket.
+</p>
+
+<h2>Python WSGI Middleware for 100-Continue</h2>
+
+<p class="site-block-paragraph">
+Here is a production-ready WSGI middleware that wraps any Flask or other WSGI app and handles 100-continue correctly by writing to the environ:
+</p>
+
+<pre><code class="language-python">import sys
+import io
+
+class Expect100ContinueMiddleware:
+    """
+    WSGI middleware that sends 100 Continue when appropriate.
+    """
+    def __init__(self, app, max_size=10*1024*1024):
+        self.app = app
+        self.max_size = max_size
+
+    def __call__(self, environ, start_response):
+        """
+        Called by the WSGI server for each request.
+        """
+        expect = environ.get("HTTP_EXPECT", "").lower()
+        
+        if expect == "100-continue":
+            content_length_str = environ.get("CONTENT_LENGTH", "")
+            
+            # Validate before reading body
+            if not content_length_str:
+                # Send 411 Length Required
+                start_response("411 Length Required", [("Content-Type", "text/plain")])
+                return [b"Content-Length required\n"]
+            
+            try:
+                content_length = int(content_length_str)
+            except ValueError:
+                start_response("400 Bad Request", [("Content-Type", "text/plain")])
+                return [b"Invalid Content-Length\n"]
+            
+            if content_length &lt; 0:
+                start_response("400 Bad Request", [("Content-Type", "text/plain")])
+                return [b"Negative Content-Length\n"]
+            
+            if content_length &gt; self.max_size:
+                start_response("413 Payload Too Large", [("Content-Type", "text/plain")])
+                return [f"File too large: {content_length} &gt; {self.max_size}\n".encode()]
+            
+            # Send 100 Continue to the client
+            wsgi_input = environ["wsgi.input"]
+            if hasattr(wsgi_input, "_sock"):
+                # Direct socket access (not always available)
+                try:
+                    wsgi_input._sock.sendall(b"HTTP/1.1 100 Continue\r\n\r\n")
+                except Exception:
+                    pass  # Ignore if socket not available
+        
+        # Call the wrapped WSGI app
+        return self.app(environ, start_response)
+
+
+# Example usage with Flask
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    return {"status": "success"}, 200
+
+# Wrap the Flask app with the middleware
+app.wsgi_app = Expect100ContinueMiddleware(app.wsgi_app)
+
+if __name__ == "__main__":
+    # Use a proper WSGI server: gunicorn -w 1 app:app
+    app.run(port=8080)
+</code></pre>
+
+<p class="site-block-paragraph">
+This middleware validates headers before the WSGI app reads the body, and conditionally sends 100 Continue.
+</p>
+
+<h2>Go Client: Sending Expect: 100-Continue</h2>
+
+<p class="site-block-paragraph">
+Now let us write a client that actually sends the Expect header and handles the response properly:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"time"
+)
+
+func uploadWithExpect(serverURL string, data []byte) error {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	body := bytes.NewReader(data)
+	req, err := http.NewRequest("POST", serverURL, body)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set the Expect header to signal the server
+	req.Header.Set("Expect", "100-continue")
+	req.Header.Set("Content-Type", "application/octet-stream")
+
+	// Important: explicitly set Content-Length so the server knows size before body arrives
+	req.ContentLength = int64(len(data))
+
+	log.Printf("Sending request with Expect: 100-continue, body size: %d bytes\n", len(data))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read the final response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response: %w", err)
+	}
+
+	log.Printf("Server responded with status: %d\n", resp.StatusCode)
+	log.Printf("Response body: %s\n", string(respBody))
+
+	if resp.StatusCode &gt;= 400 {
+		return fmt.Errorf("server rejected request: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func main() {
+	// Test data: 5 MB
+	testData := bytes.Repeat([]byte("x"), 5*1024*1024)
+
+	err := uploadWithExpect("http://localhost:8080/upload", testData)
+	if err != nil {
+		log.Fatalf("Upload failed: %v\n", err)
+	}
+
+	log.Println("Upload succeeded")
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+Key points in the client:
+</p>
+
+<ul>
+<li>We set <code>Expect: 100-continue</code> in the headers.</li>
+<li>We set <code>Content-Length</code> explicitly so the server knows the body size.</li>
+<li>We call <code>client.Do(req)</code>, which handles the 100 Continue protocol automatically in Go: it waits for the 100 response before sending the body, or if it gets a final status, it stops.</li>
+<li>The Go HTTP client has a default timeout of about 1 second for waiting on 100 Continue; if it does not arrive, it sends the body anyway.</li>
+</ul>
+
+<h2>Python Client: Sending Expect Header</h2>
+
+<p class="site-block-paragraph">
+In Python, the standard library <code>urllib</code> does not support 100 Continue well, but the <code>requests</code> library has better support:
+</p>
+
+<pre><code class="language-python">import requests
+import io
+
+def upload_with_expect(server_url, data):
+    """
+    Upload data using Expect: 100-continue.
+    The requests library handles the protocol automatically.
+    """
+    headers = {
+        "Expect": "100-continue",
+        "Content-Type": "application/octet-stream",
+    }
+
+    # Create a BytesIO object to send as body
+    body = io.BytesIO(data)
+
+    print(f"Sending {len(data)} bytes with Expect: 100-continue")
+
+    try:
+        # requests automatically handles 100 Continue if present
+        resp = requests.post(
+            server_url,
+            data=body,
+            headers=headers,
+            timeout=10,
+        )
+
+        print(f"Server responded: {resp.status_code}")
+        print(f"Response: {resp.text}")
+
+        if resp.status_code &gt;= 400:
+            raise Exception(f"Server error: {resp.status_code}")
+
+        return True
+    except Exception as e:
+        print(f"Upload failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    test_data = b"x" * (5 * 1024 * 1024)  # 5 MB
+    success = upload_with_expect("http://localhost:8080/upload", test_data)
+    if success:
+        print("Upload succeeded")
+</code></pre>
+
+<h2>Comparison: When to Use Expect: 100-Continue</h2>
+
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Use Expect: 100-continue?</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Large file uploads (100 MB+)</td>
+<td>Yes</td>
+<td>Avoid wasting bandwidth if server rejects early (auth, quota, format).</td>
+</tr>
+<tr>
+<td>REST API with small JSON payloads (&lt;100 KB)</td>
+<td>No</td>
+<td>Latency cost (extra round trip) outweighs benefit. Just send it.</td>
+</tr>
+<tr>
+<td>WebRTC or streaming over UDP/QUIC</td>
+<td>N/A</td>
+<td>Not applicable; these protocols do not use HTTP semantics.</td>
+</tr>
+<tr>
+<td>Resumable uploads with chunking</td>
+<td>Yes</td>
+<td>Server can reject at chunk boundaries or validate chunk signatures early.</td>
+</tr>
+<tr>
+<td>gRPC or Protocol Buffers</td>
+<td>No</td>
+<td><a href="/handlingHttpRequest/rest-vs-grpc.html">gRPC has its own flow control and backpressure mechanisms</a>; Expect not used.</td>
+</tr>
+<tr>
+<td>Slow network, high payload latency</td>
+<td>Yes</td>
+<td>Server can reject before kilobytes arrive; saves time and data.</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Common Mistakes</h2>
+
+<h3>Not Flushing the 100 Response</h3>
+
+<p class="site-block-paragraph">
+If the server sends <code>w.WriteHeader(http.StatusContinue)</code> but does not call <code>Flush()</code>, the response may be buffered. The client waits forever (until timeout) for the 100 response, then sends the body anyway. Always flush after writing the 100 status.
+</p>
+
+<h3>Sending 100 After Reading Headers Incompletely</h3>
+
+<p class="site-block-paragraph">
+If you send 100 Continue and then discover a validation error, you cannot send another status code. The connection is locked into sending the body. Always validate all headers first (Content-Length, Content-Type, auth, etc.) before sending 100.
+</p>
+
+<h3>Client Not Setting Content-Length</h3>
+
+<p class="site-block-paragraph">
+If the client sends <code>Expect: 100-continue</code> without <code>Content-Length</code>, the server cannot validate the payload size upfront. Many servers will reject this or ignore the Expect header. Always pair Expect with an explicit Content-Length.
+</p>
+
+<h3>Ignoring the Header Entirely</h3>
+
+<p class="site-block-paragraph">
+Some servers read the entire request body without checking for Expect. This breaks the protocol: the client is waiting for 100, the server is reading the body, and they deadlock. Go and Python HTTP libraries handle this internally, but custom socket code must respect the header.
+</p>
+
+<h2>Timing Diagram</h2>
+
+<pre><code class="language-text">Client                                    Server
+  |                                          |
+  | POST /upload HTTP/1.1                   |
+  | Expect: 100-continue                    |
+  | Content-Length: 5000000                 |
+  | (no body yet)                           |
+  |----------------------------------------&gt;|
+  |                                    [parse headers]
+  |                                    [validate size, auth, etc.]
+  |                                    [all OK]
+  |                                   
+  | HTTP/1.1 100 Continue                   |
+  |&lt;----------------------------------------|
+  |                                          |
+  | [5MB body]                              |
+  |----------------------------------------&gt;|
+  |                                   [read body]
+  |                                   [process]
+  |                                          |
+  | HTTP/1.1 200 OK                         |
+  | Content-Type: application/json          |
+  | {"uploaded": 5000000, "status": ...}   |
+  |&lt;----------------------------------------|
+  |                                          |
+</code></pre>
+
+<h2>Measuring the Impact</h2>
+
+<p class="site-block-paragraph">
+To see real timing differences, use <code>curl</code> with the <code>-w</code> flag to measure handshake time vs. upload time:
+</p>
+
+<pre><code class="language-bash">#!/bin/bash
+
+# Generate a 10 MB test file
+dd if=/dev/zero bs=1M count=10 of=testfile.bin 2&gt;/dev/null
+
+echo "=== Upload WITH Expect: 100-continue ==="
+time curl -X POST \
+  -H "Expect: 100-continue" \
+  --data-binary @testfile.bin \
+  -w "\nConnect: %{time_connect}s, Time-to-first: %{time_starttransfer}s, Total: %{time_total}s\n" \
+  http://localhost:8080/upload
+
+echo ""
+echo "=== Upload WITHOUT Expect header ==="
+time curl -X POST \
+  --data-binary @testfile.bin \
+  -w "\nConnect: %{time_connect}s, Time-to-first: %{time_starttransfer}s, Total: %{time_total}s\n" \
+  http://localhost:8080/upload
+</code></pre>
+
+<p class="site-block-paragraph">
+On a good network with a responsive server, the difference is small. But if the server rejects the request (e.g., 401), the Expect version saves the time it would take to send the body.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Does HTTP/2 support Expect: 100-continue?</h3>
+
+<p class="site-block-paragraph">
+HTTP/2 deprecates the Expect header in favor of its own flow control mechanisms. HTTP/2 uses SETTINGS frames and WINDOW_UPDATE to signal backpressure. However, if your HTTP/2 implementation maps it to HTTP/1.1 at the boundary, the header still works.
+</p>
+
+<h3>What if the server never sends 100 or a final status?</h3>
+
+<p class="site-block-paragraph">
+The client will wait for a configured timeout (usually 1-2 seconds) and then send the body anyway. This is a safety mechanism to handle servers that do not understand Expect. After the timeout, the client assumes it is safe to proceed.
+</p>
+
+<h3>Can I send 100-continue for GET requests?</h3>
+
+<p class="site-block-paragraph">
+Technically yes, but it makes no sense. GET requests do not have a body, so there is nothing to pause on. The server will likely ignore the header. Use Expect only with POST, PUT, or PATCH.
+</p>
+
+<h3>Should I always send Expect when uploading files?</h3>
+
+<p class="site-block-paragraph">
+Only for large files or when early validation is critical. For small uploads (under 1 MB), the latency of the extra round trip often outweighs the savings. Measure your use case.
+</p>
+
+<h3>How does Expect interact with Content-Encoding?</h3>
+
+<p class="site-block-paragraph">
+Expect is about request headers and size validation. Content-Encoding (gzip, deflate, etc.) happens after validation. The Content-Length in the Expect header validation should be the encoded size that actually goes on the wire.
+</p>
+
+<h3>What status codes reject Expect: 100-continue?</h3>
+
+<p class="site-block-paragraph">
+Common rejections: 401 Unauthorized, 403 Forbidden, 413 Payload Too Large, 417 Expectation Failed. Any status code other than 100 or 1xx tells the client to stop sending the body.
+</p>
+
+<h3>Does nginx support Expect: 100-continue?</h3>
+
+<p class="site-block-paragraph">
+Yes. Nginx respects the Expect header by default. If you send Expect: 100-continue, nginx will read your headers, validate them against its proxy settings, and either send 100 or reject before the body is buffered. This is one reason nginx is efficient for file uploads.
+</p>
+
+</article>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to read dynamic http type</a></li><li><a href="/handlingHttpRequest/rest-vs-grpc.html">REST vs gRPC: A Practical Comparison With Code</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

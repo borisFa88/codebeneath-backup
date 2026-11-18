@@ -626,8 +626,9 @@
         "/handlingHttpRequest/rest-vs-grpc.html"
       ],
       "priority": 5,
-      "status": "queued",
-      "auto": true
+      "status": "published",
+      "auto": true,
+      "meta_description": "Implement HTTP 100 Continue Expect header in servers and clients. Learn when clients pause before sending body, how to accept or reject, and common bugs with runnable code."
     },
     {
       "id": "http-trailer-headers-chunked-encoding",
