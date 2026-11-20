@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="max-image-preview:large" />
+<title>HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body | Code Beneath</title>
+<meta name="description" content="HTTP trailer headers chunked encoding: send metadata after streaming body. Complete Go implementation with content digest trailers, client code parsing, and chunked transfer encodi" />
+<link rel="canonical" href="https://codebeneath.com/handlingHttpRequest/http-trailer-headers-chunked-encoding.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Code Beneath" />
+<meta property="og:title" content="HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body | Code Beneath" />
+<meta property="og:description" content="HTTP trailer headers chunked encoding: send metadata after streaming body. Complete Go implementation with content digest trailers, client code parsing, and chunked transfer encodi" />
+<meta property="og:url" content="https://codebeneath.com/handlingHttpRequest/http-trailer-headers-chunked-encoding.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body | Code Beneath" />
+<meta name="twitter:description" content="HTTP trailer headers chunked encoding: send metadata after streaming body. Complete Go implementation with content digest trailers, client code parsing, and chunked transfer encodi" />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body", "name": "HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body", "description": "HTTP trailer headers chunked encoding: send metadata after streaming body. Complete Go implementation with content digest trailers, client code parsing, and chunked transfer encodi", "url": "https://codebeneath.com/handlingHttpRequest/http-trailer-headers-chunked-encoding.html", "inLanguage": "en-US", "dateModified": "2026-11-20", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://codebeneath.com/handlingHttpRequest/http-trailer-headers-chunked-encoding.html"}, "author": {"@type": "Person", "name": "Boris Fain", "url": "https://codebeneath.com/about.html"}, "publisher": {"@type": "Organization", "name": "Code Beneath", "url": "https://codebeneath.com/"}, "isPartOf": {"@type": "WebSite", "name": "Code Beneath", "url": "https://codebeneath.com/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codebeneath.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://codebeneath.com/articles.html"}, {"@type": "ListItem", "position": 3, "name": "HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body", "item": "https://codebeneath.com/handlingHttpRequest/http-trailer-headers-chunked-encoding.html"}]}</script>
+<link rel="stylesheet" href="/assets/css/navigation.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" media="all" />
+<link rel="stylesheet" href="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" media="all" />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/assets/css/article-discovery.css" />
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SCNSJWPRF1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-SCNSJWPRF1');</script>
+</head>
+<body class="site-singular single single-post site-theme-twentytwentyfive">
+<div class="site-site-blocks">
+<header class="site-block-template-part">
+<div class="site-block-group alignfull is-layout-flow site-block-group-is-layout-flow">
+<div class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained">
+<div class="site-block-group alignwide is-content-justification-left is-layout-flex site-block-group-is-layout-flex" style="padding-top:var(--site--preset--spacing--30);padding-bottom:var(--site--preset--spacing--30)"><p class="site-block-site-title"><a href="/" rel="home">codebeneath.com</a></p></div>
+<nav class="has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation is-layout-flex site-block-navigation-is-layout-flex" aria-label="Navigation"><button aria-haspopup="dialog" aria-label="Open menu" class="site-block-navigation__responsive-container-open"><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7.5h16v1.5H4z"></path><path d="M4 15h16v1.5H4z"></path></svg></button>
+<div class="site-block-navigation__responsive-container" id="modal-1" tabindex="-1"><div class="site-block-navigation__responsive-close" tabindex="-1"><div class="site-block-navigation__responsive-dialog"><button aria-label="Close menu" class="site-block-navigation__responsive-container-close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></button>
+<div class="site-block-navigation__responsive-container-content" id="modal-1-content">
+<ul class="site-block-navigation__container has-text-color has-contrast-color has-medium-font-size is-responsive alignwide site-block-navigation">
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/http/"><span class="site-block-navigation-item__label">HTTP Requests</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/how-to-read-dynamic-http-type.html">How to Read an Unknown HTTP Request Body Type</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/handlingHttpRequest/token-based-security-in-web-applications.html">Token-Based Security in Web Applications</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/languages/"><span class="site-block-navigation-item__label">Programming Languages</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/python-is-not-real-programming-language.html">Python vs Java and C++: A Developer Opinion</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/go-lang.html">RAII in Go: Resource Cleanup With defer</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/nonJava/native-language.html">Native C and C++ for Modern Developers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/not-only-http/"><span class="site-block-navigation-item__label">Sockets and File Transfer</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/tcp-udp-socket.html">TCP vs UDP in Go: runnable echo server examples</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/web-socket.html">WebSocket vs HTTP: browser messages and persistent connections</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/notOnlyHttp/ftp-file-transfer-protocol.html">FTP File Transfers With Kotlin and Python</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#stories"><span class="site-block-navigation-item__label">Programming Stories</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/linux-how-to-manage-the-password-safety.html">Linux Password Security and Account Protection</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/go-land-never-replace-java.html">Go vs Java: Where Each Language Fits</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/funny-stories-in-my-programming-carrier.html">Funny Stories From a Programming Career</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/programmerStories/dont-speak-british-in-la.html">Consistent Coding Style: The No Mixed Principle</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/tools/"><span class="site-block-navigation-item__label">Development Tools</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/recommendedTools/1-tools-which-i-like-and-recommend-to-use.html">Recommended Development and Server Tools</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/category/spring-alternatives/"><span class="site-block-navigation-item__label">Spring Framework</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-cant-work-with-another-clients.html">How to Handle Multiple Content Types in Spring Boot</a></li><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/springAlternatives/spring-is-not-the-holly-framework.html">Spring Framework vs Spring Boot: understand the layers</a></li></ul></li>
+<li class="site-block-navigation-item has-child site-block-navigation-submenu"><a class="site-block-navigation-item__content" href="/articles.html#ai"><span class="site-block-navigation-item__label">AI and Programming</span></a><ul class="site-block-navigation__submenu-container site-block-navigation-submenu"><li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/newEra/lifewithAI.html">Life With AI: A Short Programming Note</a></li></ul></li>
+<li class="site-block-navigation-item"><a class="site-block-navigation-item__content" href="/articles.html"><span class="site-block-navigation-item__label">All Articles</span></a></li>
+</ul></div></div></div></nav></div></div></header>
+<main id="content" class="site-block-group has-global-padding is-layout-constrained site-block-group-is-layout-constrained" style="margin-top:var(--site--preset--spacing--60)">
+<nav class="cb-breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/articles.html">Articles</a> / <a href="/category/http/">HTTP Requests and Authentication</a></nav>
+<h1 class="site-block-post-title">HTTP Trailer Headers and Chunked Encoding: Sending Metadata After Body</h1>
+<div class="site-block-group has-small-font-size" style="margin-bottom:var(--site--preset--spacing--60)"><p class="site-block-paragraph">By <a href="/about.html" rel="author">Boris Fain</a> · Updated <time datetime="2026-11-20">November 20, 2026</time></p></div>
+<div class="entry-content site-block-post-content is-layout-constrained">
+<p class="site-block-paragraph">
+Most developers treat HTTP headers as a fixed contract: send them before the body, never after. But HTTP/1.1 defines a lesser-known feature called trailer headers that let you send metadata after the response body completes, and they work specifically with chunked transfer encoding. This becomes critical when you are streaming large files and need to compute a checksum only after reading all bytes, or when you want to signal an error condition or attach signing information to the payload. Understanding <strong>HTTP trailer headers chunked encoding example implementation</strong> means grasping how trailers fit into the chunked protocol, what the wire format looks like, and how to build both server and client code that actually uses them without breaking on intermediaries that strip them.
+</p>
+
+<h2>Why Trailers Exist and When to Use Them</h2>
+
+<p class="site-block-paragraph">
+In HTTP/1.0 and early HTTP/1.1, all headers had to be sent before the body began. That made sense for static responses, but streaming introduces a problem: if you are streaming a large file and you want to attach a SHA256 hash of the content, you have to either compute the hash upfront (expensive for video or large objects) or store the entire body in memory (wasteful). Trailers solve this by allowing a second set of headers to arrive after the body ends, within the same connection.
+</p>
+
+<p class="site-block-paragraph">
+The HTTP/1.1 specification (RFC 7230, Section 4.1.2) says trailers are headers that appear after the message body, inside the last chunk of a chunked transfer. HTTP/2 and HTTP/3 also support trailers, though the mechanism is different. The key constraint: trailers only work with chunked transfer encoding (Transfer-Encoding: chunked), because without chunks, there is no defined boundary between body and trailers.
+</p>
+
+<p class="site-block-paragraph">
+Common use cases for trailers include:
+</p>
+
+<ul>
+<li>Content-MD5 or Digest headers computed over the streaming body</li>
+<li>X-Checksum-SHA256 for data integrity verification</li>
+<li>X-Error or X-Warning to signal problems detected during streaming</li>
+<li>X-Signature for cryptographic signing of the response payload</li>
+<li>X-Trailer-* custom metadata that only became known after processing the stream</li>
+</ul>
+
+<h2>The Chunked Encoding Format and Trailers</h2>
+
+<p class="site-block-paragraph">
+Chunked transfer encoding breaks the body into chunks, each prefixed with its size in hexadecimal. The final chunk is always size 0, followed by a CRLF (carriage return and line feed: \r\n). After that final chunk, the trailers appear as plain headers, then a final CRLF. Here is the exact wire format:
+</p>
+
+<pre><code class="language-bash">Transfer-Encoding: chunked
+
+[chunk size in hex]\r\n
+[chunk data]\r\n
+[next chunk size in hex]\r\n
+[next chunk data]\r\n
+...
+0\r\n
+[trailer-name]: [trailer-value]\r\n
+[another-trailer]: [value]\r\n
+\r\n</code></pre>
+
+<p class="site-block-paragraph">
+If you are sending trailers, you must include a Trailer header in the response telling the client which trailers to expect. Some proxies and intermediaries strip unknown or unsupported trailers, so declaring them upfront helps.
+</p>
+
+<h2>Server Implementation: Streaming a Digest Trailer in Go</h2>
+
+<p class="site-block-paragraph">
+Here is a complete, runnable Go server that streams a large file and appends a SHA256 digest trailer:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+)
+
+func streamWithTrailer(w http.ResponseWriter, r *http.Request) {
+	// Declare that we will send a Digest trailer
+	w.Header().Set("Trailer", "Digest")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Transfer-Encoding", "chunked")
+
+	// Create a hasher to compute digest as we write
+	hasher := sha256.New()
+
+	// Use MultiWriter to write to both the response and the hasher
+	mw := io.MultiWriter(w, hasher)
+
+	// Simulate a large streaming response
+	chunks := []string{
+		"First chunk of data\n",
+		"Second chunk of data\n",
+		"Third chunk of data\n",
+		"Fourth chunk of data\n",
+	}
+
+	for _, chunk := range chunks {
+		if _, err := io.WriteString(mw, chunk); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Compute the digest in base64
+	digest := fmt.Sprintf("SHA-256=%s", fmt.Sprintf("%x", hasher.Sum(nil)))
+
+	// Set the trailer header after body is written
+	w.Header().Set("Digest", digest)
+}
+
+func main() {
+	http.HandleFunc("/stream", streamWithTrailer)
+	fmt.Println("Server listening on :8080")
+	http.ListenAndServe(":8080", nil)
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The key points here: the Trailer header is declared before any body data, the ResponseWriter automatically handles chunked encoding, and you set trailer headers via w.Header().Set() after writing the body but before the connection closes. The http.ResponseWriter in Go is smart enough to hold those headers and emit them in the final chunk boundary.
+</p>
+
+<h2>Client Implementation: Reading and Verifying Trailers</h2>
+
+<p class="site-block-paragraph">
+Now a client that reads the response body and then checks the trailer:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+)
+
+func main() {
+	resp, err := http.Get("http://localhost:8080/stream")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("Status: %d\n", resp.StatusCode)
+	fmt.Printf("Content-Type: %s\n", resp.Header.Get("Content-Type"))
+	fmt.Printf("Transfer-Encoding: %s\n", resp.Header.Get("Transfer-Encoding"))
+	fmt.Printf("Trailer: %s\n\n", resp.Header.Get("Trailer"))
+
+	// Read the body and compute our own digest to verify
+	hasher := sha256.New()
+	body, err := io.ReadAll(io.TeeReader(resp.Body, hasher))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Body (%d bytes):\n%s\n", len(body), string(body))
+
+	// At this point, trailers are available in resp.Trailer
+	digest := resp.Trailer.Get("Digest")
+	fmt.Printf("\nDigest trailer: %s\n", digest)
+
+	// Verify the digest matches our computation
+	computedDigest := fmt.Sprintf("SHA-256=%x", hasher.Sum(nil))
+	fmt.Printf("Computed digest: %s\n", computedDigest)
+
+	if digest == computedDigest {
+		fmt.Println("Digest verified successfully!")
+	} else {
+		fmt.Println("ERROR: Digest mismatch!")
+	}
+}
+</code></pre>
+
+<p class="site-block-paragraph">
+The critical detail: in Go's http package, trailers appear in the response.Trailer map, but only after you have finished reading the body. The client must call io.ReadAll (or equivalent) on the response body to consume all chunks and trigger trailer parsing. If you try to access resp.Trailer before reading the body, you will get an empty map.
+</p>
+
+<h2>Running the Complete Example</h2>
+
+<p class="site-block-paragraph">
+Save the server code to server.go and the client code to client.go. Run them:
+</p>
+
+<pre><code class="language-bash"># Terminal 1
+go run server.go
+
+# Terminal 2
+go run client.go</code></pre>
+
+<p class="site-block-paragraph">
+You will see the client read the body, then verify the trailer digest matches. The chunked encoding and trailers happen transparently over the wire.
+</p>
+
+<h2>Wire Format Inspection with nc</h2>
+
+<p class="site-block-paragraph">
+To see the actual chunked format and trailers on the wire, use netcat to make a raw request:
+</p>
+
+<pre><code class="language-bash">(echo -e 'GET /stream HTTP/1.1\r\nHost: localhost:8080\r\nConnection: close\r\n\r\n'; sleep 1) | nc localhost 8080</code></pre>
+
+<p class="site-block-paragraph">
+This outputs the raw HTTP response, including the chunked chunks and the trailer headers. You will see something like:
+</p>
+
+<pre><code class="language-bash">HTTP/1.1 200 OK
+Content-Type: text/plain
+Trailer: Digest
+Transfer-Encoding: chunked
+
+14
+First chunk of data
+15
+Second chunk of data
+15
+Third chunk of data
+15
+Fourth chunk of data
+0
+Digest: SHA-256=abc123...
+</code></pre>
+
+<p class="site-block-paragraph">
+The hex values (14, 15) are chunk sizes. The 0 marks the end. Then the trailer Digest header appears before the final CRLF.
+</p>
+
+<h2>Trailer Headers vs. Other Approaches</h2>
+
+<table border="1" cellpadding="10" cellspacing="0" style="width:100%; border-collapse:collapse;">
+<tr>
+<th>Approach</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>When to Use</th>
+</tr>
+<tr>
+<td>Trailer Headers</td>
+<td>Metadata after body; works with streaming; keeps HTTP semantic intact</td>
+<td>Requires chunked encoding; some proxies strip trailers; client must read full body first</td>
+<td>Digest, signatures, post-body errors on streaming responses</td>
+</tr>
+<tr>
+<td>Content-Length with upfront headers</td>
+<td>All metadata known upfront; simpler; universal proxy support</td>
+<td>Must compute metadata before sending body; no streaming metadata</td>
+<td>Static files, pre-computed responses</td>
+</tr>
+<tr>
+<td>Query param or separate endpoint</td>
+<td>Works everywhere; no encoding constraints</td>
+<td>Extra request; metadata not tied to specific response; coupling issues</td>
+<td>Polling for async status, optional metadata</td>
+</tr>
+<tr>
+<td>Chunked body with metadata in footer chunk</td>
+<td>Streaming; custom format</td>
+<td>Not standard HTTP; requires client parsing logic; breaks caching</td>
+<td>Non-HTTP protocols; custom streaming formats</td>
+</tr>
+</table>
+
+<h2>Critical Gotchas and Real-World Issues</h2>
+
+<p class="site-block-paragraph">
+The most common gotcha: you send trailers, but the client never sees them because an intermediary proxy stripped them. The HTTP/1.1 spec allows proxies to remove trailers, especially if they are not declared in the Trailer header. Always declare expected trailers upfront, and do not assume every trailer will reach the client.
+</p>
+
+<p class="site-block-paragraph">
+Second gotcha: if you forget to set Transfer-Encoding: chunked, the server may send trailers but they will be ignored or misinterpreted as the start of a new request. Go's http.ResponseWriter handles this automatically if you use SetTrailer() early enough, but other frameworks may not.
+</p>
+
+<p class="site-block-paragraph">
+Third gotcha: some load balancers and CDNs (Cloudflare, AWS ALB, Nginx without specific config) do not forward trailers to clients. If you rely on trailers for security (e.g., a signature), you must test with your actual deployment infrastructure.
+</p>
+
+<p class="site-block-paragraph">
+Fourth gotcha: the Trailer header value should list which trailers you will send. If you declare "Trailer: Digest" but then send "Trailer: X-Custom", some strict clients will ignore the second one. Keep the declaration accurate.
+</p>
+
+<h2>Go http.ResponseWriter and SetTrailer</h2>
+
+<p class="site-block-paragraph">
+Go provides http.ResponseWriter.SetTrailer() to register which trailers you plan to send. Here is a more explicit version:
+</p>
+
+<pre><code class="language-go">package main
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func streamWithExplicitTrailer(w http.ResponseWriter, r *http.Request) {
+	// Register trailers before writing any body
+	w.Header().Set("Trailer", "Digest, X-Error-Count")
+
+	// Explicit call to SetTrailer (optional in Go, but explicit is better)
+	w.Header().Add("Trailer", "Digest")
+	w.Header().Add("Trailer", "X-Error-Count")
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+
+	hasher := sha256.New()
+	mw := io.MultiWriter(w, hasher)
+
+	data := "Streaming data here"
+	io.WriteString(mw, data)
+
+	// Now set trailers
+	w.Header().Set("Digest", fmt.Sprintf("sha256=%x", hasher.Sum(nil)))
+	w.Header().Set("X-Error-Count", "0")
+}
+
+func main() {
+	http.HandleFunc("/explicit", streamWithExplicitTrailer)
+	http.ListenAndServe(":8080", nil)
+}
+</code></pre>
+
+<h2>Trailers in HTTP/2 and HTTP/3</h2>
+
+<p class="site-block-paragraph">
+HTTP/2 and HTTP/3 do not use chunked encoding in the same way, but they still support trailers through their frame-based protocols. In HTTP/2, trailers are sent as a HEADERS frame after the DATA frames. In HTTP/3, they are in a HEADERS frame after the final DATA frame. The semantics are the same: metadata after the body. Go's http.ResponseWriter abstracts this, so the same trailer code works across HTTP/1.1, HTTP/2, and HTTP/3 if the server supports all versions.
+</p>
+
+<h2>Performance Implications</h2>
+
+<p class="site-block-paragraph">
+Trailers add minimal overhead if you are already streaming. The memory cost is negligible (a few header values). The latency impact is zero: the client does not see trailers until the body is complete anyway. However, trailers can delay the final ACK in some TCP scenarios because the server must hold the connection open until trailers are sent. For tiny trailers (a digest or count), this is irrelevant. For large metadata, consider whether you should send it upfront instead.
+</p>
+
+<h2>Security Considerations</h2>
+
+<p class="site-block-paragraph">
+If you are using trailers for cryptographic signatures, ensure the signature is computed over the entire body. Computing a signature only over the first N bytes and sending it as a trailer defeats the purpose. Use a streaming hash algorithm (like sha256.Hash in Go) to accumulate all bytes as they are written, then sign the final digest in the trailer.
+</p>
+
+<p class="site-block-paragraph">
+Be aware that intermediaries may strip trailers, so do not rely on trailers as your only authentication or integrity mechanism if data must pass through untrusted proxies. Use a combination: send a preliminary digest in a regular header (if possible) and confirm it with a trailer signature. Or use TLS to prevent stripping.
+</p>
+
+<h2>Common Mistakes</h2>
+
+<p class="site-block-paragraph">
+Mistake 1: Setting trailers before reading the body on the client side. Trailers only populate after the body is consumed. Always call io.ReadAll or equivalent first.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 2: Forgetting the Trailer header declaration. Declaring "Trailer: Digest" tells the client and intermediaries what trailers to expect. Without it, proxies may strip them.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 3: Sending trailers without chunked encoding. The chunked format is mandatory for trailers in HTTP/1.1. If you set Content-Length instead, trailers are invalid and will be ignored.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 4: Assuming all proxy layers support trailers. They do not. Test through your CDN and load balancer before relying on trailers in production.
+</p>
+
+<p class="site-block-paragraph">
+Mistake 5: Sending a large volume of trailer data. Trailers should be small (checksums, counts, brief status). If you have megabytes of metadata, include it in the body, not trailers.
+</p>
+
+<h2>Relationship to Chunked Transfer Encoding</h2>
+
+<p class="site-block-paragraph">
+Trailers are an extension of chunked transfer encoding. For more details on the chunked encoding itself, including how to decode chunks manually and handle chunk extensions, see the guide on <a href="/handlingHttpRequest/http-chunked-transfer-encoding-example.html">HTTP chunked transfer encoding</a>. Trailers sit at the end of the chunk sequence, after the zero-length terminating chunk.
+</p>
+
+<h2>FAQ</h2>
+
+<h3>Do trailers work in HTTP/1.0?</h3>
+<p>No. HTTP/1.0 does not support chunked encoding or trailers. HTTP/1.1 made them optional, and HTTP/2 and HTTP/3 support them natively (though with different framing).</p>
+
+<h3>Can I send trailers without chunked encoding?</h3>
+<p>No. The HTTP/1.1 specification ties trailers to chunked transfer encoding. Without chunks, there is no defined end-of-body boundary, so trailers are invalid.</p>
+
+<h3>What happens if a proxy strips my trailers?</h3>
+<p>The client will not see them. If trailers are critical to your application, you must either use a direct connection (no proxies), verify support with your infrastructure team, or use an alternative mechanism (regular headers, separate request).</p>
+
+<h3>Can I send trailers conditionally?</h3>
+<p>Yes. Declare "Trailer: Digest" in the response header, but only actually set w.Header().Set("Digest", ...) if the condition is met. If the trailer is missing, clients that see the Trailer declaration will not expect it. Be consistent and explicit.</p>
+
+<h3>How large can a trailer be?</h3>
+<p>There is no hard limit in the spec, but typical web servers and clients have limits around 8 KB for all headers combined (regular plus trailers). Keep trailers small: a digest, a count, a brief status code.</p>
+
+<h3>Can I use trailers for error messages from a streaming endpoint?</h3>
+<p>Yes. This is a common use case. If an error occurs partway through streaming, you can send trailers like "X-Stream-Error: Database connection lost". The client reads the partial body and the trailer, and understands that the stream was incomplete.</p>
+
+<h3>Do trailers work with gzip compression?</h3>
+<p>Yes, but carefully. The trailers should be sent after decompression on the client side, so a gzip-compressed stream still ends with trailers. However, if you are computing a digest of the compressed bytes, declare that in a trailer (e.g., "X-Gzip-Digest"). Digest of the original uncompressed data should go in a regular header before compression, not in a trailer.</p>
+
+<h3>How do I debug trailers?</h3>
+<p>Use curl with -v flag: "curl -v http://localhost:8080/stream". Curl will print trailers if they are present. For raw inspection, use netcat as shown above. In Go, enable httputil.DumpResponse or log resp.Trailer after reading the body.</p>
+</div>
+<section class="cb-related" aria-label="Further reading"><h2>Continue reading</h2><ul><li><a href="/handlingHttpRequest/http-chunked-transfer-encoding-example.html">HTTP Chunk Encoding and Transfer-Encoding: chunked in Practice</a></li><li><a href="/category/http/">Http</a></li></ul><p><a href="/category/http/">More in HTTP Requests and Authentication</a> . <a href="/articles.html">Browse all programming articles</a></p></section>
+</main>
+<footer class="cb-footer"><nav aria-label="Footer"><a href="/articles.html">All articles</a><a href="/about.html">About the author</a><a href="/my-service.html">Services</a><a href="/contact-me.html">Contact</a><a href="/privacy-policy.html">Privacy</a><a href="/accessibility-statement.html">Accessibility</a></nav><p>Code Beneath . Programming beneath the frameworks.</p></footer>
+</div>
+<script src="/assets/js/static-navigation.js" defer></script>
+<script src="/assets/vendor/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
